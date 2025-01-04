@@ -27,11 +27,11 @@ void D6fPh::update() {
     // Page 21 Do not read or write to the Device while the MCU is executing. It would be
     // safe to read/write only after 33ms.
     this->set_timeout(33, [this]() {
-      if(this->temperature_sensor_ !== nullptr) {
+      if(this->temperature_sensor_ != nullptr) {
         float temperature = this->get_temperature_();
         this->temperature_sensor_->publish_state(temperature);
       }
-      if(this->pressure_sensor_ !== nullptr) {
+      if(this->pressure_sensor_ != nullptr) {
         float pressure = this->get_pressure_();
         this->pressure_sensor_->publish_state(pressure);
       }
@@ -42,10 +42,10 @@ void D6fPh::update() {
 void D6fPh::dump_config() {
   ESP_LOGCONFIG(TAG, "D6F-PH:");
   LOG_I2C_DEVICE(this);
-  if(this->temperature_sensor_ !== nullptr) {
+  if(this->temperature_sensor_ != nullptr) {
     ESP_LOGCONFIG(TAG, "  Temperature Sensor: %s", this->temperature_sensor_->get_name().c_str());
   }
-  if(this->pressure_sensor_ !== nullptr) {
+  if(this->pressure_sensor_ != nullptr) {
     ESP_LOGCONFIG(TAG, "  Pressure Sensor: %s", this->pressure_sensor_->get_name().c_str());
   }
 }
@@ -55,7 +55,7 @@ bool D6fPh::initialize_() {
 }
 
 bool D6fPh::execute_mcu_mode_() {
-  return this->d6f_ph_write_8_(InternalRegister::SENS_CTRL, SerialControlRegister::DV_PWR_MCU_ON | SerialControlRegister::MS_START);
+  return this->d6f_ph_write_8_(InternalRegister::SENS_CTRL, SensorControlRegister::DV_PWR_MCU_ON | SensorControlRegister::MS_START);
 }
 
 float D6fPh::get_temperature_() {
@@ -88,8 +88,8 @@ float D6fPh::get_pressure_() {
 
 bool D6fPh::d6f_ph_write_8_(uint16_t reg, uint8_t data) {
   const uint8_t d6f_ph_data[] = {
-    (reg >> 8) & 0xff,
-    reg & 0xff,
+    (uint8_t)((reg >> 8) & 0xff),
+    (uint8_t)(reg & 0xff),
     SerialControlRegister::D_BYTE_CNT_1 | SerialControlRegister::REQ_NEW,
     data,
   };
@@ -98,8 +98,8 @@ bool D6fPh::d6f_ph_write_8_(uint16_t reg, uint8_t data) {
 
 bool D6fPh::d6f_ph_read_16_(uint16_t reg, uint16_t *data) {
   const uint8_t d6f_ph_data[] = {
-    (reg >> 8) & 0xff,
-    reg & 0xff,
+    (uint8_t)((reg >> 8) & 0xff),
+    (uint8_t)(reg & 0xff),
     SerialControlRegister::D_BYTE_CNT_2 | SerialControlRegister::REQ_NEW | SerialControlRegister::R_WZ_READ,
   };
 
@@ -107,7 +107,7 @@ bool D6fPh::d6f_ph_read_16_(uint16_t reg, uint16_t *data) {
     return false;
   }
 
-  return this->read_byte_16(InterfaceConfigurationRegister::READ_BUFFER_0, value);
+  return this->read_byte_16(InterfaceConfigurationRegister::READ_BUFFER_0, data);
 }
 
 } // namespace d6f_ph

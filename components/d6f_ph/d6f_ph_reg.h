@@ -86,7 +86,7 @@ enum SerialControlRegister : uint8_t {
 };
 
 // Page 13 Table10. SENS_CTRL (D040h)
-enum SerialControlRegister : uint8_t {
+enum SensorControlRegister : uint8_t {
   // Bit 0-1 DV_PWR[1:0] Main Device power mode setting
   DV_PWR_STANDBY = 0, // 0 0 Standby All blocks are powered down.
   DV_PWR_MCU_ON  = 1 << 1, // 1 0 MCU On Used when only MCU is required. Basic analog and memories are powered on and MCU clock is running.

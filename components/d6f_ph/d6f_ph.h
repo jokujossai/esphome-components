@@ -37,7 +37,7 @@ class D6fPh : public PollingComponent, public i2c::I2CDevice {
 
   bool d6f_ph_write_8_(uint16_t reg, uint8_t data);
   bool d6f_ph_read_16_(uint16_t reg, uint16_t *data);
-}
+};
 
 } // namespace d6f_ph
 } // namespace esphome
