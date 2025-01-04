@@ -15,6 +15,8 @@ void IRAM_ATTR HOT ADE7880Store::irq0_int(ADE7880Store *store) {
 }
 
 void ADE7880::setup() {
+  this->reset_watchdog_();
+
   this->irq0_pin_->setup();
   this->irq0_pin_->attach_interrupt(ADE7880Store::irq0_int, &this->store_, gpio::INTERRUPT_FALLING_EDGE);
   this->store_.irq0_state = 0;
@@ -35,6 +37,7 @@ void ADE7880::loop() {
     if(this->store_.irq0_state > 1) {
       ESP_LOGW(TAG, "IRQ0 state overflow");
     }
+    // Reset IRQ0 counter to detect interrupt overflow
     this->store_.irq0_state = 0;
 
     int32_t val;
@@ -42,12 +45,12 @@ void ADE7880::loop() {
     if(err != i2c::ERROR_OK) {
       ESP_LOGE(TAG, "Failed to read STATUS0 register");
     }
-    if(!(val & (1 << 5))) {
+    if(!(val & STATUS0_LENERGY)) {
       ESP_LOGE(TAG, "Unexpected ISR0 0x%08X", val);
+      return;
     }
 
-    // TODO: magic number to constant
-    this->ade_write_verify_(ADE7880_STATUS0, 0x20);
+    this->ade_write_verify_(ADE7880_STATUS0, STATUS0_LENERGY);
     this->ade_read_verify_(ADE7880_STATUS0, (uint32_t*)&val);
 
     // Allow calibration stabilization
@@ -56,6 +59,23 @@ void ADE7880::loop() {
       return;
     }
 
+    // Update active energy delta values
+    // f_s = 1.024 MHz
+    // multiplier = 16
+    // WTHR = 3
+    // scale = 2^7
+    // t = 1 s
+    // (f_s * multiplier * xWATT) / (WTHR * scale) = xWATTHR
+    // xWATT = xWATTHR  * (WTHR * scale) / (f_s * multiplier)
+    // xWATT = xWATTHR * (3 * 2^27) / (1024000 * 16)
+    // xWATT = xWATTHR * 402653184 / 16384000
+    // xWATT = xWATTHR * 24576 / 1000 = xWATTHR * 24576 * 10^-3
+    // duwh = xWATT(10^2 W) * t(s) * 10^4(duWh) / 1(Wh)
+    // duwh = xWATT / 10^2(W) * t(s) / 3600(s/h) * 10^4(duWh) / 1(Wh)
+    // duwh = xWATT * 10^-2(W) * 1(s) / 3600(s/h) * 10^4(duWh) / 1(Wh)
+    // duwh = xWATT * 10^2 / 3600 duWh = xWATT * 10 / 36 duWh
+    // duwh = xWATTHR * 24576 * 10^-3 * 10 / 36
+    // duwh = xWATTHR * 24576 / 3600
     int32_t duwh_val;
     bool read_error = false;
 
@@ -133,20 +153,19 @@ void ADE7880::loop() {
 
     if(!read_error) {
       // Reset watchdog
-      this->store_.watchdog = 0;
+      this->reset_watchdog_();
+      return;
     }
+  }
+
+  if(millis() > this->watchdog_) {
+    ESP_LOGE(TAG, "Watchdog triggered");
+    this->setup_state_ = 0;
+    this->ade_setup_();
   }
 }
 
 void ADE7880::update() {
-  // TODO: configurable count and default value based on update interval
-  if(this->store_.watchdog++ > 3) {
-    ESP_LOGE(TAG, "Watchdog triggered");
-    this->setup_state_ = 0;
-    this->ade_setup_();
-    return;
-  }
-
   if(!(this->setup_state_ & INIT_DONE)) {
     // Skip if not initialized
     return;
@@ -302,6 +321,7 @@ void ADE7880::ade_setup_() {
       this->setup_state_ |= RESET_DONE;
     }
     this->setup_state_ |= RESET_BEGIN;
+    this->reset_watchdog_();
     this->set_timeout("ade_setup", 1000, [this]() {
       this->ade_setup_();
     });
@@ -313,6 +333,7 @@ void ADE7880::ade_setup_() {
       this->reset_pin_->pin_mode(gpio::FLAG_INPUT);
     }
     this->setup_state_ |= RESET_DONE;
+    this->reset_watchdog_();
     this->set_timeout("ade_setup", 1000, [this]() {
       this->ade_setup_();
     });
@@ -325,16 +346,22 @@ void ADE7880::ade_setup_() {
     }
     if(ade_init_()) {
       ESP_LOGI(TAG, "Initialization done");
-      this->store_.watchdog = 0;
+      this->reset_watchdog_();
       this->store_.skip_cycles = 2;
+      this->failure_counter_ = 0;
     }
     else {
       ESP_LOGE(TAG, "Initialization failed");
+      if(++this->failure_counter_ >= this->failure_threshold_) {
+        ESP_LOGE(TAG, "Too many failures");
+        this->mark_failed();
+        this->setup_state_ = 0;
+        return;
+      }
     }
 
-    // Mark init done to reset with watchdog
-    // TODO: Counter to mark component failed
-    setup_state_ |= INIT_DONE;
+    // Mark init done
+    this->setup_state_ |= INIT_DONE;
   }
 }
 
@@ -344,20 +371,20 @@ bool ADE7880::ade_init_() {
   int32_t ret = 0;
 
   this->ade_read_verify_(ADE7880_STATUS1, (uint32_t*)&ret);
-  if(ret & 0x8000) {
+  if(ret & STATUS1_RSTDONE) {
     // Power on reset
-    // TODO: magic number to constant
-    this->ade_write_verify_(ADE7880_CONFIG2, 0x02);
-    // TODO: magic number to constant
-    this->ade_write_verify_(ADE7880_STATUS1, 0x3FFE8930);
+    this->ade_write_verify_(ADE7880_CONFIG2, CONFIG2_I2C_LOCK);
+    this->ade_write_verify_(ADE7880_STATUS1, 0xFFFFFFFF);
     this->ade_read_verify_(ADE7880_STATUS1, (uint32_t*)&ret);
   }
 
   this->ade_read_verify_(ADE7880_Version, (uint32_t*)&ret);
   this->ade_write_verify_(ADE7880_Gain, 0x0000);
   if(this->frequency_ > 55) {
-    // TODO: magic number to constant
-    this->ade_write_verify_(ADE7880_COMPMODE, 0x41FF);
+    this->ade_write_verify_(ADE7880_COMPMODE, COMPMODE_TERMSEL1 | COMPMODE_TERMSEL2 | COMPMODE_TERMSEL3 | COMPMODE_SELFREQ);
+  }
+  else {
+    this->ade_write_verify_(ADE7880_COMPMODE, COMPMODE_TERMSEL1 | COMPMODE_TERMSEL2 | COMPMODE_TERMSEL3);
   }
 
   if(this->channel_a_ != nullptr) {
@@ -466,28 +493,31 @@ bool ADE7880::ade_init_() {
   }
 
   // TODO: magic number to constant
-  if(this->ade_write_verify_(ADE7880_LCYCMODE, 0x09) != i2c::ERROR_OK) {
+  if(this->ade_write_verify_(ADE7880_LCYCMODE, LCYCMODE_LWATT | LCYCMODE_ZXSEL_0) != i2c::ERROR_OK) {
     ESP_LOGE(TAG, "Failed to write ADE7880_LCYCMODE");
     return false;
   }
 
+  // 1 second update rate -> 2*frequency half cycles
   if(this->ade_write_verify_(ADE7880_LINECYC, this->frequency_ * 2)  != i2c::ERROR_OK) {
     ESP_LOGE(TAG, "Failed to write ADE7880_LINECYC");
     return false;
   }
 
   // TODO: magic number to constant
-  this->ade_write_verify_(ADE7880_MASK0, 0x20);
+  this->ade_write_verify_(ADE7880_MASK0, MASK0_LENERGY);
   if(this->ade_verify_write_(ADE7880_MASK0)  != i2c::ERROR_OK) {
     ESP_LOGE(TAG, "Failed to write MASK0 register");
     return false;
   }
 
   // TODO: magic number to constant
-  this->ade_write_(ADE7880_MASK0, 0x20);
+  this->ade_write_(ADE7880_MASK0, MASK0_LENERGY);
+  // Enable write protection (see page 40)
   this->ade_write_(ADE7880_DSPWP_SEL, 0xad);
   this->ade_write_(ADE7880_DSPWP_SET, 0x80);
-  this->ade_write_verify_(ADE7880_Run, 0x201);
+  // Start DSP
+  this->ade_write_verify_(ADE7880_Run, 0x0001);
 
   return true;
 }
@@ -512,6 +542,10 @@ void ADE7880::publish_sensor(sensor::Sensor *sensor, uint16_t reg, float factor)
     fval = 1/(fval * factor);
   }
   sensor->publish_state(fval);
+}
+
+void ADE7880::reset_watchdog_() {
+  this->watchdog_ = millis() + this->watchdog_threshold_;
 }
 
 

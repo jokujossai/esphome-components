@@ -62,7 +62,6 @@ struct PowerChannel {
 struct ADE7880Store {
   uint8_t irq0_state{0};
   uint8_t skip_cycles{2};
-  uint8_t watchdog{0};
 
   static void irq0_int(ADE7880Store *store);
 };
@@ -79,6 +78,8 @@ class ADE7880 : public i2c::I2CDevice, public PollingComponent {
   void set_irq1_pin(InternalGPIOPin *irq1_pin) { this->irq1_pin_ = irq1_pin; }
   void set_reset_pin(InternalGPIOPin *reset_pin) { this->reset_pin_ = reset_pin; }
   void set_frequency(float frequency) { this->frequency_ = frequency; }
+  void set_watchdog_threshold(uint16_t watchdog_threshold) { this->watchdog_threshold_ = watchdog_threshold; }
+  void set_failure_threshold(uint8_t failure_threshold) { this->failure_threshold_ = failure_threshold; }
   void set_channel_n(NeutralChannel *channel_n) { this->channel_n_ = channel_n; }
   void set_channel_a(PowerChannel *channel_a) { this->channel_a_ = channel_a; }
   void set_channel_b(PowerChannel *channel_b) { this->channel_b_ = channel_b; }
@@ -106,6 +107,10 @@ class ADE7880 : public i2c::I2CDevice, public PollingComponent {
   PowerChannel *channel_c_{nullptr};
 
   uint8_t setup_state_{0};
+  uint32_t watchdog_{0};
+  uint16_t watchdog_threshold_{5000};
+  uint8_t failure_counter_{0};
+  uint8_t failure_threshold_{5};
 
   i2c::ErrorCode ade_write_(uint16_t reg, uint32_t val);
   i2c::ErrorCode ade_verify_last_(uint8_t op, uint16_t reg);
@@ -121,6 +126,8 @@ class ADE7880 : public i2c::I2CDevice, public PollingComponent {
   bool ade_init_();
 
   void publish_sensor(sensor::Sensor *sensor, uint16_t reg, float factor = 1.0f);
+
+  void reset_watchdog_();
 };
 
 } // namespace ade7880

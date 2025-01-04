@@ -21,6 +21,7 @@ from esphome.const import (
     CONF_REVERSE_ACTIVE_ENERGY,
     CONF_VOLTAGE,
     CONF_VOLTAGE_GAIN,
+    CONF_WATCHDOG_THRESHOLD,
     DEVICE_CLASS_APPARENT_POWER,
     DEVICE_CLASS_CURRENT,
     DEVICE_CLASS_ENERGY,
@@ -51,6 +52,7 @@ CONF_IRQ0_PIN = "irq0_pin"
 CONF_IRQ1_PIN = "irq1_pin"
 CONF_POWER_GAIN = "power_gain"
 CONF_TOTAL_POWER_GAIN = "total_power_gain"
+CONF_FAILURE_THRESHOLD = "failure_threshold"
 
 CONF_NEUTRAL = "neutral"
 
@@ -183,6 +185,8 @@ CONFIG_SCHEMA = (
             cv.Required(CONF_IRQ0_PIN): pins.internal_gpio_input_pin_schema,
             cv.Required(CONF_IRQ1_PIN): pins.internal_gpio_input_pin_schema,
             cv.Optional(CONF_RESET_PIN): pins.internal_gpio_output_pin_schema,
+            cv.Optional(CONF_WATCHDOG_THRESHOLD, default="5s"): cv.positive_time_period_milliseconds,
+            cv.Optional(CONF_FAILURE_THRESHOLD, default=5): cv.int_range(min=1, max=255),
             cv.Optional(CONF_PHASE_A): POWER_CHANNEL_SCHEMA,
             cv.Optional(CONF_PHASE_B): POWER_CHANNEL_SCHEMA,
             cv.Optional(CONF_PHASE_C): POWER_CHANNEL_SCHEMA,
@@ -300,6 +304,9 @@ async def to_code(config):
 
     frequency = config[CONF_FREQUENCY]
     cg.add(var.set_frequency(frequency))
+
+    cg.add(var.set_watchdog_threshold(config[CONF_WATCHDOG_THRESHOLD]))
+    cg.add(var.set_failure_threshold(config[CONF_FAILURE_THRESHOLD]))
 
     for channel_name in (CONF_PHASE_A, CONF_PHASE_B, CONF_PHASE_C):
         if channel := config.get(channel_name):
