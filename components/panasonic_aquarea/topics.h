@@ -1,15 +1,9 @@
 #pragma once
 
-#include "esphome/components/uart/uart.h"
-
-#include "panasonic_aquarea.h"
-
-#include <vector>
+#include <cstdint>
 
 namespace esphome {
 namespace panasonic_aquarea {
-
-class PanasonicAquareaComponent;
 
 #define MAIN_TOPICS_START 0
 #define MAIN_TO_OPT_TOPICS_START 10000
@@ -194,46 +188,6 @@ enum PanasonicAquareaTopic : uint16_t {
   OptZ2WaterTemp = 11012,
   OptZ1WaterTemp = 11013,
   OptToMainTopicsCount,
-};
-
-class PanasonicAquareaDecoderBase {
-public:
-  virtual bool supports(const uint8_t *data, uint8_t length) const = 0;
-  virtual bool decode(const uint8_t *data, uint8_t length) = 0;
-
-  static bool check_crc(const uint8_t *data, uint8_t length);
-};
-
-class PanasonicAquareaEncoderBase {
-public:
-  void set_parent(uart::UARTDevice *parent) { parent_ = parent; }
-  uint8_t calculate_crc(const uint8_t *data, uint8_t length) const;
-
-  virtual bool should_send() const = 0;
-  virtual void send() = 0;
-
-#ifdef USE_SWITCH
-  virtual void set(PanasonicAquareaTopic topic, bool state) = 0;
-#endif
-
-protected:
-  uart::UARTDevice *parent_;
-};
-
-
-class PanasonicAquareaChild {
-public:
-  void set_parent(PanasonicAquareaComponent *parent) { parent_ = parent; }
-  void set_decoder(PanasonicAquareaDecoderBase *decoder) { decoder_ = decoder; }
-  void set_encoder(PanasonicAquareaEncoderBase *encoder) { encoder_ = encoder; }
-  void set_topic(PanasonicAquareaTopic topic) { topic_ = topic; }
-  PanasonicAquareaTopic get_topic() const { return topic_; }
-
-protected:
-  PanasonicAquareaTopic topic_;
-  PanasonicAquareaComponent *parent_{nullptr};
-  PanasonicAquareaDecoderBase *decoder_{nullptr};
-  PanasonicAquareaEncoderBase *encoder_{nullptr};
 };
 
 } // namespace panasonic_aquarea

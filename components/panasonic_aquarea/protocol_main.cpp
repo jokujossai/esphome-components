@@ -1,15 +1,15 @@
-#include "panasonic_aquarea_decoder.h"
+#include "protocol_main.h"
 
 namespace esphome {
 namespace panasonic_aquarea {
 
-static const char *const TAG = "panasonic_aquarea.decoder";
+static const char *const TAG = "panasonic_aquarea.decoder_main";
 
-bool PanasonicAquareaMainDecoder::supports(const uint8_t *data, uint8_t length) const {
+bool PanasonicAquareaDecoderMain::supports(const uint8_t *data, uint8_t length) const {
   return length == DATASIZE && data[0] == 0x71;
 }
 
-bool PanasonicAquareaMainDecoder::decode(const uint8_t *data, uint8_t length) {
+bool PanasonicAquareaDecoderMain::decode(const uint8_t *data, uint8_t length) {
   ESP_LOGD(TAG, "Decoding with main decoder");
   float sensor_value;
 
@@ -55,7 +55,7 @@ bool PanasonicAquareaMainDecoder::decode(const uint8_t *data, uint8_t length) {
 }
 
 #ifdef USE_SENSOR
-optional<float> PanasonicAquareaMainDecoder::sensor_value(PanasonicAquareaTopic topic, const uint8_t *data, uint8_t length) {
+optional<float> PanasonicAquareaDecoderMain::sensor_value(PanasonicAquareaTopic topic, const uint8_t *data, uint8_t length) {
   switch(topic) {
     case PumpFlow:
       return (float)data[170] + ((float)data[169] - 1) / 256;
@@ -66,7 +66,7 @@ optional<float> PanasonicAquareaMainDecoder::sensor_value(PanasonicAquareaTopic 
 #endif
 
 #if defined(USE_BINARY_SENSOR) || defined(USE_SWITCH)
-optional<bool> PanasonicAquareaMainDecoder::binary_sensor_value(PanasonicAquareaTopic topic, const uint8_t *data, uint8_t length) {
+optional<bool> PanasonicAquareaDecoderMain::binary_sensor_value(PanasonicAquareaTopic topic, const uint8_t *data, uint8_t length) {
   switch(topic) {
     case HeatpumpState:
       switch(data[4] & 0b11) {

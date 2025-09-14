@@ -1,4 +1,4 @@
-#include "panasonic_aquarea_base.h"
+#include "protocol_base.h"
 
 namespace esphome {
 namespace panasonic_aquarea {

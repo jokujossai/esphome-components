@@ -1,6 +1,6 @@
 #pragma once
 
-#include "panasonic_aquarea_base.h"
+#include "protocol_base.h"
 
 #ifdef USE_SENSOR
 #include "sensor/panasonic_aquarea_sensor.h"
@@ -61,21 +61,6 @@ protected:
 #endif
 };
 
-class PanasonicAquareaMainDecoder : public PanasonicAquareaDecoder {
-public:
-  static constexpr uint8_t DATASIZE = 203;
-
-  bool supports(const uint8_t *data, uint8_t length) const override;
-  bool decode(const uint8_t *data, uint8_t length) override;
-
-private:
-#ifdef USE_SENSOR
-  optional<float> sensor_value(PanasonicAquareaTopic topic, const uint8_t *data, uint8_t length);
-#endif
-#if defined(USE_BINARY_SENSOR) || defined(USE_SWITCH)
-  optional<bool> binary_sensor_value(PanasonicAquareaTopic topic, const uint8_t *data, uint8_t length);
-#endif
-};
 
 } // namespace panasonic_aquarea
 } // namespace esphome

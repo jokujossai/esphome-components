@@ -24,8 +24,8 @@ PanasonicAquareaComponent = panasonic_aquarea_ns.class_(
 )
 
 PanasonicAquareaDecoder = panasonic_aquarea_ns.class_("PanasonicAquareaDecoder")
-PanasonicAquareaMainDecoder = panasonic_aquarea_ns.class_(
-  "PanasonicAquareaMainDecoder", PanasonicAquareaDecoder
+PanasonicAquareaDecoderMain = panasonic_aquarea_ns.class_(
+  "PanasonicAquareaDecoderMain", PanasonicAquareaDecoder
 )
 
 PanasonicAquareaTopic = panasonic_aquarea_ns.enum("PanasonicAquareaTopic")
@@ -75,7 +75,7 @@ def get_decoder(id, name):
     raise cv.Invalid(f"Decoder {name} not found")
   raise cv.Invalid(f"Component {id.id} not found")
 
-@register_decoder("main", PanasonicAquareaMainDecoder)
+@register_decoder("main", PanasonicAquareaDecoderMain)
 def main_decoder(var, config):
   pass
 

@@ -3,7 +3,7 @@
 #include "esphome/core/component.h"
 #include "esphome/components/uart/uart.h"
 
-#include "panasonic_aquarea_base.h"
+#include "protocol_base.h"
 
 #define AQUAREA_RX_BUFFER_SIZE 255
 #if AQUAREA_RX_BUFFER_SIZE > 255

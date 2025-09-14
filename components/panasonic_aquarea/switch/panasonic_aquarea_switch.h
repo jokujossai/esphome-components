@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../panasonic_aquarea_base.h"
+#include "../base.h"
 
 #include "esphome/components/switch/switch.h"
 
