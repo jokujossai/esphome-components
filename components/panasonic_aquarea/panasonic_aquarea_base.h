@@ -158,6 +158,15 @@ enum PanasonicAquareaTopic : uint16_t {
   BivalentAdvancedDHWDelay = 138,
   MainTopicsCount,
 
+  // Extra topics for newer models
+  ExtraHeatPowerConsumption = 9000,
+  ExtraCoolPowerConsumption = 9001,
+  ExtraDHWPowerConsumption = 9002,
+  ExtraHeatPowerProduction = 9003,
+  ExtraCoolPowerProduction = 9004,
+  ExtraDHWPowerProduction = 9005,
+  ExtraTopicsCount,
+
   // Optional PCB topics
   // From HP to Optional PCB
   Z1WaterPump = 10000,
