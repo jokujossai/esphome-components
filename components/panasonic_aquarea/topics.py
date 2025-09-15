@@ -30,7 +30,7 @@ def get_topic(name):
 
     name_underline = name.replace(" ", "_")
     for topic in TOPICS:
-      if topic["name"] == name or topic["name"] == name_underline:
+      if topic.name == name or topic.name == name_underline:
         return topic
     raise cv.Invalid(f"Topic {name} is not a valid topic")
   else:
