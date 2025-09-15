@@ -11,7 +11,13 @@ from esphome.const import (
 from esphome.core import coroutine
 from esphome.util import Registry
 
-from .topics import get_topic, generate_topic_mapping, TYPE_SENSOR
+from .topics import (
+  get_topic,
+  generate_topic_mapping,
+  TYPE_BINARY_SENSOR,
+  TYPE_SENSOR,
+  TYPE_SWITCH,
+)
 
 CONF_LISTEN_ONLY = "listen_only"
 CONF_DECODERS= "decoders"
@@ -105,7 +111,11 @@ def validate_topic(type):
 
     # TODO: switch -> binary_sensor is allowed
     if topic.type != type:
-      raise cv.Invalid(f"Topic {topic.name} is not a {type} topic")
+      if type == TYPE_BINARY_SENSOR and topic.type == TYPE_SWITCH:
+        # Allow switch -> binary_sensor
+        pass
+      else:
+        raise cv.Invalid(f"Topic {topic.name} is not a {type} topic")
 
     if CONF_NAME not in value and CONF_ID not in value:
       value[CONF_NAME] = topic.name
