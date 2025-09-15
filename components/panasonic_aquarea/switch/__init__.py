@@ -8,7 +8,8 @@ from .. import (
   CHILD_SCHEMA_BASE,
   validate_topic,
   CONF_PANASONIC_AQUAREA_ID,
-  get_decoder
+  get_decoder,
+  get_encoder
 )
 
 CONF_TOPIC = "topic"
@@ -34,6 +35,9 @@ async def to_code(config):
   cg.add(var.set_decoder(decoder))
   cg.add(decoder.add_switch(var))
 
-  # TODO: Encoder
+  encoder_id = get_encoder(config[CONF_PANASONIC_AQUAREA_ID], "main")
+  encoder = await cg.get_variable(encoder_id)
+  cg.add(var.set_encoder(encoder))
+  cg.add(encoder.add_switch(var))
 
   return var

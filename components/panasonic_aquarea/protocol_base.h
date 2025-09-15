@@ -8,6 +8,8 @@ namespace panasonic_aquarea {
 
 class PanasonicAquareaDecoderBase {
 public:
+  virtual const std::string &get_topic() const = 0;
+
   virtual bool supports(const uint8_t *data, uint8_t length) const = 0;
   virtual bool decode(const uint8_t *data, uint8_t length) = 0;
 
@@ -16,6 +18,8 @@ public:
 
 class PanasonicAquareaEncoderBase {
 public:
+  virtual const std::string &get_topic() const = 0;
+
   void set_parent(uart::UARTDevice *parent) { parent_ = parent; }
   uint8_t calculate_crc(const uint8_t *data, uint8_t length) const;
 
@@ -26,7 +30,7 @@ public:
   virtual void set(PanasonicAquareaTopic topic, uint8_t index);
 
 protected:
-  uart::UARTDevice *parent_;
+  uart::UARTDevice *parent_{nullptr};
 };
 
 } // namespace panasonic_aquarea

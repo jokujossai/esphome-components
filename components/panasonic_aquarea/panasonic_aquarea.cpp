@@ -65,6 +65,13 @@ void PanasonicAquareaComponent::loop() {
       this->rx_buffer_index_ = 0;
     }
   }
+
+  for(auto encoder : this->encoders_) {
+    if(encoder->should_send()) {
+      ESP_LOGD(TAG, "Sending encoder: %d", encoder->get_topic());
+      encoder->send();
+    }
+  }
 }
 
 void PanasonicAquareaComponent::handle_packet() {
