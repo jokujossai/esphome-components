@@ -22,9 +22,8 @@ public:
   virtual bool should_send() const = 0;
   virtual void send() = 0;
 
-#ifdef USE_SWITCH
-  virtual void set(PanasonicAquareaTopic topic, bool state) = 0;
-#endif
+  virtual void set(PanasonicAquareaTopic topic, bool state);
+  virtual void set(PanasonicAquareaTopic topic, uint8_t index);
 
 protected:
   uart::UARTDevice *parent_;

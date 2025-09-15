@@ -50,6 +50,25 @@ bool PanasonicAquareaDecoderMain::decode(const uint8_t *data, uint8_t length) {
   }
 #endif
 
+#ifdef USE_SELECT
+  for(auto select_ : this->selects_) {
+    ESP_LOGD(TAG, "Decoding select: %d", select_->get_topic());
+    auto value = this->select_value(select_->get_topic(), data, length);
+    if(value.has_value()) {
+      // Convert index to option string and publish
+      auto options = select_->traits.get_options();
+      if(value.value() < options.size()) {
+        select_->publish_state(options[value.value()]);
+      } else {
+        ESP_LOGW(TAG, "Select index %d out of range for topic %d", value.value(), select_->get_topic());
+      }
+    }
+    else {
+      ESP_LOGW(TAG, "No value for select: %d", select_->get_topic());
+    }
+  }
+#endif
+
   return true;
 }
 
@@ -82,6 +101,39 @@ optional<bool> PanasonicAquareaDecoderMain::binary_sensor_value(PanasonicAquarea
           return true;
         case 0b01:
           return false;
+        default:
+          return {};
+      }
+    default:
+      return {};
+  }
+}
+#endif
+
+#ifdef USE_SELECT
+optional<uint8_t> PanasonicAquareaDecoderMain::select_value(PanasonicAquareaTopic topic, const uint8_t *data, uint8_t length) {
+  switch(topic) {
+    case OperationModeState:
+      // Operation mode is stored in bits 3-6 of byte 6
+      switch (data[6] & 0b111111) {
+        case 18:
+          return 0;
+        case 19:
+          return 1;
+        case 25:
+          return 2;
+        case 33:
+          return 3;
+        case 34:
+          return 4;
+        case 35:
+          return 5;
+        case 41:
+          return 6;
+        case 26:
+          return 7;
+        case 42:
+          return 8;
         default:
           return {};
       }

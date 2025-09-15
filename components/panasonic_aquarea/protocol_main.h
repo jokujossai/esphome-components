@@ -20,6 +20,10 @@ public:
   optional<bool> binary_sensor_value(PanasonicAquareaTopic topic, const uint8_t *data, uint8_t length);
 #endif
 
+#ifdef USE_SELECT
+  optional<uint8_t> select_value(PanasonicAquareaTopic topic, const uint8_t *data, uint8_t length);
+#endif
+
 private:
   static const int DATASIZE = 203;
 };

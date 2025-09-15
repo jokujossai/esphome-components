@@ -11,6 +11,9 @@
 #ifdef USE_SWITCH
 #include "switch/panasonic_aquarea_switch.h"
 #endif
+#ifdef USE_SELECT
+#include "select/panasonic_aquarea_select.h"
+#endif
 
 #include <vector>
 
@@ -34,6 +37,11 @@ public:
     switches_.push_back(switch_);
   }
 #endif
+#ifdef USE_SELECT
+  void add_select(PanasonicAquareaSelect *select_) {
+    selects_.push_back(select_);
+  }
+#endif
 
 protected:
 #ifdef USE_SENSOR
@@ -45,6 +53,9 @@ protected:
 #ifdef USE_SWITCH
   std::vector<PanasonicAquareaSwitch *> switches_;
 #endif
+#ifdef USE_SELECT
+  std::vector<PanasonicAquareaSelect *> selects_;
+#endif
 };
 
 class PanasonicAquareaEncoder : public PanasonicAquareaEncoderBase {
@@ -54,10 +65,18 @@ public:
     switches_.push_back(switch_);
   }
 #endif
+#ifdef USE_SELECT
+  void add_select(PanasonicAquareaSelect *select_) {
+    selects_.push_back(select_);
+  }
+#endif
 
 protected:
 #ifdef USE_SWITCH
   std::vector<PanasonicAquareaSwitch *> switches_;
+#endif
+#ifdef USE_SELECT
+  std::vector<PanasonicAquareaSelect *> selects_;
 #endif
 };
 

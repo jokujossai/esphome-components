@@ -24,17 +24,17 @@ EXTRA_TOPICS_START = 9000
 MAIN_TO_OPT_TOPICS_START = 10000
 OPT_TO_MAIN_TOPICS_START = 11000
 
-OPERATING_MODE_OPTIONS = {
-  0: "Heat only",
-  1: "Cool only",
-  2: "Auto(Heat)",
-  3: "DHW only",
-  4: "Heat+DHW",
-  5: "Cool+DHW",
-  6: "Auto(Heat)+DHW",
-  7: "Auto(Cool)",
-  8: "Auto(Cool)+DHW",
-}
+OPERATING_MODE_OPTIONS = [
+  "Heat only",
+  "Cool only",
+  "Auto(Heat)",
+  "DHW only",
+  "Heat+DHW",
+  "Cool+DHW",
+  "Auto(Heat)+DHW",
+  "Auto(Cool)",
+  "Auto(Cool)+DHW",
+]
 
 TOPICS = {
   # State/Control Topics (TOP0-TOP7)
@@ -42,7 +42,7 @@ TOPICS = {
   "TOP1": Topic(TYPE_SENSOR, "Pump Flow", "main", unit_of_measurement="l/min", accuracy_decimals=2),
   "TOP2": Topic(TYPE_SWITCH, "Force DHW State", "main", "main"),
   "TOP3": Topic(TYPE_SWITCH, "Quiet Mode Schedule", "main", "main"),
-  "TOP4": Topic(TYPE_SELECT, "Operation Mode", "main", "main", options=OPERATING_MODE_OPTIONS),
+  "TOP4": Topic(TYPE_SELECT, "Operation Mode State", "main", "main", options=OPERATING_MODE_OPTIONS),
 }
 
 def get_topic(name):
@@ -65,7 +65,7 @@ def get_topic(name):
       return TOPICS[name]
 
     name_underline = name.replace(" ", "_")
-    for topic in TOPICS:
+    for topic in TOPICS.values():
       if topic.name == name or topic.name == name_underline:
         return topic
     raise cv.Invalid(f"Topic {name} is not a valid topic")
