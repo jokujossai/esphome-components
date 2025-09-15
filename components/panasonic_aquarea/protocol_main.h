@@ -13,11 +13,11 @@ public:
   bool decode(const uint8_t *data, uint8_t length) override;
 
 #ifdef USE_SENSOR
-  optional<float> sensor_value(PanasonicAquareaTopic topic, const uint8_t *data, uint8_t length) override;
+  optional<float> sensor_value(PanasonicAquareaTopic topic, const uint8_t *data, uint8_t length);
 #endif
 
-#ifdef USE_BINARY_SENSOR
-  optional<bool> binary_sensor_value(PanasonicAquareaTopic topic, const uint8_t *data, uint8_t length) override;
+#if defined(USE_BINARY_SENSOR) || defined(USE_SWITCH)
+  optional<bool> binary_sensor_value(PanasonicAquareaTopic topic, const uint8_t *data, uint8_t length);
 #endif
 
 private:
