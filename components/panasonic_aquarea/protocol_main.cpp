@@ -11,12 +11,11 @@ bool PanasonicAquareaDecoderMain::supports(const uint8_t *data, uint8_t length) 
 
 bool PanasonicAquareaDecoderMain::decode(const uint8_t *data, uint8_t length) {
   ESP_LOGD(TAG, "Decoding with main decoder");
-  float sensor_value;
 
 #ifdef USE_SENSOR
   // Loop sensors
   for(auto sensor : this->sensors_) {
-    auto value = sensor_value(sensor->get_topic(), data, length);
+    auto value = this->sensor_value(sensor->get_topic(), data, length);
     if(value.has_value()) {
       sensor->publish_state(value.value());
     }
@@ -28,7 +27,7 @@ bool PanasonicAquareaDecoderMain::decode(const uint8_t *data, uint8_t length) {
 
 #ifdef USE_BINARY_SENSOR
   for(auto binary_sensor : this->binary_sensors_) {
-    auto value = binary_sensor_value(binary_sensor->get_topic(), data, length);
+    auto value = this->binary_sensor_value(binary_sensor->get_topic(), data, length);
     if(value.has_value()) {
       binary_sensor->publish_state(value.value());
     }
@@ -41,7 +40,7 @@ bool PanasonicAquareaDecoderMain::decode(const uint8_t *data, uint8_t length) {
 #ifdef USE_SWITCH
   for(auto switch_ : this->switches_) {
     ESP_LOGD(TAG, "Decoding switch: %d", switch_->get_topic());
-    auto value = binary_sensor_value(switch_->get_topic(), data, length);
+    auto value = this->binary_sensor_value(switch_->get_topic(), data, length);
     if(value.has_value()) {
       switch_->publish_state(value.value());
     }

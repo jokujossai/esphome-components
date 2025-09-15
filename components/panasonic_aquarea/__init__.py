@@ -4,11 +4,14 @@ from esphome.components import uart
 from esphome.const import (
   CONF_ID,
   CONF_NAME,
+  CONF_UNIT_OF_MEASUREMENT,
+  CONF_ACCURACY_DECIMALS,
+  CONF_STATE_CLASS,
 )
 from esphome.core import coroutine
 from esphome.util import Registry
 
-from .topics import get_topic, generate_topic_mapping
+from .topics import get_topic, generate_topic_mapping, TYPE_SENSOR
 
 CONF_LISTEN_ONLY = "listen_only"
 CONF_DECODERS= "decoders"
@@ -108,6 +111,15 @@ def validate_topic(type):
       value[CONF_NAME] = topic.name
 
     value[CONF_TOPIC] = topic.name
+
+    # Default configuration
+    if topic.type == TYPE_SENSOR:
+      if CONF_UNIT_OF_MEASUREMENT not in value and topic.unit_of_measurement is not None:
+        value[CONF_UNIT_OF_MEASUREMENT] = topic.unit_of_measurement
+      if CONF_ACCURACY_DECIMALS not in value and topic.accuracy_decimals is not None:
+        value[CONF_ACCURACY_DECIMALS] = topic.accuracy_decimals
+      if CONF_STATE_CLASS not in value and topic.state_class is not None:
+        value[CONF_STATE_CLASS] = topic.state_class
 
     return value
 

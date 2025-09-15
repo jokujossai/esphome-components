@@ -6,6 +6,7 @@ namespace esphome {
 namespace panasonic_aquarea {
 
 #define MAIN_TOPICS_START 0
+#define EXTRA_TOPICS_START 9000
 #define MAIN_TO_OPT_TOPICS_START 10000
 #define OPT_TO_MAIN_TOPICS_START 11000
 
