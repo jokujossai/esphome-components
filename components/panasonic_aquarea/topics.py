@@ -1,12 +1,11 @@
 import esphome.config_validation as cv
 
-import re
-
 TYPE_SENSOR = "sensor"
 TYPE_BINARY_SENSOR = "binary_sensor"
 TYPE_SWITCH = "switch"
 TYPE_SELECT = "select"
 TYPE_NUMBER = "number"
+TYPE_TEXT_SENSOR = "text_sensor"
 
 class Topic:
   def __init__(self, type, name, decoder, encoder=None, *, unit_of_measurement=None, accuracy_decimals=None, state_class=None, options=None):
