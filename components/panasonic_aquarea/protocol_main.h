@@ -4,6 +4,7 @@
 
 #include "esphome/components/mqtt/mqtt_component.h"
 
+
 namespace esphome {
 namespace panasonic_aquarea {
 
@@ -29,6 +30,7 @@ public:
   optional<uint8_t> select_value(PanasonicAquareaTopic topic, const uint8_t *data, uint8_t length);
 #endif
 
+
 private:
   static const int DATASIZE = 203;
 };
@@ -43,6 +45,7 @@ public:
 
   void set(PanasonicAquareaTopic topic, bool state) override;
   void set(PanasonicAquareaTopic topic, uint8_t index) override;
+  void set(PanasonicAquareaTopic topic, float value) override;
 
   // TODO: Remove on final version, required for testing with HeishaMon
   void set_mqtt_client_component(mqtt::MQTTClientComponent *mqtt_client_component) { mqtt_client_component_ = mqtt_client_component; }

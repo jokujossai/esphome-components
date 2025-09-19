@@ -14,6 +14,9 @@
 #ifdef USE_SELECT
 #include "select/panasonic_aquarea_select.h"
 #endif
+#ifdef USE_CLIMATE
+#include "climate/panasonic_aquarea_climate.h"
+#endif
 
 #include <vector>
 
@@ -42,6 +45,11 @@ public:
     selects_.push_back(select_);
   }
 #endif
+#ifdef USE_CLIMATE
+  void add_climate(PanasonicAquareaZoneClimate *climate) {
+    climates_.push_back(climate);
+  }
+#endif
 
 protected:
 #ifdef USE_SENSOR
@@ -55,6 +63,9 @@ protected:
 #endif
 #ifdef USE_SELECT
   std::vector<PanasonicAquareaSelect *> selects_;
+#endif
+#ifdef USE_CLIMATE
+  std::vector<PanasonicAquareaZoneClimate *> climates_;
 #endif
 };
 

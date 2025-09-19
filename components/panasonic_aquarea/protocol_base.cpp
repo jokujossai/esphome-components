@@ -31,5 +31,9 @@ void PanasonicAquareaEncoderBase::set(PanasonicAquareaTopic topic, uint8_t index
   ESP_LOGE(TAG, "set(uint8_t) not implemented on encoder");
 }
 
+void PanasonicAquareaEncoderBase::set(PanasonicAquareaTopic topic, float value) {
+  ESP_LOGE(TAG, "set(float) not implemented on encoder");
+}
+
 } // namespace panasonic_aquarea
 } // namespace esphome

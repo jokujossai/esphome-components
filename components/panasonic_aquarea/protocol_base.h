@@ -28,6 +28,7 @@ public:
 
   virtual void set(PanasonicAquareaTopic topic, bool state);
   virtual void set(PanasonicAquareaTopic topic, uint8_t index);
+  virtual void set(PanasonicAquareaTopic topic, float value);
 
 protected:
   uart::UARTDevice *parent_{nullptr};
