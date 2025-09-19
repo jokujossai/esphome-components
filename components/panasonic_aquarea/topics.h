@@ -9,6 +9,7 @@ namespace panasonic_aquarea {
 #define EXTRA_TOPICS_START 9000
 #define MAIN_TO_OPT_TOPICS_START 10000
 #define OPT_TO_MAIN_TOPICS_START 11000
+#define CUSTOM_TOPICS_START 12000
 
 enum PanasonicAquareaTopic : uint16_t {
   // Main topics
@@ -189,6 +190,11 @@ enum PanasonicAquareaTopic : uint16_t {
   OptZ2WaterTemp = 11012,
   OptZ1WaterTemp = 11013,
   OptToMainTopicsCount,
+
+  // Custom topics for better control
+  DHWModeState = 12000,
+  HeatingModeState = 12001,
+  CustomTopicsCount,
 };
 
 } // namespace panasonic_aquarea

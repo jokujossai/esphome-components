@@ -104,6 +104,16 @@ optional<bool> PanasonicAquareaDecoderMain::binary_sensor_value(PanasonicAquarea
         default:
           return {};
       }
+    case DHWModeState:
+      // DHW mode is in bits 4-5 of byte 6 (0-indexed from right)
+      switch((data[6] >> 4) & 0b11) {
+        case 0b10:
+          return true;  // DHW on
+        case 0b01:
+          return false; // DHW off
+        default:
+          return {};    // No change or invalid
+      }
     default:
       return {};
   }
@@ -134,6 +144,21 @@ optional<uint8_t> PanasonicAquareaDecoderMain::select_value(PanasonicAquareaTopi
           return 7;
         case 42:
           return 8;
+        default:
+          return {};
+      }
+    case HeatingModeState:
+      // Heating mode is in bits 0-3 of byte 6
+      switch(data[6] & 0b1111) {
+        case 0b0001: // DHW only
+          return 0; // Off
+        case 0b0010: // Heat
+          return 1; // Heat
+        case 0b0011: // Cool
+          return 2; // Cool
+        case 0b1001: // Auto(Heat)
+        case 0b1010: // Auto(Cool)
+          return 3; // Auto
         default:
           return {};
       }
@@ -210,6 +235,11 @@ void PanasonicAquareaEncoderMain::set(PanasonicAquareaTopic topic, bool state) {
       panasonic_send_query_[4] &= ~(0x03 << 6);
       panasonic_send_query_[4] |= (state ? 0b10 : 0b01) << 6;
       break;
+    case DHWModeState:
+      // Set DHW mode in byte 6, bits 4-5 only, preserve other bits
+      panasonic_send_query_[6] &= ~(0x03 << 4); // Clear bits 4-5
+      panasonic_send_query_[6] |= (state ? 0b10 : 0b01) << 4; // Set DHW on/off
+      break;
     default:
       ESP_LOGW(TAG, "Unsupported bool topic for encoding: %d", topic);
       return;
@@ -243,7 +273,33 @@ void PanasonicAquareaEncoderMain::set(PanasonicAquareaTopic topic, uint8_t index
           ESP_LOGW(TAG, "Invalid operation mode index: %d", index);
           return;
       }
-      panasonic_send_query_[6] = raw_value;
+      panasonic_send_query_[6] &= ~0b111111;
+      panasonic_send_query_[6] |= raw_value;
+      break;
+    case HeatingModeState:
+      // Set heating mode in byte 6, bits 0-3 only, preserve DHW bits 4-5
+      {
+        uint8_t heating_mode;
+        switch(index) {
+          case 0: // Off -> DHW only
+            heating_mode = 0b0001;
+            break;
+          case 1: // Heat
+            heating_mode = 0b0010;
+            break;
+          case 2: // Cool
+            heating_mode = 0b0011;
+            break;
+          case 3: // Auto - use Auto(Heat) as default
+            heating_mode = 0b1001;
+            break;
+          default:
+            ESP_LOGW(TAG, "Invalid heating mode index: %d", index);
+            return;
+        }
+        panasonic_send_query_[6] &= ~0x0F; // Clear bits 0-3 (heating mode)
+        panasonic_send_query_[6] |= heating_mode; // Set heating mode, preserve DHW bits
+      }
       break;
     default:
       ESP_LOGW(TAG, "Unsupported uint8 topic for encoding: %d", topic);

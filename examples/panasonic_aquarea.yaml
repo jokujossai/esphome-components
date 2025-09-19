@@ -60,6 +60,10 @@ switch:
     topic: TOP0
   - platform: panasonic_aquarea
     topic: TOP2
+  # Custom DHW mode switch (extracted from TOP4)
+  - platform: panasonic_aquarea
+    topic: CUSTOM0
+    name: "DHW Mode"
 
 sensor:
   - platform: panasonic_aquarea
@@ -72,5 +76,11 @@ binary_sensor:
     topic: TOP0
 
 select:
+  # Full operation mode (for compatibility)
   - platform: panasonic_aquarea
     topic: TOP4
+    name: "Operation Mode"
+  # Custom heating mode select (extracted from TOP4)
+  - platform: panasonic_aquarea
+    topic: CUSTOM1
+    name: "Heating Mode"
