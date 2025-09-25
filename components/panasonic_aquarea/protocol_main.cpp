@@ -373,10 +373,9 @@ void PanasonicAquareaEncoderMain::set(PanasonicAquareaTopic topic, float value) 
       {
         // Convert float temperature to the format expected by the heat pump
         // Temperature values are encoded as (value + 128) for both offset and direct modes
-        int16_t temp_value = (int16_t)(value + 128);
-
-        // Clamp to valid range (0-255 after adding 128)
-        temp_value = std::max(0, std::min(255, temp_value));
+        // Clamp the value to the valid range [1, 255] after adding 128 offset
+        int16_t temp_value = static_cast<int16_t>(value + 128);
+        temp_value = std::max<int16_t>(1, std::min<int16_t>(255, temp_value));
 
         // Determine which byte to set based on topic
         uint8_t byte_index;
@@ -386,7 +385,7 @@ void PanasonicAquareaEncoderMain::set(PanasonicAquareaTopic topic, float value) 
           byte_index = 40; // Z2 heat request temperature byte
         }
 
-        panasonic_send_query_[byte_index] = (uint8_t)temp_value;
+        panasonic_send_query_[byte_index] = static_cast<uint8_t>(temp_value);
 
         ESP_LOGD(TAG, "Set temperature topic %d to %.2f°C (raw: %d, byte: %d)",
                  topic, value, temp_value, byte_index);
@@ -395,9 +394,9 @@ void PanasonicAquareaEncoderMain::set(PanasonicAquareaTopic topic, float value) 
     case DHWTargetTemp:
       {
         // DHW target temperature
-        int16_t temp_value = (int16_t)(value + 128);
-        temp_value = std::max(0, std::min(255, temp_value));
-        panasonic_send_query_[42] = (uint8_t)temp_value; // DHW target temp byte
+        int16_t temp_value = static_cast<int16_t>(value + 128);
+        temp_value = std::max<int16_t>(1, std::min<int16_t>(255, temp_value));
+        panasonic_send_query_[42] = static_cast<uint8_t>(temp_value); // DHW target temp byte
 
         ESP_LOGD(TAG, "Set DHW target temp to %.2f°C (raw: %d)", value, temp_value);
       }

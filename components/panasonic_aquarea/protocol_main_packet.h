@@ -36,9 +36,9 @@ struct __attribute__((packed)) PanasonicMainPacket {
   uint8_t powerful_mode_time : 3;    // bits 2-0: 000=off, 001=reserved, 010=30min, 011=60min, 100=90min
   uint8_t quiet_mode_combined : 5;   // bits 7-3: HeishaMon 5-bit field for level+schedule
 
-  // Control and settings bytes (8-37)
   uint8_t reserved_8;                // byte 8: reserved
 
+  // Control and settings bytes (9-37)
   // Byte 9 - DHW capacity and heater settings (TOP58+TOP59)
   uint8_t water_heater_state : 2;    // C bits 1-0: HeishaMon "7th&8th bit"
   uint8_t dhw_heater_state : 2;      // C bits 3-2: HeishaMon "5th&6th bit"
@@ -306,9 +306,6 @@ struct __attribute__((packed)) PanasonicMainPacket {
   uint8_t checksum;                  // byte 202: 8-bit checksum (sum of all bytes & 0xFF == 0)
 };
 
-// Compile-time size validation
-static_assert(sizeof(PanasonicMainPacket) == 203, "PanasonicMainPacket must be exactly 203 bytes");
-
 // Helper functions for extracting combined values
 inline float get_pump_flow(const PanasonicMainPacket* packet) {
   return (float)packet->pump_flow_integer + ((float)packet->pump_flow_fractional - 1) / 256.0f;
@@ -342,6 +339,9 @@ inline uint8_t get_quiet_mode_level(const PanasonicMainPacket* packet) {
     default: return 0; // Unknown -> Off
   }
 }
+
+// Compile-time validatinos
+#include "protocol_main_packet_validate.h"
 
 } // namespace panasonic_aquarea
 } // namespace esphome
