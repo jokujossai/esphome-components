@@ -55,10 +55,10 @@ constexpr FloatField outdoorCurrentDefinition(165, 0, 8, -1, 1, 5); // TOP67: Ou
 constexpr Uint8Field compressorFreqDefinition(166);           // TOP8: Compressor frequency (value-1)
 
 // Byte 171-174 - Motor and pump data
-constexpr Uint8Field pumpSpeedDefinition(171);                // TOP65: Pump speed (value-1)*50
-constexpr Uint8Field pumpDutyDefinition(172);                 // TOP93: Pump duty (value-1)
-constexpr Uint8Field fan1MotorSpeedDefinition(173);           // TOP62: Fan1 motor speed (value-1)*10
-constexpr Uint8Field fan2MotorSpeedDefinition(174);           // TOP63: Fan2 motor speed (value-1)*10
+constexpr FloatField pumpSpeedDefinition(171, 0, 8, -1, 50, 1);   // TOP65: Pump speed (value-1)*50
+constexpr Uint8Field pumpDutyDefinition(172);                     // TOP93: Pump duty (value-1)
+constexpr FloatField fan1MotorSpeedDefinition(173, 0, 8, -1, 10, 1); // TOP62: Fan1 motor speed (value-1)*10
+constexpr FloatField fan2MotorSpeedDefinition(174, 0, 8, -1, 10, 1); // TOP63: Fan2 motor speed (value-1)*10
 
 } // namespace panasonic_aquarea
 } // namespace esphome
