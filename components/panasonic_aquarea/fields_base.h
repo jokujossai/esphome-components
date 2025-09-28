@@ -15,6 +15,7 @@ namespace esphome {
 
 namespace esphome {
 namespace panasonic_aquarea {
+namespace fields {
 
 // Helper functions for bit operations
 template<uint8_t bit_width>
@@ -287,5 +288,6 @@ inline bool validate_packet(const uint8_t* data, uint8_t length) {
   return validate_packet_length(length) && validate_packet_crc(data, length);
 }
 
+} // namespace fields
 } // namespace panasonic_aquarea
 } // namespace esphome

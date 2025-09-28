@@ -4,6 +4,8 @@
 
 namespace esphome {
 namespace panasonic_aquarea {
+namespace fields {
+namespace extra {
 
 // Extra packet field definitions for higher precision power data
 // Packet format: 0x71 0xC8 0x01 0x21 + 200 bytes data + checksum (203 bytes total)
@@ -28,5 +30,7 @@ constexpr Uint16Field coolPowerProductionExtraDefinition(22);
 // XTOP5 - Byte 24-25 - DHW power production
 constexpr Uint16Field dhwPowerProductionExtraDefinition(24);
 
+} // namespace extra
+} // namespace fields
 } // namespace panasonic_aquarea
 } // namespace esphome

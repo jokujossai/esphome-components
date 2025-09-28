@@ -4,6 +4,8 @@
 
 namespace esphome {
 namespace panasonic_aquarea {
+namespace fields {
+namespace main {
 
 // Main packet field definitions based on HeishaMon decode.h (139 topics) and ProtocolByteDecrypt.md
 // Ordered by packet byte position, only fields that have topics assigned in topicBytes array
@@ -209,5 +211,7 @@ constexpr FloatField coolPowerProductionDefinition(196, 0, 8, -1, 1, 5);  // TOP
 constexpr FloatField dhwPowerConsumptionDefinition(197, 0, 8, -1, 1, 5);  // TOP40: DHW power consumption (value-1)/5 kW
 constexpr FloatField dhwPowerProductionDefinition(198, 0, 8, -1, 1, 5);   // TOP41: DHW power production (value-1)/5 kW
 
+} // namespace main
+} // namespace fields
 } // namespace panasonic_aquarea
 } // namespace esphome

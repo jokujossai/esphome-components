@@ -4,6 +4,8 @@
 
 namespace esphome {
 namespace panasonic_aquarea {
+namespace fields {
+namespace optional {
 
 // Optional PCB packet field definitions
 // Response packet format: 0x71 0x11 0x01 0x50 + 16 bytes data + checksum (20 bytes total)
@@ -44,5 +46,7 @@ constexpr Uint8Field z1WaterTempCommandDefinition(16);        // Byte 16: Z1 wat
 
 // Note: Byte 9 is unknown/reserved, bytes 12, 17, 18 are 0x00
 
+} // namespace optional
+} // namespace fields
 } // namespace panasonic_aquarea
 } // namespace esphome
