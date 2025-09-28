@@ -87,11 +87,11 @@ struct FloatField {
   uint8_t bit_offset;
   uint8_t bit_width;
   int8_t offset;
-  uint8_t multiplier;
-  uint8_t divider;
+  uint16_t multiplier;
+  uint16_t divider;
 
   constexpr FloatField(uint8_t byte_off, uint8_t bit_off = 0, uint8_t bit_w = 8,
-                      int8_t offs = -1, uint8_t mult = 1, uint8_t div = 1)
+                      int8_t offs = -1, uint16_t mult = 1, uint16_t div = 1)
     : byte_offset(byte_off), bit_offset(bit_off), bit_width(bit_w),
       offset(offs), multiplier(mult), divider(div) {}
 };
