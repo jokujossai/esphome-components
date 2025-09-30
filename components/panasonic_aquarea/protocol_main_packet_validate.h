@@ -172,6 +172,5 @@ struct __attribute__((packed)) byte4 {
   }
 };
 
-//static_assert(byte4() == 0b10011100);
-
-static_assert(::std::bit_cast<uint8_t>(byte4()) == 0b10011100);
+// Validate byte4 bit-field layout using operator uint8_t conversion
+static_assert(byte4() == 0b10011100);

@@ -4,36 +4,66 @@ from esphome.components import sensor
 
 from .. import (
     panasonic_aquarea_ns,
-    CHILD_SCHEMA_BASE,
-    validate_topic,
     CONF_PANASONIC_AQUAREA_ID,
     get_decoder,
 )
+from ..fields import get_field
 
-CONF_TOPIC = "topic"
+CONF_FIELD = "field"
 
 PanasonicAquareaSensor = panasonic_aquarea_ns.class_(
     "PanasonicAquareaSensor", sensor.Sensor
 )
 
+def validate_sensor_field(value):
+    """Validate field is suitable for sensor."""
+    if CONF_FIELD not in value:
+        raise cv.Invalid(f"Field {CONF_FIELD} is required")
+
+    field_name = value[CONF_FIELD]
+    field = get_field(field_name)
+
+    # Sensor can display any field except text
+    if field["type"] == "text_sensor":
+        raise cv.Invalid(f"Field {field_name} type {field['type']} is not compatible with sensor")
+
+    # Set default name if not provided
+    if "name" not in value and "id" not in value:
+        value["name"] = field["name"]
+
+    return value
+
 CONFIG_SCHEMA = cv.All(
-    validate_topic("sensor"),
-    sensor.sensor_schema(PanasonicAquareaSensor).extend(CHILD_SCHEMA_BASE),
+    validate_sensor_field,
+    sensor.sensor_schema(PanasonicAquareaSensor).extend(
+        cv.Schema({
+            cv.GenerateID(CONF_PANASONIC_AQUAREA_ID): cv.use_id(panasonic_aquarea_ns.class_("PanasonicAquareaComponent")),
+            cv.Required(CONF_FIELD): cv.string,
+        })
+    ),
 )
 
 
 async def to_code(config):
-    var = await sensor.new_sensor(config)
+    field_name = config[CONF_FIELD]
+    field = get_field(field_name)
+    protocol = field["protocol"]
 
-    cg.add(var.set_topic(config[CONF_TOPIC]))
+    # Define namespaces dynamically
+    field_ns = panasonic_aquarea_ns.namespace("fields")
+    protocol_ns = field_ns.namespace(protocol)
+
+    # Generate template instantiation
+    template_args = cg.TemplateArguments(getattr(protocol_ns, field_name))
+    var = cg.new_Pvariable(config[cv.CONF_ID], template_args)
+    await sensor.register_sensor(var, config)
 
     parent = await cg.get_variable(config[CONF_PANASONIC_AQUAREA_ID])
     cg.add(var.set_parent(parent))
 
-    # Get the decoder for the topic
-    decoder_id = get_decoder(config[CONF_PANASONIC_AQUAREA_ID], "main")
+    decoder_id = get_decoder(config[CONF_PANASONIC_AQUAREA_ID], protocol)
     decoder = await cg.get_variable(decoder_id)
     cg.add(var.set_decoder(decoder))
-    cg.add(decoder.add_sensor(var))
+    cg.add(decoder.add_child(var))
 
     return var

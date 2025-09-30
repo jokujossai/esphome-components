@@ -1,6 +1,7 @@
 #pragma once
 
 #include "protocol_base.h"
+#include "child.h"
 
 #ifdef USE_SENSOR
 #include "sensor/panasonic_aquarea_sensor.h"
@@ -25,70 +26,22 @@ namespace panasonic_aquarea {
 
 class PanasonicAquareaDecoder : public PanasonicAquareaDecoderBase {
 public:
-#ifdef USE_SENSOR
-  void add_sensor(PanasonicAquareaSensor *sensor) {
-    sensors_.push_back(sensor);
+  void add_child(PanasonicAquareaChildBase *child) {
+    children_.push_back(child);
   }
-#endif
-#ifdef USE_BINARY_SENSOR
-  void add_binary_sensor(PanasonicAquareaBinarySensor *binary_sensor) {
-    binary_sensors_.push_back(binary_sensor);
-  }
-#endif
-#ifdef USE_SWITCH
-  void add_switch(PanasonicAquareaSwitch *switch_) {
-    switches_.push_back(switch_);
-  }
-#endif
-#ifdef USE_SELECT
-  void add_select(PanasonicAquareaSelect *select_) {
-    selects_.push_back(select_);
-  }
-#endif
-#ifdef USE_CLIMATE
-  void add_climate(PanasonicAquareaZoneClimate *climate) {
-    climates_.push_back(climate);
-  }
-#endif
 
 protected:
-#ifdef USE_SENSOR
-  std::vector<PanasonicAquareaSensor *> sensors_;
-#endif
-#ifdef USE_BINARY_SENSOR
-  std::vector<PanasonicAquareaBinarySensor *> binary_sensors_;
-#endif
-#ifdef USE_SWITCH
-  std::vector<PanasonicAquareaSwitch *> switches_;
-#endif
-#ifdef USE_SELECT
-  std::vector<PanasonicAquareaSelect *> selects_;
-#endif
-#ifdef USE_CLIMATE
-  std::vector<PanasonicAquareaZoneClimate *> climates_;
-#endif
+  std::vector<PanasonicAquareaChildBase *> children_;
 };
 
 class PanasonicAquareaEncoder : public PanasonicAquareaEncoderBase {
 public:
-#ifdef USE_SWITCH
-  void add_switch(PanasonicAquareaSwitch *switch_) {
-    switches_.push_back(switch_);
+  void add_child(PanasonicAquareaChildBase *child) {
+    children_.push_back(child);
   }
-#endif
-#ifdef USE_SELECT
-  void add_select(PanasonicAquareaSelect *select_) {
-    selects_.push_back(select_);
-  }
-#endif
 
 protected:
-#ifdef USE_SWITCH
-  std::vector<PanasonicAquareaSwitch *> switches_;
-#endif
-#ifdef USE_SELECT
-  std::vector<PanasonicAquareaSelect *> selects_;
-#endif
+  std::vector<PanasonicAquareaChildBase *> children_;
 };
 
 

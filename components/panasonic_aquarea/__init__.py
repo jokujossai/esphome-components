@@ -55,7 +55,7 @@ DECODER_REGISTRY = Registry({
 ENCODER_REGISTRY = Registry({
   cv.GenerateID(CONF_ENCODER_ID): cv.use_id(PanasonicAquareaEncoder),
   # TODO: Remove on final version, required for testing with HeishaMon
-  cv.GenerateID(CONF_MQTT_ID): cv.use_id(mqtt.MQTTClientComponent),
+  cv.Optional(CONF_MQTT_ID): cv.use_id(mqtt.MQTTClientComponent),
   cv.Optional(CONF_SEND_LOG_TOPIC): cv.publish_topic,
 })
 
@@ -76,13 +76,14 @@ async def build_encoders(config):
   for conf in config:
     encoder = await cg.build_registry_entry(ENCODER_REGISTRY, conf)
 
-    # TODO: Remove on final version, required for testing with HeishaMon
-    mqtt_client = await cg.get_variable(conf[CONF_MQTT_ID])
-    cg.add(encoder.set_mqtt_client_component(mqtt_client))
+    if CONF_MQTT_ID in conf:
+      # TODO: Remove on final version, required for testing with HeishaMon
+      mqtt_client = await cg.get_variable(conf[CONF_MQTT_ID])
+      cg.add(encoder.set_mqtt_client_component(mqtt_client))
 
-    # TODO: Remove on final version, required for testing with HeishaMon
-    if CONF_SEND_LOG_TOPIC in conf:
-      cg.add(encoder.set_send_log_topic(conf[CONF_SEND_LOG_TOPIC]))
+      # TODO: Remove on final version, required for testing with HeishaMon
+      if CONF_SEND_LOG_TOPIC in conf:
+        cg.add(encoder.set_send_log_topic(conf[CONF_SEND_LOG_TOPIC]))
 
     encoders.append(encoder)
   return encoders

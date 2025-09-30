@@ -68,7 +68,7 @@ void PanasonicAquareaComponent::loop() {
 
   for(auto encoder : this->encoders_) {
     if(encoder->should_send()) {
-      ESP_LOGD(TAG, "Sending encoder: %d", encoder->get_topic());
+      ESP_LOGD(TAG, "Sending encoder: %s", encoder->get_topic().c_str());
       encoder->send();
     }
   }

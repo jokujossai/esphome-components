@@ -67,8 +67,8 @@ constexpr BooleanField bivalentAdvancedHeat(26, 4);   // TOP132: bits 5-4, Bival
 constexpr BooleanField bivalentAdvancedDhw(26, 6);    // TOP133: bits 7-6, Bivalent advanced DHW (DisabledEnabled)
 
 // Byte 28 - Heating and cooling mode (TOP76, TOP81)
-constexpr Uint8Field heatingMode(28, 0, 2);          // TOP76: bits 1-0, Heating mode (2 states: Comp. Curve, Direct)
-constexpr Uint8Field coolingMode(28, 2, 2);          // TOP81: bits 3-2, Cooling mode (2 states: Comp. Curve, Direct)
+constexpr Uint8Field heatingMode(RW, 28, 0, 2);      // TOP76: bits 1-0, Heating mode (2 states: Comp. Curve, Direct) - RW: mode command
+constexpr Uint8Field coolingMode(RW, 28, 2, 2);      // TOP81: bits 3-2, Cooling mode (2 states: Comp. Curve, Direct) - RW: mode command
 
 // Byte 29 - Pump flowrate control (TOP106)
 constexpr Uint8Field pumpFlowrateMode(29, 2, 2);     // TOP106: bits 3-2, Pump flowrate mode (2 states: DeltaT, Max flow)

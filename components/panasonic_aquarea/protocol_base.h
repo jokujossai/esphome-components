@@ -16,6 +16,8 @@ public:
   static bool check_crc(const uint8_t *data, uint8_t length);
 };
 
+class PanasonicAquareaChildBase;
+
 class PanasonicAquareaEncoderBase {
 public:
   virtual const std::string &get_topic() const = 0;
@@ -25,6 +27,7 @@ public:
 
   virtual bool should_send() const = 0;
   virtual void send() = 0;
+  virtual void request_send(PanasonicAquareaChildBase *child) = 0;
 
   virtual void set(PanasonicAquareaTopic topic, bool state);
   virtual void set(PanasonicAquareaTopic topic, uint8_t index);

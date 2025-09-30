@@ -2,17 +2,6 @@
 
 #include <cstdint>
 
-#ifndef ESPHOME_BUILD
-// Standalone build - use std::optional
-#include <optional>
-namespace esphome {
-  template<typename T> using optional = std::optional<T>;
-}
-#else
-// ESPHome build
-#include "esphome/core/optional.h"
-#endif
-
 namespace esphome {
 namespace panasonic_aquarea {
 namespace fields {
@@ -137,23 +126,28 @@ struct FloatField {
 };
 
 template<const Uint8Field& def>
-__attribute__((always_inline)) inline constexpr optional<uint8_t> getFieldForce(const uint8_t* data, uint8_t len) {
+__attribute__((always_inline)) inline constexpr uint8_t getFieldForce(const uint8_t* data, uint8_t len, bool& valid) {
   // Compile-time validation
   static_assert(def.offset == 0 || def.offset == -1, "uint8_t getField only supports offset 0 or -1");
 
-  if (def.byte_offset >= len) return {};
+  if (def.byte_offset >= len) {
+    valid = false;
+    return 0;
+  }
 
   uint8_t byte_value = data[def.byte_offset];
 
   // Extract raw bit field value using helper functions
   uint8_t raw_value = apply_mask<def.bit_width>(apply_shift<def.bit_offset>(byte_value));
 
-  // Return empty optional for 0 (reserved for "no change")
+  // Return invalid for 0 (reserved for "no change")
   if (raw_value == 0) {
-    return {};
+    valid = false;
+    return 0;
   }
 
   // Apply offset for non-zero values
+  valid = true;
   if constexpr (def.offset == -1) {
     return raw_value - 1;
   } else {
@@ -162,31 +156,36 @@ __attribute__((always_inline)) inline constexpr optional<uint8_t> getFieldForce(
 }
 
 template<const Uint8Field& def>
-__attribute__((always_inline)) inline constexpr optional<uint8_t> getField(const uint8_t* data, uint8_t len) {
+__attribute__((always_inline)) inline constexpr uint8_t getField(const uint8_t* data, uint8_t len, bool& valid) {
   // Compile-time access validation
   static_assert(def.access == R || def.access == RW, "getField requires read access (R or RW)");
 
-  return getFieldForce<def>(data, len);
+  return getFieldForce<def>(data, len, valid);
 }
 
 template<const Uint16Field& def>
-__attribute__((always_inline)) inline constexpr optional<uint16_t> getFieldForce(const uint8_t* data, uint8_t len) {
+__attribute__((always_inline)) inline constexpr uint16_t getFieldForce(const uint8_t* data, uint8_t len, bool& valid) {
   // Compile-time validation
   static_assert(def.offset == 0 || def.offset == -1, "uint16_t getField only supports offset 0 or -1");
 
-  if (def.byte_offset + 1 >= len) return {};
+  if (def.byte_offset + 1 >= len) {
+    valid = false;
+    return 0;
+  }
 
   // Little-endian 16-bit read
   uint16_t low_byte = data[def.byte_offset];
   uint16_t high_byte = data[def.byte_offset + 1];
   uint16_t raw_value = low_byte | (high_byte << 8);
 
-  // Return empty optional for 0 (reserved for "no change")
+  // Return invalid for 0 (reserved for "no change")
   if (raw_value == 0) {
-    return {};
+    valid = false;
+    return 0;
   }
 
   // Apply offset for non-zero values
+  valid = true;
   if constexpr (def.offset == -1) {
     return raw_value - 1;
   } else {
@@ -195,16 +194,19 @@ __attribute__((always_inline)) inline constexpr optional<uint16_t> getFieldForce
 }
 
 template<const Uint16Field& def>
-__attribute__((always_inline)) inline constexpr optional<uint16_t> getField(const uint8_t* data, uint8_t len) {
+__attribute__((always_inline)) inline constexpr uint16_t getField(const uint8_t* data, uint8_t len, bool& valid) {
   // Compile-time access validation
   static_assert(def.access == R || def.access == RW, "getField requires read access (R or RW)");
 
-  return getFieldForce<def>(data, len);
+  return getFieldForce<def>(data, len, valid);
 }
 
 template<const BooleanField& def>
-__attribute__((always_inline)) inline constexpr optional<bool> getFieldForce(const uint8_t* data, uint8_t len) {
-  if (def.byte_offset >= len) return {};
+__attribute__((always_inline)) inline constexpr bool getFieldForce(const uint8_t* data, uint8_t len, bool& valid) {
+  if (def.byte_offset >= len) {
+    valid = false;
+    return false;
+  }
 
   uint8_t byte_value = data[def.byte_offset];
 
@@ -217,40 +219,46 @@ __attribute__((always_inline)) inline constexpr optional<bool> getFieldForce(con
     ((byte_value >> def.bit_offset) & mask);
 
   // Decode 2-bit boolean pattern:
-  // 0b00 = not set (empty optional)
+  // 0b00 = not set (return invalid)
   // 0b01 = false
   // 0b10 = true
-  // 0b11 = invalid (empty optional)
+  // 0b11 = invalid (return invalid)
   if (raw_value == 0b00 || raw_value == 0b11) {
-    return {};
+    valid = false;
+    return false;
   }
 
-  return raw_value == 0b10;
+  valid = true;
+  return (raw_value == 0b10);
 }
 
 template<const BooleanField& def>
-__attribute__((always_inline)) inline constexpr optional<bool> getField(const uint8_t* data, uint8_t len) {
+__attribute__((always_inline)) inline constexpr bool getField(const uint8_t* data, uint8_t len, bool& valid) {
   // Compile-time access validation
   static_assert(def.access == R || def.access == RW, "getField requires read access (R or RW)");
 
-  return getFieldForce<def>(data, len);
+  return getFieldForce<def>(data, len, valid);
 }
 
 template<const Int8Field& def>
-__attribute__((always_inline)) inline constexpr optional<int8_t> getFieldForce(const uint8_t* data, uint8_t len) {
+__attribute__((always_inline)) inline constexpr int8_t getFieldForce(const uint8_t* data, uint8_t len, bool& valid) {
   // Compile-time validation
   static_assert(def.offset < 0, "int8_t getField requires negative offset");
 
-  if (def.byte_offset >= len) return {};
+  if (def.byte_offset >= len) {
+    valid = false;
+    return 0;
+  }
 
   uint8_t byte_value = data[def.byte_offset];
 
   // Extract raw bit field value using helper functions
   uint8_t raw_value = apply_mask<def.bit_width>(apply_shift<def.bit_offset>(byte_value));
 
-  // Return empty optional for 0 (reserved for "no change")
+  // Return invalid for 0 (reserved for "no change")
   if (raw_value == 0) {
-    return {};
+    valid = false;
+    return 0;
   }
 
   // Apply negative offset
@@ -260,39 +268,45 @@ __attribute__((always_inline)) inline constexpr optional<int8_t> getFieldForce(c
   if constexpr (def.offset != -128) {
     constexpr uint8_t max_raw_value = 127 - def.offset;  // e.g., offset=-3 -> max=130
     if (raw_value > max_raw_value) {
+      valid = true;
       return 127;  // Clamp to maximum int8_t value
     }
   }
 
+  valid = true;
   return result;
 }
 
 template<const Int8Field& def>
-__attribute__((always_inline)) inline constexpr optional<int8_t> getField(const uint8_t* data, uint8_t len) {
+__attribute__((always_inline)) inline constexpr int8_t getField(const uint8_t* data, uint8_t len, bool& valid) {
   // Compile-time access validation
   static_assert(def.access == R || def.access == RW, "getField requires read access (R or RW)");
 
-  return getFieldForce<def>(data, len);
+  return getFieldForce<def>(data, len, valid);
 }
 
 template<const FloatField& def>
-__attribute__((always_inline)) inline constexpr optional<float> getFieldForce(const uint8_t* data, uint8_t len) {
+__attribute__((always_inline)) inline constexpr float getFieldForce(const uint8_t* data, uint8_t len, bool& valid) {
   // Compile-time validation
   static_assert(def.offset == 0 || def.offset == -1, "float getField only supports offset 0 or -1");
   static_assert(def.multiplier > 0 && def.divider > 0, "float getField requires positive multiplier and divider");
   static_assert(def.bit_width <= 16, "float getField supports up to 16-bit width");
 
   if constexpr (def.bit_width <= 8) {
-    if (def.byte_offset >= len) return {};
+    if (def.byte_offset >= len) {
+      valid = false;
+      return 0.0f;
+    }
 
     uint8_t byte_value = data[def.byte_offset];
 
     // Extract raw bit field value using helper functions
     uint8_t raw_value = apply_mask<def.bit_width>(apply_shift<def.bit_offset>(byte_value));
 
-    // Return empty optional for 0 (reserved for "no change")
+    // Return invalid for 0 (reserved for "no change")
     if (raw_value == 0) {
-      return {};
+      valid = false;
+      return 0.0f;
     }
 
     // Apply offset, multiplier, and divider
@@ -306,22 +320,27 @@ __attribute__((always_inline)) inline constexpr optional<float> getFieldForce(co
       result /= def.divider;
     }
 
+    valid = true;
     return result;
   } else {
     // 16-bit field support
     static_assert(def.bit_width == 16, "Only 8-bit and 16-bit widths supported for float fields");
     static_assert(def.bit_offset == 0, "16-bit fields must be byte-aligned");
 
-    if (def.byte_offset + 1 >= len) return {};
+    if (def.byte_offset + 1 >= len) {
+      valid = false;
+      return 0.0f;
+    }
 
     // Little-endian 16-bit read
     uint16_t low_byte = data[def.byte_offset];
     uint16_t high_byte = data[def.byte_offset + 1];
     uint16_t raw_value = low_byte | (high_byte << 8);
 
-    // Return empty optional for 0 (reserved for "no change")
+    // Return invalid for 0 (reserved for "no change")
     if (raw_value == 0) {
-      return {};
+      valid = false;
+      return 0.0f;
     }
 
     // Apply offset, multiplier, and divider
@@ -335,16 +354,17 @@ __attribute__((always_inline)) inline constexpr optional<float> getFieldForce(co
       result /= def.divider;
     }
 
+    valid = true;
     return result;
   }
 }
 
 template<const FloatField& def>
-__attribute__((always_inline)) inline constexpr optional<float> getField(const uint8_t* data, uint8_t len) {
+__attribute__((always_inline)) inline constexpr float getField(const uint8_t* data, uint8_t len, bool& valid) {
   // Compile-time access validation
   static_assert(def.access == R || def.access == RW, "getField requires read access (R or RW)");
 
-  return getFieldForce<def>(data, len);
+  return getFieldForce<def>(data, len, valid);
 }
 
 // setField template functions for writing field values to packets

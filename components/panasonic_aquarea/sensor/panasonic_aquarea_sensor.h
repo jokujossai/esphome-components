@@ -7,7 +7,24 @@
 namespace esphome {
 namespace panasonic_aquarea {
 
-class PanasonicAquareaSensor : public sensor::Sensor, public PanasonicAquareaChild {
+class PanasonicAquareaSensorBase : public sensor::Sensor, public PanasonicAquareaChildBase {
+public:
+  bool set_packet_value(uint8_t *data, uint8_t len) override {
+    // Sensors are read-only
+    return false;
+  }
+};
+
+template<const auto& field>
+class PanasonicAquareaSensor : public PanasonicAquareaSensorBase {
+public:
+  void update_from_packet(const uint8_t *data, uint8_t len) override {
+    bool valid;
+    auto value = fields::getField<field>(data, len, valid);
+    if (valid) {
+      this->publish_state(value);
+    }
+  }
 };
 
 } // namespace panasonic_aquarea

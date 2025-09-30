@@ -2,8 +2,9 @@
 
 #include "protocol.h"
 
+#ifdef USE_MQTT
 #include "esphome/components/mqtt/mqtt_component.h"
-
+#endif
 
 namespace esphome {
 namespace panasonic_aquarea {
@@ -42,14 +43,17 @@ public:
 
   bool should_send() const override;
   void send() override;
+  void request_send(PanasonicAquareaChildBase *child) override;
 
   void set(PanasonicAquareaTopic topic, bool state) override;
   void set(PanasonicAquareaTopic topic, uint8_t index) override;
   void set(PanasonicAquareaTopic topic, float value) override;
 
+#ifdef USE_MQTT
   // TODO: Remove on final version, required for testing with HeishaMon
   void set_mqtt_client_component(mqtt::MQTTClientComponent *mqtt_client_component) { mqtt_client_component_ = mqtt_client_component; }
   void set_send_log_topic(const std::string &send_log_topic) { send_log_topic_ = send_log_topic; }
+#endif
 
 private:
   std::vector<uint8_t> panasonic_send_query_;
@@ -58,9 +62,11 @@ private:
 
   uint32_t next_send_allowed_time_ = 0;
 
+#ifdef USE_MQTT
   // TODO: Remove on final version, required for testing with HeishaMon
   mqtt::MQTTClientComponent *mqtt_client_component_{nullptr};
   std::string send_log_topic_;
+#endif
 
   void reset_query();
 };

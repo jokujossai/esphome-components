@@ -12,62 +12,10 @@ bool PanasonicAquareaDecoderMain::supports(const uint8_t *data, uint8_t length) 
 bool PanasonicAquareaDecoderMain::decode(const uint8_t *data, uint8_t length) {
   ESP_LOGD(TAG, "Decoding with main decoder");
 
-#ifdef USE_SENSOR
-  // Loop sensors
-  for(auto sensor : this->sensors_) {
-    auto value = this->sensor_value(sensor->get_topic(), data, length);
-    if(value.has_value()) {
-      sensor->publish_state(value.value());
-    }
-    else {
-      ESP_LOGW(TAG, "No value for sensor: %d", sensor->get_topic());
-    }
+  // Update all children with packet data
+  for(auto child : this->children_) {
+    child->update_from_packet(data, length);
   }
-#endif
-
-#ifdef USE_BINARY_SENSOR
-  for(auto binary_sensor : this->binary_sensors_) {
-    auto value = this->binary_sensor_value(binary_sensor->get_topic(), data, length);
-    if(value.has_value()) {
-      binary_sensor->publish_state(value.value());
-    }
-    else {
-      ESP_LOGW(TAG, "No value for binary sensor: %d", binary_sensor->get_topic());
-    }
-  }
-#endif
-
-#ifdef USE_SWITCH
-  for(auto switch_ : this->switches_) {
-    ESP_LOGD(TAG, "Decoding switch: %d", switch_->get_topic());
-    auto value = this->binary_sensor_value(switch_->get_topic(), data, length);
-    if(value.has_value()) {
-      switch_->publish_state(value.value());
-    }
-    else {
-      ESP_LOGW(TAG, "No value for switch: %d", switch_->get_topic());
-    }
-  }
-#endif
-
-#ifdef USE_SELECT
-  for(auto select_ : this->selects_) {
-    ESP_LOGD(TAG, "Decoding select: %d", select_->get_topic());
-    auto value = this->select_value(select_->get_topic(), data, length);
-    if(value.has_value()) {
-      // Convert index to option string and publish
-      auto options = select_->traits.get_options();
-      if(value.value() < options.size()) {
-        select_->publish_state(options[value.value()]);
-      } else {
-        ESP_LOGW(TAG, "Select index %d out of range for topic %d", value.value(), select_->get_topic());
-      }
-    }
-    else {
-      ESP_LOGW(TAG, "No value for select: %d", select_->get_topic());
-    }
-  }
-#endif
 
 #ifdef USE_CLIMATE
   // Update climate components with relevant data
@@ -249,6 +197,7 @@ void PanasonicAquareaEncoderMain::send() {
 
   ESP_LOGD(TAG, "Sent command query: %s", format_hex_pretty(panasonic_send_query_.data(), SEND_QUERY_SIZE).c_str());
 
+#ifdef USE_MQTT
   // TODO: Remove on final version, required for testing with HeishaMon
   if(this->mqtt_client_component_ != nullptr && this->send_log_topic_ != "") {
     std::string payload(panasonic_send_query_.begin(), panasonic_send_query_.end());
@@ -257,10 +206,23 @@ void PanasonicAquareaEncoderMain::send() {
     //this->mqtt_client_component_->publish(this->send_log_topic_, payload);
     mqtt::global_mqtt_client->publish({.topic = this->send_log_topic_, .payload = payload, .qos = 0, .retain = false});
   }
+#endif
 
   this->reset_query();
 
   ESP_LOGD(TAG, "Sent command query");
+}
+
+void PanasonicAquareaEncoderMain::request_send(PanasonicAquareaChildBase *child) {
+  // Initialize query if needed
+  if (panasonic_send_query_.size() != SEND_QUERY_SIZE) {
+    this->reset_query();
+  }
+
+  // Let the child update the packet with its value
+  if (child->set_packet_value(panasonic_send_query_.data(), panasonic_send_query_.size())) {
+    should_send_ = true;
+  }
 }
 
 void PanasonicAquareaEncoderMain::set(PanasonicAquareaTopic topic, bool state) {
