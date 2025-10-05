@@ -1,15 +1,10 @@
 #pragma once
 
 #include "esphome/core/component.h"
-#include "esphome/components/uart/uart.h"
-
+#include "esphome/core/automation.h"
 #include "protocol_base.h"
-
-#define AQUAREA_RX_BUFFER_SIZE 255
-#if AQUAREA_RX_BUFFER_SIZE > 255
-#error "AQUAREA_RX_BUFFER_SIZE must be less than or equal to 255 (uint8_t max value)"
-#endif
-
+#include "data_source.h"
+#include <vector>
 
 namespace esphome {
 namespace panasonic_aquarea {
@@ -17,7 +12,7 @@ namespace panasonic_aquarea {
 class PanasonicAquareaDecoderBase;
 class PanasonicAquareaEncoderBase;
 
-class PanasonicAquareaComponent : public Component, public uart::UARTDevice {
+class PanasonicAquareaComponent : public Component {
 public:
   void setup() override;
   void loop() override;
@@ -25,23 +20,61 @@ public:
   float get_setup_priority() const override { return setup_priority::DATA; }
 
   void set_listen_only(bool listen_only) { listen_only_ = listen_only; }
+  bool get_listen_only() const { return listen_only_; }
+  void set_data_source(PanasonicAquareaDataSource *data_source) { data_source_ = data_source; }
   void add_decoder(PanasonicAquareaDecoderBase *decoder) { decoders_.push_back(decoder); }
   void add_encoder(PanasonicAquareaEncoderBase *encoder) { encoders_.push_back(encoder); }
 
+  // Write data to the data source (used by encoders)
+  void write_array(const std::vector<uint8_t> &data);
+
+  // Public method to handle packet from external sources (actions, lambdas)
+  void handle_packet(const std::vector<uint8_t> &data);
+
+  // Callback for on_packet_send trigger
+  void add_on_packet_send_callback(std::function<void(const std::vector<uint8_t>&)> callback) {
+    this->on_packet_send_callback_.add(std::move(callback));
+  }
+
 private:
   bool listen_only_{false};
+  PanasonicAquareaDataSource *data_source_{nullptr};
   std::vector<PanasonicAquareaDecoderBase *> decoders_;
   std::vector<PanasonicAquareaEncoderBase *> encoders_;
 
-  // UART communication variables
-  uint8_t rx_buffer_[AQUAREA_RX_BUFFER_SIZE];
-  uint8_t rx_buffer_index_{0};
-  
-  // TODO: Counters for statistics
+  uint32_t last_query_time_{0};
+  static const uint32_t QUERY_INTERVAL = 1000; // 1 second interval like HeishaMon
 
-  // TODO: Variables for outgoing commands
+  CallbackManager<void(const std::vector<uint8_t>&)> on_packet_send_callback_;
 
-  void handle_packet();
+  void send_query();
+};
+
+// Action to handle packet
+template<typename... Ts>
+class HandlePacketAction : public Action<Ts...> {
+public:
+  explicit HandlePacketAction(PanasonicAquareaComponent *parent) : parent_(parent) {}
+
+  TEMPLATABLE_VALUE(std::vector<uint8_t>, packet)
+
+  void play(Ts... x) override {
+    auto packet = this->packet_.value(x...);
+    this->parent_->handle_packet(packet);
+  }
+
+protected:
+  PanasonicAquareaComponent *parent_;
+};
+
+// Trigger for on_packet_send
+class OnPacketSendTrigger : public Trigger<std::vector<uint8_t>> {
+public:
+  explicit OnPacketSendTrigger(PanasonicAquareaComponent *parent) {
+    parent->add_on_packet_send_callback([this](const std::vector<uint8_t>& data) {
+      this->trigger(data);
+    });
+  }
 };
 
 } // namespace panasonic_aquarea

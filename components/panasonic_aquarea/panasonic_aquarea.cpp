@@ -1,5 +1,6 @@
 #include "panasonic_aquarea.h"
 #include "esphome/core/log.h"
+#include "esphome/core/hal.h"
 
 namespace esphome {
 namespace panasonic_aquarea {
@@ -7,7 +8,17 @@ namespace panasonic_aquarea {
 static const char *const TAG = "panasonic_aquarea";
 
 void PanasonicAquareaComponent::setup() {
-  // Empty
+  if (this->data_source_ != nullptr) {
+    // Set up the packet callback for the data source
+    this->data_source_->set_packet_callback([this](const std::vector<uint8_t> &data) {
+      this->handle_packet(data);
+    });
+
+    // Setup the data source
+    this->data_source_->setup();
+  } else {
+    ESP_LOGW(TAG, "No data source configured - component will only process packets from actions/lambdas");
+  }
 }
 
 void PanasonicAquareaComponent::dump_config() {
@@ -16,76 +27,75 @@ void PanasonicAquareaComponent::dump_config() {
 }
 
 void PanasonicAquareaComponent::loop() {
-  // Read available data from UART
-  // TODO: Should this continue on some cases to keep loop function short?
-  while (this->available()) {
-    uint8_t byte;
-    if(!this->read_byte(&byte)) {
-      ESP_LOGE(TAG, "Failed to read byte");
-      return;
-    }
-
-    // State 0: Waiting for start byte
-    if(this->rx_buffer_index_ == 0) {
-      // TODO: 0x31 and 0xF1 as well?
-      if(byte != 0x71) {
-        ESP_LOGD(TAG, "Unexpected data byte: %02X", byte);
-        continue;
-      }
-      this->rx_buffer_[this->rx_buffer_index_++] = byte;
-      continue;
-    }
-
-    // State 1: Waiting for packet length
-    if(this->rx_buffer_index_ == 1) {
-      if(byte > sizeof(this->rx_buffer_) - 3) {
-        ESP_LOGW(TAG, "Packet length too large: %d", byte);
-        this->rx_buffer_index_ = 0;
-        continue;
-      }
-      this->rx_buffer_[this->rx_buffer_index_++] = byte;
-      continue;
-    }
-
-    // State 2: Waiting for packet data
-    // Check if buffer is full (should not happen)
-    if(this->rx_buffer_index_ == sizeof(this->rx_buffer_)) {
-      ESP_LOGE(TAG, "RX buffer full, clearing");
-      this->rx_buffer_index_ = 0;
-      continue;
-    }
-
-    this->rx_buffer_[this->rx_buffer_index_++] = byte;
-
-    if(this->rx_buffer_index_ > 1 && this->rx_buffer_index_ >= this->rx_buffer_[1] + 3) {
-      if(this->rx_buffer_index_ > this->rx_buffer_[1] + 3) {
-        ESP_LOGE(TAG, "Got too many bytes before handling, skipping extra bytes");
-      }
-      this->handle_packet();
-      this->rx_buffer_index_ = 0;
-    }
+  if (this->data_source_ != nullptr) {
+    // Process data source loop (for UART polling, etc.)
+    this->data_source_->loop();
   }
 
-  for(auto encoder : this->encoders_) {
-    if(encoder->should_send()) {
-      ESP_LOGD(TAG, "Sending encoder: %s", encoder->get_topic().c_str());
-      encoder->send();
+  // Send periodic query if not in listen-only mode
+  if (!this->listen_only_) {
+    uint32_t now = millis();
+    if (now - this->last_query_time_ >= QUERY_INTERVAL) {
+      this->send_query();
+      this->last_query_time_ = now;
+    }
+
+    // Check encoders for pending sends
+    for (auto encoder : this->encoders_) {
+      if (encoder->should_send()) {
+        ESP_LOGD(TAG, "Sending encoder: %s", encoder->get_topic().c_str());
+        encoder->send();
+      }
     }
   }
 }
 
-void PanasonicAquareaComponent::handle_packet() {
-  ESP_LOGD(TAG, "Received %d bytes, packet length: %d", this->rx_buffer_index_, this->rx_buffer_[1]);
+void PanasonicAquareaComponent::write_array(const std::vector<uint8_t> &data) {
+  if (this->data_source_ != nullptr) {
+    this->data_source_->write_array(data.data(), data.size());
 
-  if(!PanasonicAquareaDecoderBase::check_crc(this->rx_buffer_, this->rx_buffer_[1] + 3)) {
+    // Trigger on_packet_send callbacks
+    this->on_packet_send_callback_.call(data);
+  }
+}
+
+void PanasonicAquareaComponent::handle_packet(const std::vector<uint8_t> &data) {
+  if (data.empty()) {
+    return;
+  }
+
+  ESP_LOGD(TAG, "Received %zu bytes", data.size());
+
+  if (!PanasonicAquareaDecoderBase::check_crc(data)) {
     ESP_LOGW(TAG, "CRC check failed");
     return;
   }
 
-  for(auto decoder : this->decoders_) {
-    if(decoder->supports(this->rx_buffer_, this->rx_buffer_[1] + 3)) {
-      decoder->decode(this->rx_buffer_, this->rx_buffer_[1] + 3);
+  for (auto decoder : this->decoders_) {
+    if (decoder->supports(data)) {
+      decoder->decode(data);
     }
+  }
+}
+
+void PanasonicAquareaComponent::send_query() {
+  ESP_LOGD(TAG, "Sending panasonic query");
+
+  // Query packet: 0x71 0x6c 0x01 0x10 + 106 zeros + CRC
+  // This is the same as the encoder packet but with 0x71 (read) instead of 0xf1 (write)
+  static const std::vector<uint8_t> query = {
+    0x71, 0x6c, 0x01, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x12 // Last byte is CRC
+  };
+
+  // Send the query packet
+  if (this->data_source_ != nullptr) {
+    this->write_array(query);
   }
 }
 

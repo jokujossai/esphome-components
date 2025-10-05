@@ -125,10 +125,23 @@ struct FloatField {
       offset(offs), multiplier(mult), divider(div), access(acc) {}
 };
 
+// Temperature with fractional part from byte 118 (HeishaMon Topic 5 & 6)
+struct TempWithFracField {
+  uint8_t byte_offset;      // Temperature byte offset
+  uint8_t frac_bit_offset;  // Bit offset in byte 118 (0 for bits 0-2, 3 for bits 3-5)
+  FieldAccess access;
+
+  constexpr TempWithFracField(uint8_t byte_off, uint8_t frac_bit_off)
+    : byte_offset(byte_off), frac_bit_offset(frac_bit_off), access(R) {}
+
+  constexpr TempWithFracField(FieldAccess acc, uint8_t byte_off, uint8_t frac_bit_off)
+    : byte_offset(byte_off), frac_bit_offset(frac_bit_off), access(acc) {}
+};
+
 template<const Uint8Field& def>
 __attribute__((always_inline)) inline constexpr uint8_t getFieldForce(const uint8_t* data, uint8_t len, bool& valid) {
-  // Compile-time validation
-  static_assert(def.offset == 0 || def.offset == -1, "uint8_t getField only supports offset 0 or -1");
+  // Compile-time validation: offset must be in range -255 to 0
+  static_assert(def.offset >= -255 && def.offset <= 0, "uint8_t getField offset must be in range -255 to 0");
 
   if (def.byte_offset >= len) {
     valid = false;
@@ -147,11 +160,18 @@ __attribute__((always_inline)) inline constexpr uint8_t getFieldForce(const uint
   }
 
   // Apply offset for non-zero values
-  valid = true;
-  if constexpr (def.offset == -1) {
-    return raw_value - 1;
-  } else {
+  if constexpr (def.offset == 0) {
+    valid = true;
     return raw_value;
+  } else {
+    // Negative offset: check if raw_value is smaller than absolute offset
+    constexpr uint8_t abs_offset = -def.offset;
+    if (raw_value < abs_offset) {
+      valid = false;
+      return 0;
+    }
+    valid = true;
+    return raw_value + def.offset;  // offset is negative, so this subtracts
   }
 }
 
@@ -360,6 +380,40 @@ __attribute__((always_inline)) inline constexpr float getFieldForce(const uint8_
 }
 
 template<const FloatField& def>
+__attribute__((always_inline)) inline constexpr float getField(const uint8_t* data, uint8_t len, bool& valid) {
+  // Compile-time access validation
+  static_assert(def.access == R || def.access == RW, "getField requires read access (R or RW)");
+
+  return getFieldForce<def>(data, len, valid);
+}
+
+// TempWithFracField: Temperature with fractional part from byte 118
+template<const TempWithFracField& def>
+__attribute__((always_inline)) inline constexpr float getFieldForce(const uint8_t* data, uint8_t len, bool& valid) {
+  constexpr uint8_t frac_byte = 118;  // Packet byte 118
+
+  if (def.byte_offset >= len || frac_byte >= len) {
+    valid = false;
+    return 0.0f;
+  }
+
+  // Get integer temperature (value - 128)
+  int8_t temp_int = (int8_t)data[def.byte_offset] - 128;
+
+  // Get fractional part from byte 118
+  uint8_t frac_bits = (data[frac_byte] >> def.frac_bit_offset) & 0x7;
+
+  // Map fractional bits to decimal values: 1->0.00, 2->0.25, 3->0.50, 4->0.75
+  float frac_value = 0.0f;
+  if (frac_bits == 2) frac_value = 0.25f;
+  else if (frac_bits == 3) frac_value = 0.50f;
+  else if (frac_bits == 4) frac_value = 0.75f;
+
+  valid = true;
+  return temp_int + frac_value;
+}
+
+template<const TempWithFracField& def>
 __attribute__((always_inline)) inline constexpr float getField(const uint8_t* data, uint8_t len, bool& valid) {
   // Compile-time access validation
   static_assert(def.access == R || def.access == RW, "getField requires read access (R or RW)");

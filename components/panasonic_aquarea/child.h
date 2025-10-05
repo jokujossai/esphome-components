@@ -1,6 +1,5 @@
 #pragma once
 
-#include "topics.h"
 #include "fields_base.h"
 
 namespace esphome {

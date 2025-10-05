@@ -3,12 +3,11 @@
 #include "esphome/core/component.h"
 #include "esphome/components/climate/climate.h"
 #include "../child.h"
-#include "../topics.h"
 
 namespace esphome {
 namespace panasonic_aquarea {
 
-class PanasonicAquareaZoneClimate : public climate::Climate, public PanasonicAquareaChild {
+class PanasonicAquareaZoneClimate : public climate::Climate, public PanasonicAquareaChildBase {
  public:
   void setup() override;
   void dump_config() override;
@@ -17,19 +16,27 @@ class PanasonicAquareaZoneClimate : public climate::Climate, public PanasonicAqu
   climate::ClimateTraits traits() override;
   void control(const climate::ClimateCall &call) override;
 
-  // Called by decoder when new data is available
-  void update_data(uint8_t heating_mode, uint8_t heating_mode_state,
-                   float current_temperature, float target_temperature);
+  // Set zone (1 or 2)
+  void set_zone(uint8_t zone) { zone_ = zone; }
+  uint8_t get_zone() const { return zone_; }
+
+  // PanasonicAquareaChildBase interface
+  void update_from_packet(const uint8_t *data, uint8_t len) override;
+  bool set_packet_value(uint8_t *data, uint8_t len) override;
 
  protected:
+  uint8_t zone_{1};  // Zone number (1 or 2)
+
   // Current heating mode (0=invalid, 1=Compensation Curve, 2=Direct)
   uint8_t heating_mode_{0};
 
   // Current heating mode state (0=invalid, 1=Off/DHW, 2=Heat, 3=Cool, 4=Auto)
   uint8_t heating_mode_state_{0};
 
+  // Pending target temperature for writing
+  optional<float> pending_target_temp_;
+
   void update_traits_();
-  void send_target_temperature_(float temperature);
 };
 
 } // namespace panasonic_aquarea

@@ -1,5 +1,6 @@
 #include "panasonic_aquarea_climate.h"
 #include "esphome/core/log.h"
+#include "../protocol_main_fields.h"
 
 namespace esphome {
 namespace panasonic_aquarea {
@@ -12,7 +13,7 @@ void PanasonicAquareaZoneClimate::setup() {
 }
 
 void PanasonicAquareaZoneClimate::dump_config() {
-  ESP_LOGCONFIG(TAG, "Panasonic Aquarea Zone Climate:");
+  ESP_LOGCONFIG(TAG, "Panasonic Aquarea Zone %d Climate:", this->zone_);
   ESP_LOGCONFIG(TAG, "  Heating Mode: %s",
     heating_mode_ == 1 ? "Compensation Curve" :
     heating_mode_ == 2 ? "Direct" : "Unknown");
@@ -75,80 +76,90 @@ void PanasonicAquareaZoneClimate::control(const climate::ClimateCall &call) {
       target = clamp(target, -5.0f, 5.0f);
     }
 
-    this->send_target_temperature_(target);
+    this->pending_target_temp_ = target;
     this->target_temperature = target;
+
+    // Request encoder to send the updated value
+    if (this->encoder_ != nullptr) {
+      this->encoder_->request_send(this);
+    }
   }
 
   if (call.get_mode().has_value()) {
     auto mode = *call.get_mode();
     this->mode = mode;
 
-    // Convert climate mode to heating mode state and send command
-    uint8_t new_heating_mode_state = 0;
-    switch (mode) {
-      case climate::CLIMATE_MODE_OFF:
-        new_heating_mode_state = 1; // Off/DHW only
-        break;
-      case climate::CLIMATE_MODE_HEAT:
-        new_heating_mode_state = 2; // Heat
-        break;
-      case climate::CLIMATE_MODE_COOL:
-        new_heating_mode_state = 3; // Cool
-        break;
-      case climate::CLIMATE_MODE_AUTO:
-        new_heating_mode_state = 4; // Auto
-        break;
-      default:
-        ESP_LOGW(TAG, "Unsupported climate mode: %d", mode);
-        return;
-    }
-
-    // Send heating mode state command
-    if (this->parent_ != nullptr) {
-      this->parent_->set_topic_value(HeatingModeState, new_heating_mode_state - 1); // Convert back to 0-based
-    }
+    // TODO: Mode control not implemented yet - needs operatingModeState field control
+    ESP_LOGW(TAG, "Climate mode control not yet implemented");
   }
 
   this->publish_state();
 }
 
-void PanasonicAquareaZoneClimate::update_data(uint8_t heating_mode, uint8_t heating_mode_state,
-                                              float current_temperature, float target_temperature) {
+void PanasonicAquareaZoneClimate::update_from_packet(const uint8_t *data, uint8_t len) {
+  using namespace fields;
+  bool valid = false;
   bool traits_changed = false;
 
-  // Update heating mode (convert from 0-based to 1-based internal representation)
-  uint8_t new_heating_mode = heating_mode + 1;
-  if (this->heating_mode_ != new_heating_mode) {
+  // Read heating mode (1=Compensation Curve, 2=Direct)
+  uint8_t new_heating_mode = getField<heatingMode>(data, len, valid);
+  if (valid && this->heating_mode_ != new_heating_mode) {
     this->heating_mode_ = new_heating_mode;
     traits_changed = true;
-    ESP_LOGD(TAG, "Heating mode changed to: %s",
+    ESP_LOGD(TAG, "Zone %d heating mode changed to: %s", zone_,
       heating_mode_ == 1 ? "Compensation Curve" :
       heating_mode_ == 2 ? "Direct" : "Unknown");
   }
 
-  // Update heating mode state (convert from 0-based to 1-based internal representation)
-  uint8_t new_heating_mode_state = heating_mode_state + 1;
-  if (this->heating_mode_state_ != new_heating_mode_state) {
-    this->heating_mode_state_ = new_heating_mode_state;
-    traits_changed = true;
-    ESP_LOGD(TAG, "Heating mode state changed to: %s",
-      heating_mode_state_ == 1 ? "Off/DHW" :
-      heating_mode_state_ == 2 ? "Heat" :
-      heating_mode_state_ == 3 ? "Cool" :
-      heating_mode_state_ == 4 ? "Auto" : "Unknown");
+  // Read operating mode state (2=Heat, 3=Cool, 9=Auto(Heat), 10=Auto(Cool))
+  uint8_t operating_mode = getField<operatingModeState>(data, len, valid);
+  if (valid) {
+    uint8_t new_heating_mode_state = 0;
+    switch (operating_mode) {
+      case 2:  // Heat
+        new_heating_mode_state = 2;
+        break;
+      case 3:  // Cool
+        new_heating_mode_state = 3;
+        break;
+      case 9:  // Auto(Heat)
+      case 10: // Auto(Cool)
+        new_heating_mode_state = 4;
+        break;
+      default:
+        new_heating_mode_state = 1; // Off/DHW
+        break;
+    }
+
+    if (this->heating_mode_state_ != new_heating_mode_state) {
+      this->heating_mode_state_ = new_heating_mode_state;
+      traits_changed = true;
+    }
   }
 
-  // Update current temperature
-  if (!isnan(current_temperature)) {
-    this->current_temperature = current_temperature;
+  // Read current temperature (water temp for this zone)
+  float current_temp;
+  if (zone_ == 1) {
+    current_temp = getField<z1WaterTemp>(data, len, valid);
+  } else {
+    current_temp = getField<z2WaterTemp>(data, len, valid);
+  }
+  if (valid && !isnan(current_temp)) {
+    this->current_temperature = current_temp;
   }
 
-  // Update target temperature
-  if (!isnan(target_temperature)) {
-    this->target_temperature = target_temperature;
+  // Read target temperature (heat request temp for this zone)
+  float target_temp;
+  if (zone_ == 1) {
+    target_temp = getField<z1HeatRequestTemp>(data, len, valid);
+  } else {
+    target_temp = getField<z2HeatRequestTemp>(data, len, valid);
+  }
+  if (valid && !isnan(target_temp)) {
+    this->target_temperature = target_temp;
   }
 
-  // Update traits if heating mode changed
+  // Update traits if mode changed
   if (traits_changed) {
     this->update_traits_();
   }
@@ -174,22 +185,36 @@ void PanasonicAquareaZoneClimate::update_data(uint8_t heating_mode, uint8_t heat
   this->publish_state();
 }
 
+bool PanasonicAquareaZoneClimate::set_packet_value(uint8_t *data, uint8_t len) {
+  using namespace fields;
+
+  if (!this->pending_target_temp_.has_value()) {
+    return false;
+  }
+
+  float target = this->pending_target_temp_.value();
+  this->pending_target_temp_.reset();
+
+  bool success;
+  if (zone_ == 1) {
+    success = setField<z1HeatRequestTemp>(data, len, target);
+  } else {
+    success = setField<z2HeatRequestTemp>(data, len, target);
+  }
+
+  if (success) {
+    ESP_LOGD(TAG, "Zone %d set target temperature to %.1f°C", zone_, target);
+  } else {
+    ESP_LOGW(TAG, "Zone %d failed to set target temperature", zone_);
+  }
+
+  return success;
+}
+
 void PanasonicAquareaZoneClimate::update_traits_() {
   // Force traits update by getting new traits
   auto new_traits = this->traits();
   // Note: ESPHome will automatically handle the traits update
-}
-
-void PanasonicAquareaZoneClimate::send_target_temperature_(float temperature) {
-  if (this->encoder_ == nullptr) {
-    ESP_LOGW(TAG, "Encoder not set, cannot send target temperature");
-    return;
-  }
-
-  ESP_LOGD(TAG, "Sending target temperature: %.1f°C for topic %d", temperature, this->topic_);
-
-  // Send command through encoder using the configured topic with float support
-  this->encoder_->set(this->topic_, temperature);
 }
 
 } // namespace panasonic_aquarea

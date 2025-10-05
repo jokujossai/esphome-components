@@ -1,0 +1,89 @@
+#pragma once
+
+#ifdef USE_UART
+
+#include "data_source.h"
+#include "esphome/components/uart/uart.h"
+#include "esphome/core/log.h"
+
+namespace esphome {
+namespace panasonic_aquarea {
+
+static const char *const TAG_UART = "panasonic_aquarea.uart";
+
+class PanasonicAquareaUARTDataSource : public PanasonicAquareaDataSource, public uart::UARTDevice {
+public:
+  void setup() override {
+    // Reserve space for typical packet size
+    this->rx_buffer_.reserve(255);
+  }
+
+  void loop() override {
+    // Read available data from UART
+    while (this->available()) {
+      uint8_t byte;
+      if (!this->read_byte(&byte)) {
+        ESP_LOGE(TAG_UART, "Failed to read byte");
+        return;
+      }
+
+      // State 0: Waiting for start byte
+      if (this->rx_buffer_.empty()) {
+        // TODO: 0x31 and 0xF1 as well?
+        if (byte != 0x71) {
+          ESP_LOGD(TAG_UART, "Unexpected data byte: %02X", byte);
+          continue;
+        }
+        this->rx_buffer_.push_back(byte);
+        continue;
+      }
+
+      // State 1: Waiting for packet length
+      if (this->rx_buffer_.size() == 1) {
+        if (byte > 252) { // Max packet data size (255 - 3 header bytes)
+          ESP_LOGW(TAG_UART, "Packet length too large: %d", byte);
+          this->rx_buffer_.clear();
+          continue;
+        }
+        this->rx_buffer_.push_back(byte);
+        continue;
+      }
+
+      // State 2: Waiting for packet data
+      this->rx_buffer_.push_back(byte);
+
+      // Check if we have received the complete packet
+      size_t expected_length = this->rx_buffer_[1] + 3;
+      if (this->rx_buffer_.size() >= expected_length) {
+        if (this->rx_buffer_.size() > expected_length) {
+          ESP_LOGE(TAG_UART, "Got too many bytes before handling, skipping extra bytes");
+        }
+        this->handle_packet();
+        this->rx_buffer_.clear();
+      }
+    }
+  }
+
+  void write_array(const uint8_t *data, size_t len) override {
+    uart::UARTDevice::write_array(data, len);
+  }
+
+  void write(uint8_t data) override {
+    uart::UARTDevice::write(data);
+  }
+
+private:
+  std::vector<uint8_t> rx_buffer_;
+
+  void handle_packet() {
+    ESP_LOGD(TAG_UART, "Received %zu bytes, packet length: %d", this->rx_buffer_.size(), this->rx_buffer_[1]);
+
+    // Call the packet callback
+    this->call_packet_callback(this->rx_buffer_);
+  }
+};
+
+} // namespace panasonic_aquarea
+} // namespace esphome
+
+#endif // USE_UART

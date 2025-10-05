@@ -1,24 +1,20 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import uart, mqtt
+from esphome.components import uart, mqtt, udp
 from esphome.const import (
   CONF_ID,
   CONF_NAME,
   CONF_UNIT_OF_MEASUREMENT,
   CONF_ACCURACY_DECIMALS,
   CONF_STATE_CLASS,
-  CONF_MQTT_ID
+  CONF_MQTT_ID,
+  CONF_TYPE,
+  CONF_PORT,
+  CONF_TRIGGER_ID,
 )
+from esphome import automation
 from esphome.core import coroutine
 from esphome.util import Registry
-
-from .topics import (
-  get_topic,
-  generate_topic_mapping,
-  TYPE_BINARY_SENSOR,
-  TYPE_SENSOR,
-  TYPE_SWITCH,
-)
 
 CONF_LISTEN_ONLY = "listen_only"
 CONF_DECODERS = "decoders"
@@ -28,12 +24,37 @@ CONF_ENCODER_ID = "encoder_id"
 CONF_PANASONIC_AQUAREA_ID = "panasonic_aquarea_id"
 CONF_TOPIC = "topic"
 CONF_SEND_LOG_TOPIC = "send_log_topic"
+CONF_DATA_SOURCE = "data_source"
+CONF_SUBSCRIBE_TOPIC = "subscribe_topic"
+CONF_PUBLISH_TOPIC = "publish_topic"
+CONF_UDP_ID = "udp_id"
+CONF_ON_PACKET_SEND = "on_packet_send"
+CONF_PACKET = "packet"
 
-DEPENDENCIES = ["uart"]
+DEPENDENCIES = []
+
+DATA_SOURCE_UART = "uart"
+DATA_SOURCE_MQTT = "mqtt"
+DATA_SOURCE_UDP = "udp"
 
 panasonic_aquarea_ns = cg.esphome_ns.namespace("panasonic_aquarea")
 PanasonicAquareaComponent = panasonic_aquarea_ns.class_(
-  "PanasonicAquareaComponent", cg.Component, uart.UARTDevice
+  "PanasonicAquareaComponent", cg.Component
+)
+PanasonicAquareaUARTDataSource = panasonic_aquarea_ns.class_(
+  "PanasonicAquareaUARTDataSource", uart.UARTDevice
+)
+PanasonicAquareaMQTTDataSource = panasonic_aquarea_ns.class_(
+  "PanasonicAquareaMQTTDataSource"
+)
+PanasonicAquareaUDPDataSource = panasonic_aquarea_ns.class_(
+  "PanasonicAquareaUDPDataSource"
+)
+
+# Actions and Triggers
+HandlePacketAction = panasonic_aquarea_ns.class_("HandlePacketAction", automation.Action)
+OnPacketSendTrigger = panasonic_aquarea_ns.class_(
+  "OnPacketSendTrigger", automation.Trigger.template(cg.std_vector.template(cg.uint8))
 )
 
 PanasonicAquareaDecoder = panasonic_aquarea_ns.class_("PanasonicAquareaDecoder")
@@ -45,8 +66,6 @@ PanasonicAquareaEncoder = panasonic_aquarea_ns.class_("PanasonicAquareaEncoder")
 PanasonicAquareaEncoderMain = panasonic_aquarea_ns.class_(
   "PanasonicAquareaEncoderMain", PanasonicAquareaEncoder
 )
-
-PanasonicAquareaTopic = panasonic_aquarea_ns.enum("PanasonicAquareaTopic")
 
 DECODER_REGISTRY = Registry({
   cv.GenerateID(CONF_DECODER_ID): cv.use_id(PanasonicAquareaDecoder),
@@ -159,6 +178,72 @@ def main_encoder(var, config):
   pass
 
 
+DATA_SOURCE_REGISTRY = Registry({
+  cv.GenerateID("data_source_id"): cv.declare_id(panasonic_aquarea_ns.class_("PanasonicAquareaDataSource")),
+})
+
+def register_data_source(name, type, schema):
+  registerer = DATA_SOURCE_REGISTRY.register(name, type, schema)
+
+  def decorator(func):
+    async def new_func(config, data_source_id):
+      var = cg.new_Pvariable(data_source_id)
+      await coroutine(func)(var, config)
+      return var
+
+    return registerer(new_func)
+
+  return decorator
+
+@register_data_source(DATA_SOURCE_UART, PanasonicAquareaUARTDataSource, uart.UART_DEVICE_SCHEMA)
+async def uart_data_source(var, config):
+  await uart.register_uart_device(var, config)
+
+@register_data_source(DATA_SOURCE_MQTT, PanasonicAquareaMQTTDataSource, {
+  cv.Required(CONF_MQTT_ID): cv.use_id(mqtt.MQTTClientComponent),
+  cv.Required(CONF_SUBSCRIBE_TOPIC): cv.subscribe_topic,
+  cv.Required(CONF_PUBLISH_TOPIC): cv.publish_topic,
+})
+async def mqtt_data_source(var, config):
+  mqtt_client = await cg.get_variable(config[CONF_MQTT_ID])
+  cg.add(var.set_mqtt_client(mqtt_client))
+  cg.add(var.set_subscribe_topic(config[CONF_SUBSCRIBE_TOPIC]))
+  cg.add(var.set_publish_topic(config[CONF_PUBLISH_TOPIC]))
+
+@register_data_source(DATA_SOURCE_UDP, PanasonicAquareaUDPDataSource, {
+  cv.Required(CONF_UDP_ID): cv.use_id(udp.UDPComponent),
+})
+async def udp_data_source(var, config):
+  udp_component = await cg.get_variable(config[CONF_UDP_ID])
+  cg.add(var.set_udp_component(udp_component))
+
+
+def validate_data_source(value):
+  """Validate and normalize data_source configuration."""
+  # Allow None/null for custom control mode
+  if value is None:
+    return None
+
+  if isinstance(value, str):
+    # Simple string format: "uart", "mqtt", or "udp"
+    value = {value: {}}
+  elif isinstance(value, dict):
+    # If value has 'type' key, convert to registry format: {type: {config}}
+    if CONF_TYPE in value:
+      source_type = value.pop(CONF_TYPE)
+      value = {source_type: value}
+
+  if not isinstance(value, dict):
+    raise cv.Invalid("data_source must be a string, dictionary, or null")
+
+  # Should have exactly one key which is the data source type
+  if len(value) != 1:
+    raise cv.Invalid("data_source must have exactly one type specified")
+
+  # Use the registry validator
+  return cv.validate_registry_entry("data_source", DATA_SOURCE_REGISTRY)(value)
+
+
 CONFIG_SCHEMA = cv.All(
   cv.Schema(
     {
@@ -166,57 +251,33 @@ CONFIG_SCHEMA = cv.All(
       cv.Optional(CONF_LISTEN_ONLY, default=False): cv.boolean,
       cv.Optional(CONF_DECODERS, default=["main"]): validate_decoders,
       cv.Optional(CONF_ENCODERS, default=["main"]): validate_encoders,
+      cv.Optional(CONF_DATA_SOURCE, default=DATA_SOURCE_UART): validate_data_source,
+      cv.Optional(CONF_ON_PACKET_SEND): automation.validate_automation(
+        {
+          cv.GenerateID(CONF_TRIGGER_ID): cv.declare_id(OnPacketSendTrigger),
+        }
+      ),
     }
   )
-  .extend(cv.COMPONENT_SCHEMA)
-  .extend(uart.UART_DEVICE_SCHEMA),
+  .extend(cv.COMPONENT_SCHEMA),
   collect_decoders,
   collect_encoders
 )
 
-def validate_topic(type):
-  def validator(value):
-    if CONF_TOPIC not in value:
-      raise cv.Invalid(f"Topic {CONF_TOPIC} is required")
-
-    topic = get_topic(value[CONF_TOPIC])
-
-    # TODO: switch -> binary_sensor is allowed
-    if topic.type != type:
-      if type == TYPE_BINARY_SENSOR and topic.type == TYPE_SWITCH:
-        # Allow switch -> binary_sensor
-        pass
-      else:
-        raise cv.Invalid(f"Topic {topic.name} is not a {type} topic")
-
-    if CONF_NAME not in value and CONF_ID not in value:
-      value[CONF_NAME] = topic.name
-
-    value[CONF_TOPIC] = topic.name
-
-    # Default configuration
-    if topic.type == TYPE_SENSOR:
-      if CONF_UNIT_OF_MEASUREMENT not in value and topic.unit_of_measurement is not None:
-        value[CONF_UNIT_OF_MEASUREMENT] = topic.unit_of_measurement
-      if CONF_ACCURACY_DECIMALS not in value and topic.accuracy_decimals is not None:
-        value[CONF_ACCURACY_DECIMALS] = topic.accuracy_decimals
-      if CONF_STATE_CLASS not in value and topic.state_class is not None:
-        value[CONF_STATE_CLASS] = topic.state_class
-
-    return value
-
-  return validator
-
-
 CHILD_SCHEMA_BASE = (
   cv.Schema({
     cv.GenerateID(CONF_PANASONIC_AQUAREA_ID): cv.use_id(PanasonicAquareaComponent),
-    cv.Required(CONF_TOPIC): cv.enum(generate_topic_mapping(PanasonicAquareaTopic)),
   })
 )
 
 async def to_code(config):
   var = cg.new_Pvariable(config[CONF_ID])
+
+  # Setup data source using registry (if provided and not null)
+  if CONF_DATA_SOURCE in config and config[CONF_DATA_SOURCE] is not None:
+    data_source_config = config[CONF_DATA_SOURCE]
+    data_source = await cg.build_registry_entry(DATA_SOURCE_REGISTRY, data_source_config)
+    cg.add(var.set_data_source(data_source))
 
   decoders = await build_decoders(config[CONF_DECODERS])
   for decoder in decoders:
@@ -228,9 +289,13 @@ async def to_code(config):
     cg.add(var.add_encoder(encoder))
 
   await cg.register_component(var, config)
-  await uart.register_uart_device(var, config)
-  
+
   if CONF_LISTEN_ONLY in config:
     cg.add(var.set_listen_only(config[CONF_LISTEN_ONLY]))
+
+  # Setup on_packet_send trigger
+  for conf in config.get(CONF_ON_PACKET_SEND, []):
+    trigger = cg.new_Pvariable(conf[CONF_TRIGGER_ID], var)
+    await automation.build_automation(trigger, [(cg.std_vector.template(cg.uint8), "packet")], conf)
 
   return var

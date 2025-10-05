@@ -14,19 +14,19 @@ namespace main {
 constexpr BooleanField heatpumpState(RW, 4, 0);         // TOP0: bits 1-0, Heat pump state (OffOn) - RW: heatpump/pump commands
 constexpr BooleanField forceDhwState(RW, 4, 6);         // TOP2: bits 7-6, Force DHW state (DisabledEnabled) - RW: force DHW command
 
-// Byte 5 - System states (TOP3, TOP13, TOP19, TOP68) - Holiday mode writable
-constexpr BooleanField quietModeSchedule(5, 0);         // TOP3: bits 1-0, Quiet mode schedule (DisabledEnabled)
-constexpr BooleanField mainScheduleState(5, 2);         // TOP13: bits 3-2, Main schedule state (DisabledEnabled)
+// Byte 5 - System states (TOP13, TOP19, TOP68) - Holiday mode writable
+constexpr BooleanField mainScheduleState(5, 6);         // TOP13: bits 7-6, Main schedule state (DisabledEnabled)
 constexpr Uint8Field holidayModeState(RW, 5, 4, 2);    // TOP19: bits 5-4, Holiday mode (3 states: Off, Scheduled, Active) - RW: holiday command
-constexpr BooleanField forceHeaterState(5, 6);         // TOP68: bits 7-6, Force heater state (InactiveActive)
+constexpr BooleanField forceHeaterState(5, 2);         // TOP68: bits 3-2, Force heater state (InactiveActive)
 
 // Byte 6 - Operation modes and zones (TOP4, TOP94) - Operating mode writable
 constexpr Uint8Field operatingModeState(RW, 6, 0, 6, 0); // TOP4: bits 5-0, Operating mode (special getOpMode) - RW: mode command
 constexpr Uint8Field zonesState(6, 6, 2);             // TOP94: bits 7-6, Zones state (3 states)
 
-// Byte 7 - Power and quiet modes (TOP17, TOP18) - Both writable
+// Byte 7 - Power and quiet modes (TOP3, TOP17, TOP18) - Both writable
+constexpr BooleanField quietModeSchedule(7, 6);         // TOP3: bits 7-6, Quiet mode schedule (DisabledEnabled)
 constexpr Uint8Field powerfulModeTime(RW, 7, 0, 3);   // TOP17: bits 2-0, Powerful mode time (4 states: Off, 30min, 60min, 90min) - RW: powerful command
-constexpr Uint8Field quietModeLevel(RW, 7, 3, 5);     // TOP18: bits 7-3, Quiet mode level (5-bit field from HeishaMon) - RW: quiet command
+constexpr Uint8Field quietModeLevel(RW, 7, 3, 3);     // TOP18: bits 5-3, Quiet mode level (3-bit field from HeishaMon) - RW: quiet command
 
 // Byte 8 - Force modes (write-only command fields)
 constexpr Uint8Field forceDefrostCommand(W, 8, 0, 8, 0);      // Force defrost command (0=off, 1=on)
@@ -37,10 +37,10 @@ constexpr BooleanField dhwHeaterState(9, 2);          // TOP58: bits 3-2, DHW he
 constexpr BooleanField roomHeaterState(9, 0);         // TOP59: bits 1-0, Room heater state (BlockedFree)
 
 // Byte 20 - System configuration (TOP107, TOP108, TOP109, TOP110) - Alt external sensor writable
-constexpr BooleanField liquidType(20, 0);             // TOP107: bit 0, Liquid type (Water/Glycol)
-constexpr BooleanField altExternalSensor(RW, 20, 2);  // TOP108: bits 3-2, Alternative external sensor (DisabledEnabled) - RW: alt sensor command
-constexpr BooleanField antiFreeze(20, 4);             // TOP109: bits 5-4, Anti freeze mode (DisabledEnabled)
-constexpr BooleanField optionalPcb(20, 6);            // TOP110: bits 7-6, Optional PCB (DisabledEnabled)
+constexpr Uint8Field liquidType(20, 7, 1, 0);        // TOP107: bit 7, Liquid type (Water/Glycol) - 1 bit, no offset
+constexpr BooleanField altExternalSensor(RW, 20, 4);  // TOP108: bits 5-4, Alternative external sensor (DisabledEnabled) - RW: alt sensor command
+constexpr BooleanField antiFreeze(20, 2);             // TOP109: bits 3-2, Anti freeze mode (DisabledEnabled)
+constexpr BooleanField optionalPcb(20, 0);            // TOP110: bits 1-0, Optional PCB (DisabledEnabled)
 
 // Byte 22 - Zone sensor settings (TOP111, TOP112)
 constexpr Uint8Field z1SensorSettings(22, 0, 4);     // TOP111: bits 3-0, Z1 sensor settings (4 types)
@@ -71,7 +71,7 @@ constexpr Uint8Field heatingMode(RW, 28, 0, 2);      // TOP76: bits 1-0, Heating
 constexpr Uint8Field coolingMode(RW, 28, 2, 2);      // TOP81: bits 3-2, Cooling mode (2 states: Comp. Curve, Direct) - RW: mode command
 
 // Byte 29 - Pump flowrate control (TOP106)
-constexpr Uint8Field pumpFlowrateMode(29, 2, 2);     // TOP106: bits 3-2, Pump flowrate mode (2 states: DeltaT, Max flow)
+constexpr Uint8Field pumpFlowrateMode(29, 4, 2);     // TOP106: bits 5-4, Pump flowrate mode (2 states: DeltaT, Max flow)
 
 // Byte 38-44 - Temperature setpoints (Int8Field - getIntMinus128: value-128=°C) - RW: command setpoints
 constexpr Int8Field z1HeatRequestTemp(RW, 38);           // TOP27: Zone 1 heat request temp
@@ -140,14 +140,14 @@ constexpr BooleanField internalHeaterState(112, 0); // TOP60: bits 1-0, Internal
 constexpr BooleanField externalHeaterState(112, 2); // TOP61: bits 3-2, External heater state (InactiveActive)
 
 // Byte 113-114 - Error codes (TOP44)
-constexpr Uint8Field errorCodeType(113);            // TOP44: Error code type
-constexpr Uint8Field errorCodeNumber(114);          // TOP44: Error code number
+constexpr Uint8Field errorCodeType(113, 0, 8, 0);   // TOP44: Error code type (raw value, no offset)
+constexpr Uint8Field errorCodeNumber(114, 0, 8, -17); // TOP44: Error code number (value - 17)
 
 // Byte 116 - Pump and valve status (TOP123, TOP124, TOP125, TOP126)
-constexpr BooleanField z2PumpState(116, 0);         // TOP123: bits 1-0, Z2 pump state (OffOn)
-constexpr BooleanField z1PumpState(116, 2);         // TOP124: bits 3-2, Z1 pump state (OffOn)
-constexpr Uint8Field twoWayValveState(116, 4, 2);   // TOP125: bits 5-4, 2-way valve state (Cool/Heat)
-constexpr Uint8Field threeWayValveState2(116, 6, 2); // TOP126: bits 7-6, 3-way valve state (Room/DHW)
+constexpr BooleanField z2PumpState(116, 6);         // TOP123: bits 7-6, Z2 pump state (OffOn)
+constexpr BooleanField z1PumpState(116, 4);         // TOP124: bits 5-4, Z1 pump state (OffOn)
+constexpr Uint8Field twoWayValveState(116, 2, 2);   // TOP125: bits 3-2, 2-way valve state (Cool/Heat)
+constexpr Uint8Field threeWayValveState2(116, 0, 2); // TOP126: bits 1-0, 3-way valve state (Room/DHW)
 
 // Byte 117 - Sterilization and zone status (TOP69)
 constexpr BooleanField sterilizationState(117, 2);  // TOP69: bits 3-2, Sterilization state (InactiveActive)
@@ -156,7 +156,7 @@ constexpr BooleanField sterilizationState(117, 2);  // TOP69: bits 3-2, Steriliz
 constexpr FloatField waterPressure(125, 0, 8, -1, 1, 50); // TOP115: Water pressure (value-1)/50 Bar
 constexpr Int8Field secondInletTemp(126);           // TOP116: Second inlet temp (value-128=°C)
 constexpr Int8Field economizerOutletTemp(127);      // TOP117: Economizer outlet temp (value-128=°C)
-constexpr Int8Field secondRoomThermostatTemp(200);  // TOP118: Second room thermostat temp (value-128=°C)
+constexpr Int8Field secondRoomThermostatTemp(128);  // TOP118: Second room thermostat temp (value-128=°C)
 
 // Byte 129-138 - Heat pump model (TOP92)
 constexpr Uint8Field heatPumpModel(129, 0, 80);     // TOP92: Heat pump model (10 bytes)
@@ -166,8 +166,8 @@ constexpr Int8Field z1Temp(139);                    // TOP56: Zone 1 temp
 constexpr Int8Field z2Temp(140);                    // TOP57: Zone 2 temp
 constexpr Int8Field dhwTemp(141);                   // TOP10: DHW temp
 constexpr Int8Field outsideTemp(142);               // TOP14: Outside temp
-constexpr Int8Field mainInletTemp(143);             // TOP5: Main inlet temp
-constexpr Int8Field mainOutletTemp(144);            // TOP6: Main outlet temp
+constexpr TempWithFracField mainInletTemp(143, 0);  // TOP5: Main inlet temp with fractional (byte 118 bits 0-2)
+constexpr TempWithFracField mainOutletTemp(144, 3); // TOP6: Main outlet temp with fractional (byte 118 bits 3-5)
 constexpr Int8Field z1WaterTemp(145);               // TOP36: Zone 1 water temp
 constexpr Int8Field z2WaterTemp(146);               // TOP37: Zone 2 water temp
 constexpr Int8Field z1WaterTargetTemp(147);         // TOP42: Zone 1 water target temp
@@ -188,7 +188,7 @@ constexpr Int8Field ipmTemp(162);                   // TOP55: IPM temp
 
 // Byte 163-166 - Pressure and compressor
 constexpr FloatField highPressure(163, 0, 8, -1, 1, 5);  // TOP64: High pressure (value-1)/5 kgf/cm²
-constexpr FloatField lowPressure(164, 0, 8, -1, 1, 5);   // TOP66: Low pressure (value-1)/5 kgf/cm²
+constexpr FloatField lowPressure(164, 0, 8, -1, 50, 1);  // TOP66: Low pressure (value-1)*50 kgf/cm²
 constexpr FloatField compressorCurrent(165, 0, 8, -1, 1, 5); // TOP67: Compressor current (value-1)/5 Ampere
 constexpr Uint8Field compressorFreq(166);           // TOP8: Compressor frequency (value-1)
 
@@ -196,7 +196,7 @@ constexpr Uint8Field compressorFreq(166);           // TOP8: Compressor frequenc
 constexpr FloatField pumpFlow(169, 0, 16, -1, 1, 256);   // TOP1: Pump flow rate L/min (fractional byte 169, integer byte 170)
 
 // Byte 171-178 - Motor and pump data
-constexpr FloatField pumpSpeed(171, 0, 8, -1, 50, 1);   // TOP65: Pump speed (value-1)*50
+constexpr FloatField pumpSpeed(171, 0, 8, -1, 50, 1);   // TOP65: Pump speed (value-1)*50 RPM
 constexpr Uint8Field pumpDuty(172);                     // TOP93: Pump duty (value-1)
 constexpr FloatField fan1MotorSpeed(173, 0, 8, -1, 10, 1); // TOP62: Fan1 motor speed (value-1)*10
 constexpr FloatField fan2MotorSpeed(174, 0, 8, -1, 10, 1); // TOP63: Fan2 motor speed (value-1)*10

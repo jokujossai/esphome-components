@@ -4,7 +4,6 @@
 
 #include "protocol_base.h"
 #include "child.h"
-#include "topics.h"
 
 namespace esphome {
 namespace panasonic_aquarea {
