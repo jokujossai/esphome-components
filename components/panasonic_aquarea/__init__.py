@@ -23,7 +23,6 @@ CONF_ENCODERS = "encoders"
 CONF_ENCODER_ID = "encoder_id"
 CONF_PANASONIC_AQUAREA_ID = "panasonic_aquarea_id"
 CONF_TOPIC = "topic"
-CONF_SEND_LOG_TOPIC = "send_log_topic"
 CONF_DATA_SOURCE = "data_source"
 CONF_SUBSCRIBE_TOPIC = "subscribe_topic"
 CONF_PUBLISH_TOPIC = "publish_topic"
@@ -59,12 +58,12 @@ OnPacketSendTrigger = panasonic_aquarea_ns.class_(
 
 PanasonicAquareaDecoder = panasonic_aquarea_ns.class_("PanasonicAquareaDecoder")
 PanasonicAquareaDecoderMain = panasonic_aquarea_ns.class_(
-  "PanasonicAquareaDecoderMain", PanasonicAquareaDecoder
+  "PanasonicAquareaDecoderMain", PanasonicAquareaDecoder, cg.Component
 )
 
 PanasonicAquareaEncoder = panasonic_aquarea_ns.class_("PanasonicAquareaEncoder")
 PanasonicAquareaEncoderMain = panasonic_aquarea_ns.class_(
-  "PanasonicAquareaEncoderMain", PanasonicAquareaEncoder
+  "PanasonicAquareaEncoderMain", PanasonicAquareaEncoder, cg.Component
 )
 
 DECODER_REGISTRY = Registry({
@@ -73,9 +72,6 @@ DECODER_REGISTRY = Registry({
 
 ENCODER_REGISTRY = Registry({
   cv.GenerateID(CONF_ENCODER_ID): cv.use_id(PanasonicAquareaEncoder),
-  # TODO: Remove on final version, required for testing with HeishaMon
-  cv.Optional(CONF_MQTT_ID): cv.use_id(mqtt.MQTTClientComponent),
-  cv.Optional(CONF_SEND_LOG_TOPIC): cv.publish_topic,
 })
 
 async def build_decoders(config):
@@ -83,6 +79,7 @@ async def build_decoders(config):
   for conf in config:
     decoder = await cg.build_registry_entry(DECODER_REGISTRY, conf)
     decoders.append(decoder)
+    await cg.register_component(decoder, conf)
   return decoders
 
 def validate_decoders(value):
@@ -94,17 +91,8 @@ async def build_encoders(config):
   encoders = []
   for conf in config:
     encoder = await cg.build_registry_entry(ENCODER_REGISTRY, conf)
-
-    if CONF_MQTT_ID in conf:
-      # TODO: Remove on final version, required for testing with HeishaMon
-      mqtt_client = await cg.get_variable(conf[CONF_MQTT_ID])
-      cg.add(encoder.set_mqtt_client_component(mqtt_client))
-
-      # TODO: Remove on final version, required for testing with HeishaMon
-      if CONF_SEND_LOG_TOPIC in conf:
-        cg.add(encoder.set_send_log_topic(conf[CONF_SEND_LOG_TOPIC]))
-
     encoders.append(encoder)
+    await cg.register_component(encoder, conf)
   return encoders
 
 def validate_encoders(value):

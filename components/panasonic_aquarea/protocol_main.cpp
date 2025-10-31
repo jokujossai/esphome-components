@@ -9,17 +9,33 @@ namespace panasonic_aquarea {
 
 static const char *const TAG = "panasonic_aquarea.decoder_main";
 
+void PanasonicAquareaDecoderMain::setup() {
+  buffer_.reserve(DATASIZE);
+  it_ = children_.end();
+}
+
+void PanasonicAquareaDecoderMain::loop() {
+  if(it_ != children_.end()) {
+    auto child = *it_;
+    ESP_LOGD(TAG, "Updating child 0x%lx", (unsigned long)child);
+    child->update_from_packet(buffer_.data(), buffer_.size());
+    it_++;
+  }
+}
+
 bool PanasonicAquareaDecoderMain::supports(const std::vector<uint8_t> &data) const {
   return data.size() == DATASIZE && data[0] == 0x71;
 }
 
 bool PanasonicAquareaDecoderMain::decode(const std::vector<uint8_t> &data) {
-  ESP_LOGD(TAG, "Decoding with main decoder");
+  ESP_LOGD(TAG, "Decoding with main decoder (%lu children)", this->children_.size());
 
-  // Update all children with packet data (including climate components)
-  for(auto child : this->children_) {
-    child->update_from_packet(data.data(), data.size());
+  if(it_ != children_.end()) {
+    ESP_LOGW(TAG, "Previous packet is not processed yet");
   }
+
+  buffer_ = data;
+  it_ = children_.begin();
 
   return true;
 }
@@ -61,17 +77,6 @@ void PanasonicAquareaEncoderMain::send() {
   next_send_allowed_time_ = millis() + 1000;
 
   ESP_LOGD(TAG, "Sent command query: %s", format_hex_pretty(panasonic_send_query_.data(), SEND_QUERY_SIZE).c_str());
-
-#ifdef USE_MQTT
-  // TODO: Remove on final version, required for testing with HeishaMon
-  if(this->mqtt_client_component_ != nullptr && this->send_log_topic_ != "") {
-    std::string payload(panasonic_send_query_.begin(), panasonic_send_query_.end());
-    ESP_LOGD(TAG, "Sending log to MQTT (len=%d)", payload.size());
-    // https://github.com/esphome/esphome/pull/10744
-    //this->mqtt_client_component_->publish(this->send_log_topic_, payload);
-    mqtt::global_mqtt_client->publish({.topic = this->send_log_topic_, .payload = payload, .qos = 0, .retain = false});
-  }
-#endif
 
   this->reset_query();
 

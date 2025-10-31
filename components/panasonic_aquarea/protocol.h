@@ -2,6 +2,7 @@
 
 #include "protocol_base.h"
 #include "child.h"
+#include "esphome/core/component.h"
 
 #ifdef USE_SENSOR
 #include "sensor/panasonic_aquarea_sensor.h"
@@ -24,7 +25,7 @@
 namespace esphome {
 namespace panasonic_aquarea {
 
-class PanasonicAquareaDecoder : public PanasonicAquareaDecoderBase {
+class PanasonicAquareaDecoder : public PanasonicAquareaDecoderBase, public Component {
 public:
   void add_child(PanasonicAquareaChildBase *child) {
     children_.push_back(child);
@@ -34,7 +35,7 @@ protected:
   std::vector<PanasonicAquareaChildBase *> children_;
 };
 
-class PanasonicAquareaEncoder : public PanasonicAquareaEncoderBase {
+class PanasonicAquareaEncoder : public PanasonicAquareaEncoderBase, public Component {
 public:
   void add_child(PanasonicAquareaChildBase *child) {
     children_.push_back(child);

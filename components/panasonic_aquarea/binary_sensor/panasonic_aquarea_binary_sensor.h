@@ -19,6 +19,7 @@ template<const auto& field>
 class PanasonicAquareaBinarySensor : public PanasonicAquareaBinarySensorBase {
 public:
   void update_from_packet(const uint8_t *data, uint8_t len) override {
+    ESP_LOGD("panasonic_aquarea.binary_sensor", "Updating from packet for field %s", this->get_name().c_str());
     bool valid;
     auto value = fields::getField<field>(data, len, valid);
     if (valid) {

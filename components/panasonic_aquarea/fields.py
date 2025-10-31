@@ -43,20 +43,27 @@ FIELD_REGISTRY = {
         "name": "Operating Mode",
         "type": "select",
         "options": {
-            2: "Heat",        # 0b0010 (4 LSB of 0b010010)
-            3: "Cool",        # 0b0011 (4 LSB of 0b010011)
-            9: "Auto(Heat)",  # 0b1001 (4 LSB of 0b011001)
-            10: "Auto(Cool)", # 0b1010 (4 LSB of 0b011010)
+            0: "Off",        # 0b0001 - 1
+            1: "Heat",       # 0b0010 - 1
+            2: "Cool",       # 0b0011 - 1
+            8: "Auto(Heat)", # 0b1001 - 1
+            9: "Auto(Cool)", # 0b1010 - 1
         },
+    },
+    "dhwModeState": {
+        "protocol": "main",
+        "name": "DHW Mode",
+        "type": "switch",
     },
     "zonesState": {
         "protocol": "main",
         "name": "Zones State",
         "type": "select",
+        "entity_category": "config",
         "options": {
-            1: "Zone1",           # 0b01
-            2: "Zone2",           # 0b10
-            3: "Zone1+Zone2",     # 0b11
+            0: "Zone1",           # 0b01 - 1
+            1: "Zone2",           # 0b10 - 1
+            2: "Zone1+Zone2",     # 0b11 - 1
         },
     },
     "powerfulModeTime": {
@@ -64,10 +71,10 @@ FIELD_REGISTRY = {
         "name": "Powerful Mode Time",
         "type": "select",
         "options": {
-            1: "Off",
-            2: "30min",
-            3: "60min",
-            4: "90min",
+            0: "Off",
+            1: "30min",
+            2: "60min",
+            3: "90min",
         },
     },
     "quietModeLevel": {
@@ -75,11 +82,10 @@ FIELD_REGISTRY = {
         "name": "Quiet Mode Level",
         "type": "select",
         "options": {
-            9: "Off",        # 0b01001
-            10: "Level 1",   # 0b01010
-            11: "Level 2",   # 0b01011
-            12: "Level 3",   # 0b01100
-            17: "Scheduled", # 0b10001
+            0: "Off",
+            1: "Level 1",
+            2: "Level 2",
+            3: "Level 3",
         },
     },
     "dhwHeaterState": {
@@ -96,6 +102,11 @@ FIELD_REGISTRY = {
         "protocol": "main",
         "name": "Liquid Type",
         "type": "binary_sensor",
+        "entity_category": "config",
+        "options": {
+            0: "Water",
+            1: "Glycol",
+        },
     },
     "altExternalSensor": {
         "protocol": "main",
@@ -116,6 +127,7 @@ FIELD_REGISTRY = {
         "protocol": "main",
         "name": "Zone 1 Sensor Settings",
         "type": "select",
+        "entity_category": "config",
         "options": {
             1: "Water temp",
             2: "External thermostat",
@@ -127,6 +139,7 @@ FIELD_REGISTRY = {
         "protocol": "main",
         "name": "Zone 2 Sensor Settings",
         "type": "select",
+        "entity_category": "config",
         "options": {
             1: "Water temp",
             2: "External thermostat",
@@ -168,6 +181,7 @@ FIELD_REGISTRY = {
         "protocol": "main",
         "name": "Solar Mode",
         "type": "select",
+        "entity_category": "config",
         "options": {
             1: "No solar",        # 0b01
             2: "Solar buffer",    # 0b10
@@ -178,6 +192,7 @@ FIELD_REGISTRY = {
         "protocol": "main",
         "name": "External Pad Heater",
         "type": "select",
+        "entity_category": "config",
         "options": {
             1: "No pad heater",   # 0b01
             2: "Type A",          # 0b10
@@ -193,6 +208,7 @@ FIELD_REGISTRY = {
         "protocol": "main",
         "name": "Bivalent Mode",
         "type": "select",
+        "entity_category": "config",
         "options": {
             0: "Alternative",
             1: "Parallel",
@@ -213,58 +229,86 @@ FIELD_REGISTRY = {
         "protocol": "main",
         "name": "Heating Mode",
         "type": "select",
+        "entity_category": "config",
         "options": {
-            1: "Compensation Curve",  # 0b01
-            2: "Direct",              # 0b10
+            0: "Compensation Curve",  # 0b01 - 1
+            1: "Direct",              # 0b10 - 1
         },
     },
     "coolingMode": {
         "protocol": "main",
         "name": "Cooling Mode",
         "type": "select",
+        "entity_category": "config",
         "options": {
-            1: "Compensation Curve",  # 0b01
-            2: "Direct",              # 0b10
+            0: "Compensation Curve",  # 0b01 - 1
+            1: "Direct",              # 0b10 - 1
         },
     },
     "pumpFlowrateMode": {
         "protocol": "main",
         "name": "Pump Flowrate Mode",
         "type": "select",
+        "entity_category": "config",
         "options": {
-            1: "Delta T",         # 0b01
-            2: "Max flow",        # 0b10
+            0: "Delta T",         # 0b01 - 1
+            1: "Max flow",        # 0b10 - 1
         },
     },
     "z1HeatRequestTemp": {
         "protocol": "main",
         "name": "Zone 1 Heat Request Temperature",
-        "type": "sensor",
+        "type": "number",
+        "entity_category": "config",
+        "unit_of_measurement": "°C",
+        "mode": "slider",
+        "device_class": "temperature",
+
     },
     "z1CoolRequestTemp": {
         "protocol": "main",
         "name": "Zone 1 Cool Request Temperature",
-        "type": "sensor",
+        "type": "number",
+        "entity_category": "config",
+        "unit_of_measurement": "°C",
+        "mode": "slider",
+        "device_class": "temperature",
     },
     "z2HeatRequestTemp": {
         "protocol": "main",
         "name": "Zone 2 Heat Request Temperature",
-        "type": "sensor",
+        "type": "number",
+        "entity_category": "config",
+        "unit_of_measurement": "°C",
+        "mode": "slider",
+        "device_class": "temperature",
     },
     "z2CoolRequestTemp": {
         "protocol": "main",
         "name": "Zone 2 Cool Request Temperature",
-        "type": "sensor",
+        "type": "number",
+        "entity_category": "config",
+        "unit_of_measurement": "°C",
+        "mode": "slider",
+        "device_class": "temperature",
     },
     "dhwTargetTemp": {
         "protocol": "main",
         "name": "DHW Target Temperature",
-        "type": "sensor",
+        "type": "number",
+        "entity_category": "config",
+        "unit_of_measurement": "°C",
+        "mode": "slider",
+        "device_class": "temperature",
     },
     "pumpFlow": {
         "protocol": "main",
         "name": "Pump Flow",
         "type": "sensor",
+        "unit_of_measurement": "l/h",
+        "state_class": "measurement",
+        "device_class": "volume_flow_rate",
+        "accuracy_decimals": 2,
     },
 }
 

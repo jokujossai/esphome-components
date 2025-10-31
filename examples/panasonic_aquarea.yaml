@@ -17,24 +17,24 @@ logger:
   baud_rate: 0
 
 # Enable HA API
-api:
-  encryption:
-    key: !secret api_key
+#api:
+#  encryption:
+#    key: !secret api_key
 
 # Enable OTAs
-ota:
-  - platform: esphome
-    password: !secret ota_password
+#ota:
+#  - platform: esphome
+#    password: !secret ota_password
 
 # Wi-Fi setup
 wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
+#  ssid: !secret wifi_ssid
+#  password: !secret wifi_password
 
   # Enable fallback hotspot (captive portal) in case Wi-Fi connection fails
   ap:
     ssid: panasonic_aquarea AP
-    password: !secret ap_password
+#    password: !secret ap_password
 
 captive_portal:
 
@@ -57,30 +57,22 @@ panasonic_aquarea:
 
 switch:
   - platform: panasonic_aquarea
-    topic: TOP0
+    field: heatpumpState
   - platform: panasonic_aquarea
-    topic: TOP2
-  # Custom DHW mode switch (extracted from TOP4)
+    field: forceDhwState
   - platform: panasonic_aquarea
-    topic: CUSTOM0
-    name: "DHW Mode"
+    field: dhwModeState
 
 sensor:
   - platform: panasonic_aquarea
-    topic: TOP1
+    field: pumpFlow
 
 binary_sensor:
   - platform: status
     name: AA Node Status
   - platform: panasonic_aquarea
-    topic: TOP0
+    field: heatpumpState
 
 select:
-  # Full operation mode (for compatibility)
   - platform: panasonic_aquarea
-    topic: TOP4
-    name: "Operation Mode"
-  # Custom heating mode select (extracted from TOP4)
-  - platform: panasonic_aquarea
-    topic: CUSTOM1
-    name: "Heating Mode"
+    field: operatingModeState

@@ -20,7 +20,8 @@ constexpr Uint8Field holidayModeState(RW, 5, 4, 2);    // TOP19: bits 5-4, Holid
 constexpr BooleanField forceHeaterState(5, 2);         // TOP68: bits 3-2, Force heater state (InactiveActive)
 
 // Byte 6 - Operation modes and zones (TOP4, TOP94) - Operating mode writable
-constexpr Uint8Field operatingModeState(RW, 6, 0, 6, 0); // TOP4: bits 5-0, Operating mode (special getOpMode) - RW: mode command
+constexpr BooleanField dhwModeState(RW, 6, 4);            // TOP4: bits 7-6, DHW state (DisabledEnabled) - RW: dhw command
+constexpr Uint8Field operatingModeState(RW, 6, 0, 4); // TOP4: bits 3-0, Operating mode (special getOpMode) - RW: mode command
 constexpr Uint8Field zonesState(6, 6, 2);             // TOP94: bits 7-6, Zones state (3 states)
 
 // Byte 7 - Power and quiet modes (TOP3, TOP17, TOP18) - Both writable

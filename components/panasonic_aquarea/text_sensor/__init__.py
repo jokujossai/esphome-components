@@ -51,6 +51,8 @@ async def to_code(config):
 
     # Get options from field definition
     options_dict = field["options"]
+    options_list = [options_dict[k] for k in options_dict.keys()]
+    options_values = [k for k in options_dict.keys()]
 
     # Define namespaces dynamically
     field_ns = panasonic_aquarea_ns.namespace("fields")
@@ -62,7 +64,8 @@ async def to_code(config):
     await text_sensor.register_text_sensor(var, config)
 
     # Set options map for value-to-text conversion
-    cg.add(var.set_options(options_dict))
+    cg.add(var.set_options(options_list))
+    cg.add(var.set_options_values(options_values))
 
     parent = await cg.get_variable(config[CONF_PANASONIC_AQUAREA_ID])
     cg.add(var.set_parent(parent))

@@ -52,7 +52,8 @@ async def to_code(config):
 
     # Get options from field definition - convert dict {value: label} to list of labels
     options_dict = field["options"]
-    options_list = [options_dict[k] for k in sorted(options_dict.keys())]
+    options_list = [options_dict[k] for k in options_dict.keys()]
+    options_values = [k for k in options_dict.keys()]
 
     # Define namespaces dynamically
     field_ns = panasonic_aquarea_ns.namespace("fields")
@@ -62,6 +63,7 @@ async def to_code(config):
     template_args = cg.TemplateArguments(getattr(protocol_ns, field_name))
     var = cg.new_Pvariable(config[cv.CONF_ID], template_args)
     await select.register_select(var, config, options=options_list)
+    cg.add(var.set_options_values(options_values))
 
     parent = await cg.get_variable(config[CONF_PANASONIC_AQUAREA_ID])
     cg.add(var.set_parent(parent))

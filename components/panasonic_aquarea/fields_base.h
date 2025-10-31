@@ -153,12 +153,6 @@ __attribute__((always_inline)) inline constexpr uint8_t getFieldForce(const uint
   // Extract raw bit field value using helper functions
   uint8_t raw_value = apply_mask<def.bit_width>(apply_shift<def.bit_offset>(byte_value));
 
-  // Return invalid for 0 (reserved for "no change")
-  if (raw_value == 0) {
-    valid = false;
-    return 0;
-  }
-
   // Apply offset for non-zero values
   if constexpr (def.offset == 0) {
     valid = true;
@@ -198,15 +192,13 @@ __attribute__((always_inline)) inline constexpr uint16_t getFieldForce(const uin
   uint16_t high_byte = data[def.byte_offset + 1];
   uint16_t raw_value = low_byte | (high_byte << 8);
 
-  // Return invalid for 0 (reserved for "no change")
-  if (raw_value == 0) {
-    valid = false;
-    return 0;
-  }
-
   // Apply offset for non-zero values
   valid = true;
   if constexpr (def.offset == -1) {
+    if (raw_value == 0) {
+      valid = false;
+      return 0;
+    }
     return raw_value - 1;
   } else {
     return raw_value;

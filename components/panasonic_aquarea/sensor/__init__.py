@@ -31,6 +31,13 @@ def validate_sensor_field(value):
     if "name" not in value and "id" not in value:
         value["name"] = field["name"]
 
+    # Apply default values
+    for k, v in field.items():
+        if k in ("protocol", "name", "type"):
+            continue
+        if k not in value:
+            value[k] = v
+
     return value
 
 CONFIG_SCHEMA = cv.All(

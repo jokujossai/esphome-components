@@ -97,6 +97,7 @@ void PanasonicAquareaZoneClimate::control(const climate::ClimateCall &call) {
 }
 
 void PanasonicAquareaZoneClimate::update_from_packet(const uint8_t *data, uint8_t len) {
+  ESP_LOGD(TAG, "Updating from packet for field %s", this->get_name().c_str());
   using namespace fields;
   bool valid = false;
   bool traits_changed = false;
