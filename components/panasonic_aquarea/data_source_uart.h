@@ -1,5 +1,7 @@
 #pragma once
 
+#ifndef USE_HOST
+
 #include "data_source.h"
 #include "esphome/components/uart/uart.h"
 #include "esphome/core/log.h"
@@ -83,3 +85,5 @@ private:
 
 } // namespace panasonic_aquarea
 } // namespace esphome
+
+#endif // USE_HOST

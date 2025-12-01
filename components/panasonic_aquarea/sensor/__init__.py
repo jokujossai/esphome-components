@@ -31,9 +31,17 @@ def validate_sensor_field(value):
     if "name" not in value and "id" not in value:
         value["name"] = field["name"]
 
-    # Apply default values
+    # Apply default values, but skip attributes that are not valid for sensors
+    # Number-specific attributes that should be ignored for sensors
+    number_only_attrs = {"mode", "min_value", "max_value", "step"}
+
     for k, v in field.items():
         if k in ("protocol", "name", "type"):
+            continue
+        if k in number_only_attrs:
+            continue
+        # Skip entity_category "config" for sensors (only "" and "diagnostic" are supported)
+        if k == "entity_category" and v == "config":
             continue
         if k not in value:
             value[k] = v

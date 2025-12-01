@@ -30,8 +30,8 @@ constexpr Uint8Field powerfulModeTime(RW, 7, 0, 3);   // TOP17: bits 2-0, Powerf
 constexpr Uint8Field quietModeLevel(RW, 7, 3, 3);     // TOP18: bits 5-3, Quiet mode level (3-bit field from HeishaMon) - RW: quiet command
 
 // Byte 8 - Force modes (write-only command fields)
-constexpr Uint8Field forceDefrostCommand(W, 8, 0, 8, 0);      // Force defrost command (0=off, 1=on)
-constexpr Uint8Field forceSterilizationCommand(W, 8, 0, 8, 0); // Force sterilization command (0=off, 1=on)
+constexpr Uint8Field forceDefrostCommand(RW, 8, 0, 8);      // Force defrost command (1?=off, 2=on)
+constexpr Uint8Field forceSterilizationCommand(RW, 8, 0, 8); // Force sterilization command (1?=off, 2=on)
 
 // Byte 9 - DHW and heater states (TOP58, TOP59)
 constexpr BooleanField dhwHeaterState(9, 2);          // TOP58: bits 3-2, DHW heater state (BlockedFree)
@@ -94,8 +94,8 @@ constexpr Int8Field solarFrostProtection(63);       // TOP104: Solar frost prote
 constexpr Int8Field solarHighLimit(64);             // TOP105: Solar high limit (value-128=°C)
 constexpr Int8Field bivalentStartTemp(65);          // TOP131: Bivalent start temp (value-128=°C)
 constexpr Int8Field bivalentAdvancedStartTemp(66);  // TOP134: Bivalent advanced start temp (value-128=°C)
-constexpr Uint8Field bivalentStartDelay(67);        // TOP136: Bivalent start delay (value-1)
-constexpr Int8Field bivalentAdvancedStopTemp(68);   // TOP135: Bivalent advanced stop temp (value-128=°C)
+constexpr Uint8Field bivalentStartDelay(67);        // TOP135: Bivalent start delay (value-1)
+constexpr Int8Field bivalentAdvancedStopTemp(68);   // TOP136: Bivalent advanced stop temp (value-128=°C)
 constexpr Uint8Field bivalentStopDelay(69);         // TOP137: Bivalent stop delay (value-1)
 constexpr Uint8Field bivalentAdvancedDhwDelay(70);  // TOP138: Bivalent advanced DHW delay (value-1)
 
@@ -129,8 +129,11 @@ constexpr Uint8Field heaterDelayTime(104);          // TOP96: Heater delay time 
 constexpr Int8Field heaterStartDelta(105);          // TOP97: Heater start delta (value-128=°K)
 constexpr Int8Field heaterStopDelta(106);           // TOP98: Heater stop delta (value-128=°K)
 
-// Byte 110 - Actual states (TOP110_actual)
-constexpr Uint8Field actualStates(110, 0, 8);       // Various actual states combined
+// Byte 110 - Actual states (read-only status, not published by HeishaMon)
+constexpr Uint8Field quietModeActual(110, 0, 2);         // bits 1-0: Actual quiet mode state
+constexpr Uint8Field powerfulModeActual(110, 2, 2);      // bits 3-2: Actual powerful mode state
+constexpr Uint8Field heatCoolSwitchActual(110, 4, 2);    // bits 5-4: Actual heat/cool switch (0b10 = cool)
+constexpr Uint8Field externalSwitchActual(110, 6, 2);    // bits 7-6: Actual external switch state (0b10 = open)
 
 // Byte 111 - 3-way valve and defrost (TOP20, TOP26)
 constexpr Uint8Field threeWayValveState(111, 0, 2); // TOP20: bits 1-0, 3-way valve state (Room/DHW)
@@ -143,6 +146,7 @@ constexpr BooleanField externalHeaterState(112, 2); // TOP61: bits 3-2, External
 // Byte 113-114 - Error codes (TOP44)
 constexpr Uint8Field errorCodeType(113, 0, 8, 0);   // TOP44: Error code type (raw value, no offset)
 constexpr Uint8Field errorCodeNumber(114, 0, 8, -17); // TOP44: Error code number (value - 17)
+constexpr Uint16Field errorCode(113, 0);         // TOP44: Error code (Raw value)
 
 // Byte 116 - Pump and valve status (TOP123, TOP124, TOP125, TOP126)
 constexpr BooleanField z2PumpState(116, 6);         // TOP123: bits 7-6, Z2 pump state (OffOn)

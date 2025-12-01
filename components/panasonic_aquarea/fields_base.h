@@ -187,9 +187,9 @@ __attribute__((always_inline)) inline constexpr uint16_t getFieldForce(const uin
     return 0;
   }
 
-  // Little-endian 16-bit read
-  uint16_t low_byte = data[def.byte_offset];
-  uint16_t high_byte = data[def.byte_offset + 1];
+  // Big-endian 16-bit read (matches HeishaMon word() function)
+  uint16_t high_byte = data[def.byte_offset];
+  uint16_t low_byte = data[def.byte_offset + 1];
   uint16_t raw_value = low_byte | (high_byte << 8);
 
   // Apply offset for non-zero values
@@ -463,9 +463,9 @@ __attribute__((always_inline)) inline constexpr bool setFieldForce(uint8_t* data
   // Apply offset to convert logical value to raw value
   uint16_t raw_value = value - def.offset;
 
-  // Write little-endian 16-bit value
-  data[def.byte_offset] = raw_value & 0xFF;
-  data[def.byte_offset + 1] = (raw_value >> 8) & 0xFF;
+  // Write big-endian 16-bit value (matches HeishaMon word() function)
+  data[def.byte_offset] = (raw_value >> 8) & 0xFF;
+  data[def.byte_offset + 1] = raw_value & 0xFF;
 
   return true;
 }
