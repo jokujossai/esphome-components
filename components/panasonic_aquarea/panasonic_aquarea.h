@@ -2,15 +2,12 @@
 
 #include "esphome/core/component.h"
 #include "esphome/core/automation.h"
-#include "protocol_base.h"
+#include "protocol.h"
 #include "data_source.h"
 #include <vector>
 
 namespace esphome {
 namespace panasonic_aquarea {
-
-class PanasonicAquareaDecoderBase;
-class PanasonicAquareaEncoderBase;
 
 class PanasonicAquareaComponent : public Component {
 public:
@@ -22,10 +19,9 @@ public:
   void set_listen_only(bool listen_only) { listen_only_ = listen_only; }
   bool get_listen_only() const { return listen_only_; }
   void set_data_source(PanasonicAquareaDataSource *data_source) { data_source_ = data_source; }
-  void add_decoder(PanasonicAquareaDecoderBase *decoder) { decoders_.push_back(decoder); }
-  void add_encoder(PanasonicAquareaEncoderBase *encoder) { encoders_.push_back(encoder); }
+  void add_protocol(PanasonicProtocolInterface *protocol) { protocols_.push_back(protocol); }
 
-  // Write data to the data source (used by encoders)
+  // Write data to the data source (used by protocols)
   void write_array(const std::vector<uint8_t> &data);
 
   // Public method to handle packet from external sources (actions, lambdas)
@@ -39,8 +35,7 @@ public:
 private:
   bool listen_only_{false};
   PanasonicAquareaDataSource *data_source_{nullptr};
-  std::vector<PanasonicAquareaDecoderBase *> decoders_;
-  std::vector<PanasonicAquareaEncoderBase *> encoders_;
+  std::vector<PanasonicProtocolInterface*> protocols_;
 
   uint32_t last_query_time_{0};
   static const uint32_t QUERY_INTERVAL = 1000; // 1 second interval like HeishaMon

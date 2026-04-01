@@ -80,8 +80,8 @@ void PanasonicAquareaZoneClimate::control(const climate::ClimateCall &call) {
     this->target_temperature = target;
 
     // Request encoder to send the updated value
-    if (this->encoder_ != nullptr) {
-      this->encoder_->request_send(this);
+    if (this->protocol_ != nullptr) {
+      this->protocol_->modify(this);
     }
   }
 
@@ -112,19 +112,19 @@ void PanasonicAquareaZoneClimate::update_from_packet(const uint8_t *data, uint8_
       heating_mode_ == 2 ? "Direct" : "Unknown");
   }
 
-  // Read operating mode state (2=Heat, 3=Cool, 9=Auto(Heat), 10=Auto(Cool))
+  // Read operating mode state (1=Heat, 2=Cool, 8=Auto(Heat), 9=Auto(Cool))
   uint8_t operating_mode = getField<operatingModeState>(data, len, valid);
   if (valid) {
     uint8_t new_heating_mode_state = 0;
     switch (operating_mode) {
-      case 2:  // Heat
+      case 1:  // Heat
         new_heating_mode_state = 2;
         break;
-      case 3:  // Cool
+      case 2:  // Cool
         new_heating_mode_state = 3;
         break;
-      case 9:  // Auto(Heat)
-      case 10: // Auto(Cool)
+      case 8:  // Auto(Heat)
+      case 9:  // Auto(Cool)
         new_heating_mode_state = 4;
         break;
       default:

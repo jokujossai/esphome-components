@@ -40,9 +40,10 @@ captive_portal:
 
 web_server:
 
+# HeishaMon PCB uses swapped UART pins (Serial.swap() equivalent)
 uart:
-  tx_pin: GPIO1
-  rx_pin: GPIO3
+  tx_pin: GPIO15
+  rx_pin: GPIO13
   baud_rate: 9600
   data_bits: 8
   parity: EVEN
@@ -54,6 +55,13 @@ panasonic_aquarea:
   # protocols: [main]
 
 switch:
+  # HeishaMon ENABLEPIN - controls TX level shifter MOSFET
+  - platform: gpio
+  # HIGH = TX enabled, LOW = listen-only (TX floats)
+    pin: GPIO5
+    id: uart_tx_enable
+    restore_mode: ALWAYS_ON
+
   - platform: panasonic_aquarea
     field: heatpumpState
   - platform: panasonic_aquarea

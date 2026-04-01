@@ -17,10 +17,8 @@ from esphome.core import coroutine
 from esphome.util import Registry
 
 CONF_LISTEN_ONLY = "listen_only"
-CONF_DECODERS = "decoders"
-CONF_DECODER_ID = "decoder_id"
-CONF_ENCODERS = "encoders"
-CONF_ENCODER_ID = "encoder_id"
+CONF_PROTOCOLS = "protocols"
+CONF_PROTOCOL_ID = "protocol_id"
 CONF_PANASONIC_AQUAREA_ID = "panasonic_aquarea_id"
 CONF_TOPIC = "topic"
 CONF_DATA_SOURCE = "data_source"
@@ -56,113 +54,58 @@ OnPacketSendTrigger = panasonic_aquarea_ns.class_(
   "OnPacketSendTrigger", automation.Trigger.template(cg.std_vector.template(cg.uint8))
 )
 
-PanasonicAquareaDecoder = panasonic_aquarea_ns.class_("PanasonicAquareaDecoder")
-PanasonicAquareaDecoderMain = panasonic_aquarea_ns.class_(
-  "PanasonicAquareaDecoderMain", PanasonicAquareaDecoder, cg.Component
+PanasonicAquareaProtocol = panasonic_aquarea_ns.class_("PanasonicProtocolInterface", cg.Component)
+PanasonicAquareaProtocolMain = panasonic_aquarea_ns.class_(
+  "PanasonicAquareaProtocolMain", PanasonicAquareaProtocol
 )
 
-PanasonicAquareaEncoder = panasonic_aquarea_ns.class_("PanasonicAquareaEncoder")
-PanasonicAquareaEncoderMain = panasonic_aquarea_ns.class_(
-  "PanasonicAquareaEncoderMain", PanasonicAquareaEncoder, cg.Component
-)
-
-DECODER_REGISTRY = Registry({
-  cv.GenerateID(CONF_DECODER_ID): cv.use_id(PanasonicAquareaDecoder),
+PROTOCOL_REGISTRY = Registry({
+  cv.GenerateID(CONF_PROTOCOL_ID): cv.use_id(PanasonicAquareaProtocol),
 })
 
-ENCODER_REGISTRY = Registry({
-  cv.GenerateID(CONF_ENCODER_ID): cv.use_id(PanasonicAquareaEncoder),
-})
-
-async def build_decoders(config):
-  decoders = []
+async def build_protocols(config):
+  protocols = []
   for conf in config:
-    decoder = await cg.build_registry_entry(DECODER_REGISTRY, conf)
-    decoders.append(decoder)
-    await cg.register_component(decoder, conf)
-  return decoders
+    protocol = await cg.build_registry_entry(PROTOCOL_REGISTRY, conf)
+    protocols.append(protocol)
+    await cg.register_component(protocol, conf)
+  return protocols
 
-def validate_decoders(value):
+def validate_protocols(value):
   if isinstance(value, str) and value.lower() == "all":
-    return validate_decoders(list(DECODER_REGISTRY.keys()))
-  return cv.validate_registry("decoder", DECODER_REGISTRY)(value)
+    return validate_protocols(list(PROTOCOL_REGISTRY.keys()))
+  return cv.validate_registry("protocol", PROTOCOL_REGISTRY)(value)
 
-async def build_encoders(config):
-  encoders = []
-  for conf in config:
-    encoder = await cg.build_registry_entry(ENCODER_REGISTRY, conf)
-    encoders.append(encoder)
-    await cg.register_component(encoder, conf)
-  return encoders
-
-def validate_encoders(value):
-  if isinstance(value, str) and value.lower() == "all":
-    return validate_encoders(list(ENCODER_REGISTRY.keys()))
-  return cv.validate_registry("encoder", ENCODER_REGISTRY)(value)
-
-def register_decoder(name, type):
-  registerer = DECODER_REGISTRY.register(name, type, {})
+def register_protocol(name, type):
+  registerer = PROTOCOL_REGISTRY.register(name, type, {})
 
   def decorator(func):
-    async def new_func(config, decoder_id):
-      var = cg.new_Pvariable(decoder_id)
+    async def new_func(config, protocol_id):
+      var = cg.new_Pvariable(protocol_id)
       await coroutine(func)(var, config)
       return var
-
     return registerer(new_func)
 
   return decorator
 
-def register_encoder(name, type):
-  registerer = ENCODER_REGISTRY.register(name, type, {})
+PROTOCOLS = {}
 
-  def decorator(func):
-    async def new_func(config, encoder_id):
-      var = cg.new_Pvariable(encoder_id)
-      await coroutine(func)(var, config)
-      return var
-
-    return registerer(new_func)
-
-  return decorator
-
-DECODERS = {}
-ENCODERS = {}
-
-def collect_decoders(config):
-  DECODERS[config[CONF_ID]] = config[CONF_DECODERS]
+def collect_protocols(config):
+  PROTOCOLS[config[CONF_ID]] = config.get(CONF_PROTOCOLS, ["main"])
   return config
 
-def collect_encoders(config):
-  ENCODERS[config[CONF_ID]] = config.get(CONF_ENCODERS, ["main"])
-  return config
-
-def get_decoder(id, name):
-  for k, decoders in DECODERS.items():
+def get_protocol(id, name):
+  for k, protocols in PROTOCOLS.items():
     if k.id != id.id:
       continue
-    for decoder in decoders:
-      if name in decoder:
-        return decoder[CONF_DECODER_ID]
-    raise cv.Invalid(f"Decoder {name} not found")
+    for protocol in protocols:
+      if name in protocol:
+        return protocol[CONF_PROTOCOL_ID]
+    raise cv.Invalid(f"Protocol {name} not found")
   raise cv.Invalid(f"Component {id.id} not found")
 
-def get_encoder(id, name):
-  for k, encoders in ENCODERS.items():
-    if k.id != id.id:
-      continue
-    for encoder in encoders:
-      if name in encoder:
-        return encoder[CONF_ENCODER_ID]
-    raise cv.Invalid(f"Encoder {name} not found")
-  raise cv.Invalid(f"Component {id.id} not found")
-
-@register_decoder("main", PanasonicAquareaDecoderMain)
-def main_decoder(var, config):
-  pass
-
-@register_encoder("main", PanasonicAquareaEncoderMain)
-def main_encoder(var, config):
+@register_protocol("main", PanasonicAquareaProtocolMain)
+def main_protocol(var, config):
   pass
 
 
@@ -237,8 +180,7 @@ CONFIG_SCHEMA = cv.All(
     {
       cv.GenerateID(): cv.declare_id(PanasonicAquareaComponent),
       cv.Optional(CONF_LISTEN_ONLY, default=False): cv.boolean,
-      cv.Optional(CONF_DECODERS, default=["main"]): validate_decoders,
-      cv.Optional(CONF_ENCODERS, default=["main"]): validate_encoders,
+      cv.Optional(CONF_PROTOCOLS, default=["main"]): validate_protocols,
       cv.Optional(CONF_DATA_SOURCE, default=DATA_SOURCE_UART): validate_data_source,
       cv.Optional(CONF_ON_PACKET_SEND): automation.validate_automation(
         {
@@ -248,8 +190,7 @@ CONFIG_SCHEMA = cv.All(
     }
   )
   .extend(cv.COMPONENT_SCHEMA),
-  collect_decoders,
-  collect_encoders
+  collect_protocols,
 )
 
 CHILD_SCHEMA_BASE = (
@@ -267,14 +208,9 @@ async def to_code(config):
     data_source = await cg.build_registry_entry(DATA_SOURCE_REGISTRY, data_source_config)
     cg.add(var.set_data_source(data_source))
 
-  decoders = await build_decoders(config[CONF_DECODERS])
-  for decoder in decoders:
-    cg.add(var.add_decoder(decoder))
-
-  encoders = await build_encoders(config[CONF_ENCODERS])
-  for encoder in encoders:
-    cg.add(encoder.set_parent(var))
-    cg.add(var.add_encoder(encoder))
+  protocols = await build_protocols(config[CONF_PROTOCOLS])
+  for protocol in protocols:
+    cg.add(var.add_protocol(protocol))
 
   await cg.register_component(var, config)
 

@@ -2,7 +2,7 @@
 
 // All necessary includes for child components (sensors, switches, etc.)
 
-#include "protocol_base.h"
+#include "protocol.h"
 #include "child.h"
 
 namespace esphome {

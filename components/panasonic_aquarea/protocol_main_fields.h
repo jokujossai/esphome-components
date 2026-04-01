@@ -29,9 +29,9 @@ constexpr BooleanField quietModeSchedule(7, 6);         // TOP3: bits 7-6, Quiet
 constexpr Uint8Field powerfulModeTime(RW, 7, 0, 3);   // TOP17: bits 2-0, Powerful mode time (4 states: Off, 30min, 60min, 90min) - RW: powerful command
 constexpr Uint8Field quietModeLevel(RW, 7, 3, 3);     // TOP18: bits 5-3, Quiet mode level (3-bit field from HeishaMon) - RW: quiet command
 
-// Byte 8 - Force modes (write-only command fields)
-constexpr Uint8Field forceDefrostCommand(RW, 8, 0, 8);      // Force defrost command (1?=off, 2=on)
-constexpr Uint8Field forceSterilizationCommand(RW, 8, 0, 8); // Force sterilization command (1?=off, 2=on)
+// Byte 8 - Force modes (write-only command fields, 1-bit booleans)
+constexpr BooleanField forceDefrostCommand(RW, 8, 1, 0);        // bit 1: Force defrost (0=off, 1=on → 0x00/0x02)
+constexpr BooleanField forceSterilizationCommand(RW, 8, 2, 0);  // bit 2: Force sterilization (0=off, 1=on → 0x00/0x04)
 
 // Byte 9 - DHW and heater states (TOP58, TOP59)
 constexpr BooleanField dhwHeaterState(9, 2);          // TOP58: bits 3-2, DHW heater state (BlockedFree)

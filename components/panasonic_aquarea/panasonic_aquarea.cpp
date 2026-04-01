@@ -40,11 +40,11 @@ void PanasonicAquareaComponent::loop() {
       this->last_query_time_ = now;
     }
 
-    // Check encoders for pending sends
-    for (auto encoder : this->encoders_) {
-      if (encoder->should_send()) {
-        ESP_LOGD(TAG, "Sending encoder: %s", encoder->get_topic().c_str());
-        encoder->send();
+    // Check protocols for pending sends
+    for (auto protocol : this->protocols_) {
+      if (protocol->should_send()) {
+        ESP_LOGD(TAG, "Sending protocol: %s", protocol->get_topic().c_str());
+        protocol->send(this->data_source_);
       }
     }
   }
@@ -64,17 +64,20 @@ void PanasonicAquareaComponent::handle_packet(const std::vector<uint8_t> &data) 
     return;
   }
 
-  ESP_LOGD(TAG, "Received %zu bytes", data.size());
+  if(data.size() < 4) {
+    ESP_LOGW(TAG, "Received too small packet");
+    return;
+  }
 
-  if (!PanasonicAquareaDecoderBase::check_crc(data)) {
+  if(!PanasonicProtocolInterface::check_crc(data)) {
     ESP_LOGW(TAG, "CRC check failed");
     return;
   }
 
-  for (auto decoder : this->decoders_) {
-    if (decoder->supports(data)) {
-      decoder->decode(data);
-    }
+  ESP_LOGD(TAG, "Received %zu bytes", data.size());
+
+  for (auto protocol : this->protocols_) {
+    protocol->decode(data);
   }
 }
 

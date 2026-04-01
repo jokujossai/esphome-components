@@ -33,7 +33,7 @@ public:
     if (valid) {
       // Find option value in options_values_
       auto it = std::find(options_values_.begin(), options_values_.end(), value);
-      auto options = this->traits.get_options();
+      const auto &options = this->traits.get_options();
       if (it != options_values_.end()) {
         auto index = std::distance(options_values_.begin(), it);
         if (index < options.size()) {
@@ -47,7 +47,7 @@ public:
   }
 
   bool set_packet_value(uint8_t *data, uint8_t len) override {
-    auto index = this->index_of(this->state);
+    auto index = this->index_of(this->current_option());
     if (index.has_value()) {
       if(index.value() < options_values_.size()) {
         return fields::setField<field>(data, len, options_values_[index.value()]);
@@ -61,16 +61,17 @@ public:
 
 protected:
   void control(const std::string &value) override {
-    if(this->encoder_ == nullptr) {
-      ESP_LOGE("panasonic_aquarea.select", "Encoder not set");
+    // Compile-time access validation
+    static_assert(field.access == fields::W || field.access == fields::RW, "select requires write access (W or RW)");
+
+    if(this->protocol_ == nullptr) {
+      ESP_LOGE("panasonic_aquarea.select", "Protocol not set");
       return;
     }
 
-    // Update local state first
-    this->state = value;
+    this->publish_state(value);
 
-    // Encoder will call set_packet_value
-    this->encoder_->request_send(this);
+    this->protocol_->modify(this);
   }
 
 private:

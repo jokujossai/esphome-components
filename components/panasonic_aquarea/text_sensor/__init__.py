@@ -5,7 +5,7 @@ from esphome.components import text_sensor
 from .. import (
     panasonic_aquarea_ns,
     CONF_PANASONIC_AQUAREA_ID,
-    get_decoder,
+    get_protocol,
 )
 from ..fields import get_field
 
@@ -70,9 +70,9 @@ async def to_code(config):
     parent = await cg.get_variable(config[CONF_PANASONIC_AQUAREA_ID])
     cg.add(var.set_parent(parent))
 
-    decoder_id = get_decoder(config[CONF_PANASONIC_AQUAREA_ID], protocol)
-    decoder = await cg.get_variable(decoder_id)
-    cg.add(var.set_decoder(decoder))
-    cg.add(decoder.add_child(var))
+    protocol_id = get_protocol(config[CONF_PANASONIC_AQUAREA_ID], protocol)
+    protocol_var = await cg.get_variable(protocol_id)
+    cg.add(var.set_protocol(protocol_var))
+    cg.add(protocol_var.add_child(var))
 
     return var

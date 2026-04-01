@@ -6,8 +6,7 @@ from .. import (
     panasonic_aquarea_ns,
     CHILD_SCHEMA_BASE,
     CONF_PANASONIC_AQUAREA_ID,
-    get_decoder,
-    get_encoder,
+    get_protocol,
 )
 
 CONF_ZONE = "zone"
@@ -38,15 +37,9 @@ async def to_code(config):
     parent = await cg.get_variable(config[CONF_PANASONIC_AQUAREA_ID])
     cg.add(var.set_parent(parent))
 
-    # Get the decoder for the main protocol
-    decoder_id = get_decoder(config[CONF_PANASONIC_AQUAREA_ID], "main")
-    decoder = await cg.get_variable(decoder_id)
-    cg.add(var.set_decoder(decoder))
-    cg.add(decoder.add_child(var))
-
-    # Get the encoder for the main protocol
-    encoder_id = get_encoder(config[CONF_PANASONIC_AQUAREA_ID], "main")
-    encoder = await cg.get_variable(encoder_id)
-    cg.add(var.set_encoder(encoder))
+    protocol_id = get_protocol(config[CONF_PANASONIC_AQUAREA_ID], "main")
+    protocol_var = await cg.get_variable(protocol_id)
+    cg.add(var.set_protocol(protocol_var))
+    cg.add(protocol_var.add_child(var))
 
     return var

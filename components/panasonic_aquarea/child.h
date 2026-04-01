@@ -6,22 +6,19 @@ namespace esphome {
 namespace panasonic_aquarea {
 
 class PanasonicAquareaComponent;
-class PanasonicAquareaDecoderBase;
-class PanasonicAquareaEncoderBase;
+class PanasonicProtocolInterface;
 
 class PanasonicAquareaChildBase {
 public:
   void set_parent(PanasonicAquareaComponent *parent) { parent_ = parent; }
-  void set_decoder(PanasonicAquareaDecoderBase *decoder) { decoder_ = decoder; }
-  void set_encoder(PanasonicAquareaEncoderBase *encoder) { encoder_ = encoder; }
+  void set_protocol(PanasonicProtocolInterface *protocol) { protocol_ = protocol; }
 
   virtual void update_from_packet(const uint8_t *data, uint8_t len) = 0;
   virtual bool set_packet_value(uint8_t *data, uint8_t len) = 0;
 
 protected:
   PanasonicAquareaComponent *parent_{nullptr};
-  PanasonicAquareaDecoderBase *decoder_{nullptr};
-  PanasonicAquareaEncoderBase *encoder_{nullptr};
+  PanasonicProtocolInterface *protocol_{nullptr};
 };
 
 // Generic template - takes any field definition and delegates to appropriate getField/setField

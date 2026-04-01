@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../base.h"
+#include "../protocol.h"
 
 #include "esphome/components/switch/switch.h"
 #include "esphome/core/log.h"
@@ -29,13 +30,15 @@ public:
 
 protected:
   void write_state(bool state) override {
-    if(this->encoder_ == nullptr) {
-      ESP_LOGE("panasonic_aquarea.switch", "Encoder not set");
+    // Compile-time access validation
+    static_assert(field.access == fields::W || field.access == fields::RW, "switch requires write access (W or RW)");
+
+    if(this->protocol_ == nullptr) {
+      ESP_LOGE("panasonic_aquarea.switch", "Protocol not set");
       return;
     }
 
-    // Encoder will call set_packet_value
-    this->encoder_->request_send(this);
+    this->protocol_->modify(this);
   }
 };
 

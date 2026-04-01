@@ -76,15 +76,16 @@ struct Uint16Field {
 struct BooleanField {
   uint8_t byte_offset;
   uint8_t bit_offset;
+  int8_t offset;    // 0 = 1-bit wide (simple 0/1), non-zero = 2-bit encoded (0b01=false, 0b10=true)
   FieldAccess access;
 
-  // Default constructor (read-only)
-  constexpr BooleanField(uint8_t byte_off, uint8_t bit_off)
-    : byte_offset(byte_off), bit_offset(bit_off), access(R) {}
+  // Default constructor (read-only, 2-bit encoded)
+  constexpr BooleanField(uint8_t byte_off, uint8_t bit_off, int8_t offs = -1)
+    : byte_offset(byte_off), bit_offset(bit_off), offset(offs), access(R) {}
 
   // Constructor with access type as first parameter
-  constexpr BooleanField(FieldAccess acc, uint8_t byte_off, uint8_t bit_off)
-    : byte_offset(byte_off), bit_offset(bit_off), access(acc) {}
+  constexpr BooleanField(FieldAccess acc, uint8_t byte_off, uint8_t bit_off, int8_t offs = -1)
+    : byte_offset(byte_off), bit_offset(bit_off), offset(offs), access(acc) {}
 };
 
 struct Int8Field {
@@ -187,9 +188,10 @@ __attribute__((always_inline)) inline constexpr uint16_t getFieldForce(const uin
     return 0;
   }
 
-  // Big-endian 16-bit read (matches HeishaMon word() function)
-  uint16_t high_byte = data[def.byte_offset];
-  uint16_t low_byte = data[def.byte_offset + 1];
+  // Little-endian 16-bit read: low byte at byte_offset, high byte at byte_offset+1
+  // Panasonic Aquarea protocol stores uint16 values in little-endian byte order
+  uint16_t low_byte = data[def.byte_offset];
+  uint16_t high_byte = data[def.byte_offset + 1];
   uint16_t raw_value = low_byte | (high_byte << 8);
 
   // Apply offset for non-zero values
@@ -222,26 +224,31 @@ __attribute__((always_inline)) inline constexpr bool getFieldForce(const uint8_t
 
   uint8_t byte_value = data[def.byte_offset];
 
-  // Compile-time mask calculation for 2 bits
-  constexpr uint8_t mask = 0b11;
+  if constexpr (def.offset == 0) {
+    // 1-bit wide boolean: simple bit extraction (0=false, 1=true)
+    valid = true;
+    return (byte_value >> def.bit_offset) & 0b1;
+  } else {
+    // 2-bit encoded boolean pattern
+    constexpr uint8_t mask = 0b11;
 
-  // Extract raw 2-bit field value
-  uint8_t raw_value = (def.bit_offset == 0) ?
-    (byte_value & mask) :
-    ((byte_value >> def.bit_offset) & mask);
+    uint8_t raw_value = (def.bit_offset == 0) ?
+      (byte_value & mask) :
+      ((byte_value >> def.bit_offset) & mask);
 
-  // Decode 2-bit boolean pattern:
-  // 0b00 = not set (return invalid)
-  // 0b01 = false
-  // 0b10 = true
-  // 0b11 = invalid (return invalid)
-  if (raw_value == 0b00 || raw_value == 0b11) {
-    valid = false;
-    return false;
+    // Decode 2-bit boolean pattern:
+    // 0b00 = not set (return invalid)
+    // 0b01 = false
+    // 0b10 = true
+    // 0b11 = invalid (return invalid)
+    if (raw_value == 0b00 || raw_value == 0b11) {
+      valid = false;
+      return false;
+    }
+
+    valid = true;
+    return (raw_value == 0b10);
   }
-
-  valid = true;
-  return (raw_value == 0b10);
 }
 
 template<const BooleanField& def>
@@ -344,26 +351,30 @@ __attribute__((always_inline)) inline constexpr float getFieldForce(const uint8_
       return 0.0f;
     }
 
-    // Little-endian 16-bit read
-    uint16_t low_byte = data[def.byte_offset];
-    uint16_t high_byte = data[def.byte_offset + 1];
-    uint16_t raw_value = low_byte | (high_byte << 8);
+    // 16-bit float field (currently only used by pumpFlow).
+    // Reads integer (high byte) and fractional (low byte) parts separately
+    // with signed interpretation to match HeishaMon's char* behavior.
+    // Formula: integer_byte + (frac_byte + offset) / divider
+    int integer_byte = (int)(int8_t)data[def.byte_offset + 1];
+    int frac_byte = (int)(int8_t)data[def.byte_offset];
 
     // Return invalid for 0 (reserved for "no change")
-    if (raw_value == 0) {
+    if (integer_byte == 0 && frac_byte == 0) {
       valid = false;
       return 0.0f;
     }
 
-    // Apply offset, multiplier, and divider
-    float result = (float)raw_value + def.offset;
+    // HeishaMon formula: integer_byte + (frac_byte + offset) / divider
+    float frac = ((float)frac_byte + def.offset);
+
+    if constexpr (def.divider != 1) {
+      frac /= def.divider;
+    }
+
+    float result = (float)integer_byte + frac;
 
     if constexpr (def.multiplier != 1) {
       result *= def.multiplier;
-    }
-
-    if constexpr (def.divider != 1) {
-      result /= def.divider;
     }
 
     valid = true;
@@ -463,9 +474,9 @@ __attribute__((always_inline)) inline constexpr bool setFieldForce(uint8_t* data
   // Apply offset to convert logical value to raw value
   uint16_t raw_value = value - def.offset;
 
-  // Write big-endian 16-bit value (matches HeishaMon word() function)
-  data[def.byte_offset] = (raw_value >> 8) & 0xFF;
-  data[def.byte_offset + 1] = raw_value & 0xFF;
+  // Little-endian 16-bit write: low byte at byte_offset, high byte at byte_offset+1
+  data[def.byte_offset] = raw_value & 0xFF;
+  data[def.byte_offset + 1] = (raw_value >> 8) & 0xFF;
 
   return true;
 }
@@ -482,20 +493,25 @@ template<const BooleanField& def>
 __attribute__((always_inline)) inline constexpr bool setFieldForce(uint8_t* data, uint8_t len, bool value) {
   if (def.byte_offset >= len) return false;
 
-  // Read current byte value
   uint8_t byte_value = data[def.byte_offset];
 
-  // Create mask to clear target 2-bit field
-  constexpr uint8_t field_mask = 0b11 << def.bit_offset;
-  byte_value &= ~field_mask;
+  if constexpr (def.offset == 0) {
+    // 1-bit wide boolean: simple bit set/clear
+    constexpr uint8_t bit_mask = 1 << def.bit_offset;
+    if (value)
+      byte_value |= bit_mask;
+    else
+      byte_value &= ~bit_mask;
+  } else {
+    // 2-bit encoded boolean pattern
+    constexpr uint8_t field_mask = 0b11 << def.bit_offset;
+    byte_value &= ~field_mask;
 
-  // Set 2-bit boolean pattern:
-  // false -> 0b01
-  // true  -> 0b10
-  constexpr uint8_t false_pattern = 0b01 << def.bit_offset;
-  constexpr uint8_t true_pattern = 0b10 << def.bit_offset;
-
-  byte_value |= value ? true_pattern : false_pattern;
+    // false -> 0b01, true -> 0b10
+    constexpr uint8_t false_pattern = 0b01 << def.bit_offset;
+    constexpr uint8_t true_pattern = 0b10 << def.bit_offset;
+    byte_value |= value ? true_pattern : false_pattern;
+  }
 
   data[def.byte_offset] = byte_value;
   return true;
