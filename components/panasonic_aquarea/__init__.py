@@ -18,7 +18,6 @@ from esphome.util import Registry
 
 CONF_LISTEN_ONLY = "listen_only"
 CONF_PROTOCOLS = "protocols"
-CONF_PROTOCOL_ID = "protocol_id"
 CONF_PANASONIC_AQUAREA_ID = "panasonic_aquarea_id"
 CONF_TOPIC = "topic"
 CONF_DATA_SOURCE = "data_source"
@@ -58,10 +57,12 @@ PanasonicAquareaProtocol = panasonic_aquarea_ns.class_("PanasonicProtocolInterfa
 PanasonicAquareaProtocolMain = panasonic_aquarea_ns.class_(
   "PanasonicAquareaProtocolMain", PanasonicAquareaProtocol
 )
+PanasonicAquareaProtocolOptional = panasonic_aquarea_ns.class_(
+  "PanasonicAquareaProtocolOptional", PanasonicAquareaProtocol
+)
 
-PROTOCOL_REGISTRY = Registry({
-  cv.GenerateID(CONF_PROTOCOL_ID): cv.use_id(PanasonicAquareaProtocol),
-})
+PROTOCOL_REGISTRY = Registry()
+validate_protocols = cv.validate_registry("protocol", PROTOCOL_REGISTRY)
 
 async def build_protocols(config):
   protocols = []
@@ -71,42 +72,25 @@ async def build_protocols(config):
     await cg.register_component(protocol, conf)
   return protocols
 
-def validate_protocols(value):
-  if isinstance(value, str) and value.lower() == "all":
-    return validate_protocols(list(PROTOCOL_REGISTRY.keys()))
-  return cv.validate_registry("protocol", PROTOCOL_REGISTRY)(value)
-
-def register_protocol(name, type):
-  registerer = PROTOCOL_REGISTRY.register(name, type, {})
-
-  def decorator(func):
-    async def new_func(config, protocol_id):
-      var = cg.new_Pvariable(protocol_id)
-      await coroutine(func)(var, config)
-      return var
-    return registerer(new_func)
-
-  return decorator
-
 PROTOCOLS = {}
 
-def collect_protocols(config):
-  PROTOCOLS[config[CONF_ID]] = config.get(CONF_PROTOCOLS, ["main"])
-  return config
-
 def get_protocol(id, name):
-  for k, protocols in PROTOCOLS.items():
-    if k.id != id.id:
+  for k, protocol_id in PROTOCOLS.items():
+    if k != name:
       continue
-    for protocol in protocols:
-      if name in protocol:
-        return protocol[CONF_PROTOCOL_ID]
-    raise cv.Invalid(f"Protocol {name} not found")
+    
+    return protocol_id
   raise cv.Invalid(f"Component {id.id} not found")
 
-@register_protocol("main", PanasonicAquareaProtocolMain)
-def main_protocol(var, config):
-  pass
+@PROTOCOL_REGISTRY.register("main", PanasonicAquareaProtocolMain, {})
+async def main_protocol_to_code(config, protocol_id):
+  PROTOCOLS["main"] = protocol_id
+  return cg.new_Pvariable(protocol_id)
+
+@PROTOCOL_REGISTRY.register("optional", PanasonicAquareaProtocolOptional, {})
+async def optional_protocol_to_code(config, protocol_id):
+  PROTOCOLS["optional"] = protocol_id
+  return cg.new_Pvariable(protocol_id)
 
 
 DATA_SOURCE_REGISTRY = Registry({
@@ -190,7 +174,6 @@ CONFIG_SCHEMA = cv.All(
     }
   )
   .extend(cv.COMPONENT_SCHEMA),
-  collect_protocols,
 )
 
 CHILD_SCHEMA_BASE = (

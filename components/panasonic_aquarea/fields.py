@@ -1002,6 +1002,109 @@ FIELD_REGISTRY = {
         "device_class": "volume_flow_rate",
         "accuracy_decimals": 2,
     },
+    # Optional PCB protocol fields
+    # Read-only status fields (response packet 0x71/0x11/0x50)
+    # Byte 4 - Water pumps and mixing valves
+    "z1WaterPumpState": {
+        "protocol": "optional",
+        "name": "Z1 Water Pump",
+        "type": "binary_sensor",
+    },
+    "z1MixingValveState": {
+        "protocol": "optional",
+        "name": "Z1 Mixing Valve",
+        "type": "text_sensor",
+        "options": {
+            0: "Stop",
+            1: "Close",
+            2: "Open",
+            3: "Unknown",
+        },
+    },
+    "z2WaterPumpState": {
+        "protocol": "optional",
+        "name": "Z2 Water Pump",
+        "type": "binary_sensor",
+    },
+    "z2MixingValveState": {
+        "protocol": "optional",
+        "name": "Z2 Mixing Valve",
+        "type": "text_sensor",
+        "options": {
+            0: "Stop",
+            1: "Close",
+            2: "Open",
+            3: "Unknown",
+        },
+    },
+    "poolWaterPumpState": {
+        "protocol": "optional",
+        "name": "Pool Water Pump",
+        "type": "binary_sensor",
+    },
+    "solarWaterPumpState": {
+        "protocol": "optional",
+        "name": "Solar Water Pump",
+        "type": "binary_sensor",
+    },
+    # Byte 5 - Alarm
+    "alarmState": {
+        "protocol": "optional",
+        "name": "Alarm",
+        "type": "binary_sensor",
+    },
+    # Write-only command fields (command packet 0xF1/0x11/0x50)
+    # Byte 6 - System control
+    "heatCoolMode": {
+        "protocol": "optional",
+        "name": "Heat/Cool Mode",
+        "type": "switch",
+    },
+    "compressorState": {
+        "protocol": "optional",
+        "name": "Compressor",
+        "type": "switch",
+    },
+    "smartGridMode": {
+        "protocol": "optional",
+        "name": "Smart Grid Mode",
+        "type": "select",
+        "options": {
+            0: "Normal",
+            1: "Capacity 1",
+            2: "Off",
+            3: "Capacity 2",
+        },
+    },
+    "externalThermostat1State": {
+        "protocol": "optional",
+        "name": "External Thermostat 1",
+        "type": "select",
+        "options": {
+            0: "None",
+            1: "Cool",
+            2: "Heat",
+            3: "Both",
+        },
+    },
+    "externalThermostat2State": {
+        "protocol": "optional",
+        "name": "External Thermostat 2",
+        "type": "select",
+        "options": {
+            0: "None",
+            1: "Cool",
+            2: "Heat",
+            3: "Both",
+        },
+    },
+    # Byte 7-16 - Temperature commands
+    "demandControl": {
+        "protocol": "optional",
+        "name": "Demand Control",
+        "type": "sensor",
+        "accuracy_decimals": 0,
+    },
 }
 
 

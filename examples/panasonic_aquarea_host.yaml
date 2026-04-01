@@ -24,6 +24,9 @@ logger:
 # No data_source - using only on_packet_send and handle_packet for testing
 panasonic_aquarea:
   id: aquarea
+  protocols:
+    - main
+    - optional
   data_source: null  # No data source - using custom control only
   on_packet_send:
     then:
@@ -55,6 +58,18 @@ binary_sensor:
   - platform: panasonic_aquarea
     id: dhw_heater_state
     field: dhwHeaterState
+  - platform: panasonic_aquarea
+    id: z1_water_pump
+    field: z1WaterPumpState
+  - platform: panasonic_aquarea
+    id: pool_water_pump
+    field: poolWaterPumpState
+  - platform: panasonic_aquarea
+    id: solar_water_pump
+    field: solarWaterPumpState
+  - platform: panasonic_aquarea
+    id: alarm_state
+    field: alarmState
 
 select:
   - platform: panasonic_aquarea
@@ -68,6 +83,9 @@ text_sensor:
   - platform: panasonic_aquarea
     id: error_code_text
     field: errorCode
+  - platform: panasonic_aquarea
+    id: z1_mixing_valve
+    field: z1MixingValveState
 
 # Test script with multiple packets and verification
 script:
@@ -170,10 +188,53 @@ script:
           }
           ESP_LOGI("test", "PASS: Test 2 - Error code changed to H15 correctly");
 
-      # Test 3: Verify handle_packet action works
-      - logger.log: "Test 3: Verify handle_packet action integration"
+      # Test 3: Optional PCB protocol packet
+      # Byte 4 = 0xB2: Z1 pump ON (bit7), Z1 mix=01/Close (bits6-5), Z2 pump ON (bit4),
+      #                 Z2 mix=00/Stop (bits3-2), Pool pump ON (bit1), Solar pump OFF (bit0)
+      # Byte 5 = 0x01: Alarm ON (bit0)
+      - logger.log: "Test 3: Optional PCB protocol"
       - lambda: |-
-          ESP_LOGI("test", "PASS: Test 3 - handle_packet action functional");
+          ESP_LOGI("test", "Sending optional PCB packet");
+          std::vector<uint8_t> opt_packet = {
+            0x71, 0x11, 0x01, 0x50, 0xB2, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x7A
+          };
+          id(aquarea).handle_packet(opt_packet);
+      - delay: 100ms
+      - lambda: |-
+          // Verify optional PCB fields
+          if (!id(z1_water_pump).state) {
+            ESP_LOGE("test", "FAIL: Z1 water pump should be ON");
+            exit(10);
+          }
+          if (!id(pool_water_pump).state) {
+            ESP_LOGE("test", "FAIL: Pool water pump should be ON");
+            exit(11);
+          }
+          if (id(solar_water_pump).state) {
+            ESP_LOGE("test", "FAIL: Solar water pump should be OFF");
+            exit(12);
+          }
+          if (!id(alarm_state).state) {
+            ESP_LOGE("test", "FAIL: Alarm should be ON");
+            exit(13);
+          }
+          std::string z1_mix = id(z1_mixing_valve).state;
+          if (z1_mix != "Close") {
+            ESP_LOGE("test", "FAIL: Z1 mixing valve should be 'Close', got '%s'", z1_mix.c_str());
+            exit(14);
+          }
+          // Verify main protocol sensors are unaffected
+          if (!id(heat_pump_state).state) {
+            ESP_LOGE("test", "FAIL: Main protocol heat pump state should still be ON");
+            exit(15);
+          }
+          ESP_LOGI("test", "PASS: Test 3 - Optional PCB protocol works, main protocol unaffected");
+
+      # Test 4: Verify handle_packet action works
+      - logger.log: "Test 4: Verify handle_packet action integration"
+      - lambda: |-
+          ESP_LOGI("test", "PASS: Test 4 - handle_packet action functional");
 
       # All tests passed
       - logger.log: "=== ALL TESTS PASSED ==="
