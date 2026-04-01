@@ -5,6 +5,7 @@
 
 #include "esphome/core/component.h"
 #include "esphome/core/hal.h"
+#include "esphome/core/log.h"
 #include "fields_base.h"
 #include "data_source.h"
 #include "child.h"
@@ -15,100 +16,201 @@ namespace panasonic_aquarea {
 class PanasonicAquareaComponent;
 class PanasonicAquareaChildBase;
 
+// --- Slim abstract interface ---
 class PanasonicProtocolInterface : public Component {
 public:
   virtual const std::string &get_topic() const = 0;
-  bool should_send() const {
-    return should_send_ && millis() - last_send_ > 3000;
+  virtual bool supports(uint8_t header0, uint8_t datasize, uint8_t header3) const = 0;
+
+  // Read operations — no-ops for write-only protocols
+  virtual void decode(const std::vector<uint8_t> &data) {}
+
+  // Write operations — safe defaults for read-only protocols
+  virtual bool should_send() const { return false; }
+  virtual void request_send(PanasonicAquareaChildBase *child) {
+    ESP_LOGE("protocol", "request_send called on non-writable protocol");
   }
-  void request_send(PanasonicAquareaChildBase *child) { should_send_ = true; }
+  virtual bool modify(PanasonicAquareaChildBase *child) {
+    ESP_LOGE("protocol", "modify called on non-writable protocol");
+    return false;
+  }
+  virtual void send(PanasonicAquareaDataSource *data_source) {}
+
   void add_child(PanasonicAquareaChildBase *child) {
     children_.push_back(child);
     child_it_ = children_.cend();
   }
 
-  virtual bool supports(uint8_t header0, uint8_t datasize, uint8_t header3) const = 0;
-  
-  void decode(const std::vector<uint8_t> &data) {
-    if(supports(data[0], data[1], data[3])) {
-      data_.assign(data.begin(), data.end());
-      should_send_ = false;
-      child_it_ = children_.cbegin();
-    }
-  }
-
-  virtual void loop() {
-    if (child_it_ != children_.cend()) {
-      (*child_it_)->update_from_packet(data_.data(), data_.size());
-      ++child_it_;
-    }
-  }
-
-  bool modify(PanasonicAquareaChildBase *child) {
-    if (child->set_packet_value(data_.data(), data_.size())) {
-      should_send_ = true;
-      return true;
-    }
-    return false;
-  }
-
-  void send(PanasonicAquareaDataSource *data_source) {
-    if(!should_send_) {
-      return;
-    }
-    update_crc();
-    data_source->write_array(data_.data(), data_.size());
-    should_send_ = false;
-    last_send_ = millis();
-  }
-
   static bool check_crc(const std::vector<uint8_t> &data) {
     uint8_t crc = 0;
-    for(size_t i = 0; i < data.size(); i++) {
+    for (size_t i = 0; i < data.size(); i++) {
       crc += data[i];
     }
     return crc == 0;
   }
 
-  uint8_t update_crc() {
-    if(data_.size() == 0) {
-      return 0;
-    }
-
-    uint8_t crc = 0;
-    for(uint8_t i = 0; i < data_.size() - 1; i++) {
-      crc += data_[i];
-    }
-    crc = (crc ^ 0xFF) + 1;
-
-    data_[data_.size() - 1] = crc;
-    return crc;
-  }
-
-
 protected:
-  std::vector<uint8_t> data_;
-  bool should_send_{false};
   std::vector<PanasonicAquareaChildBase*> children_;
   std::vector<PanasonicAquareaChildBase*>::const_iterator child_it_{children_.cend()};
-  uint32_t last_send_{0};
+
+  static uint8_t compute_crc(std::vector<uint8_t> &data) {
+    if (data.empty()) return 0;
+    uint8_t crc = 0;
+    for (size_t i = 0; i < data.size() - 1; i++) {
+      crc += data[i];
+    }
+    crc = (crc ^ 0xFF) + 1;
+    data[data.size() - 1] = crc;
+    return crc;
+  }
 };
 
-template<uint8_t HEADER0, uint8_t DATASIZE, uint8_t HEADER3>
-class PanasonicProtocolBase : public PanasonicProtocolInterface {
+
+// --- CRTP mixin: read capability (decode + loop over children) ---
+template<typename Derived>
+class ProtocolReadMixin {
+  Derived *self() { return static_cast<Derived*>(this); }
+  const Derived *self() const { return static_cast<const Derived*>(this); }
+
 public:
-  PanasonicProtocolBase() {
-    data_.reserve(DATASIZE + 2);
-    data_.assign(DATASIZE + 2, 0);
-    data_[0] = HEADER0;
-    data_[1] = DATASIZE;
-    data_[2] = 0x01;
-    data_[3] = HEADER3;
+  void do_decode(const std::vector<uint8_t> &data) {
+    if (self()->supports(data[0], data[1], data[3])) {
+      self()->data_.assign(data.begin(), data.end());
+      self()->child_it_ = self()->children_.cbegin();
+    }
+  }
+
+  void do_loop() {
+    if (self()->child_it_ != self()->children_.cend()) {
+      (*self()->child_it_)->update_from_packet(self()->data_.data(), self()->data_.size());
+      ++self()->child_it_;
+    }
+  }
+};
+
+
+// --- CRTP mixin: write capability (should_send + modify + send) ---
+template<typename Derived>
+class ProtocolWriteMixin {
+  Derived *self() { return static_cast<Derived*>(this); }
+  const Derived *self() const { return static_cast<const Derived*>(this); }
+
+public:
+  bool do_should_send() const {
+    return self()->should_send_ && millis() - self()->last_send_ > 3000;
+  }
+
+  void do_request_send(PanasonicAquareaChildBase *child) {
+    self()->should_send_ = true;
+  }
+
+  bool do_modify(PanasonicAquareaChildBase *child) {
+    if (child->set_packet_value(self()->write_data_.data(), self()->write_data_.size())) {
+      self()->should_send_ = true;
+      return true;
+    }
+    return false;
+  }
+
+  void do_send(PanasonicAquareaDataSource *data_source) {
+    if (!self()->should_send_) return;
+    self()->compute_crc(self()->write_data_);
+    data_source->write_array(self()->write_data_.data(), self()->write_data_.size());
+    self()->should_send_ = false;
+    self()->last_send_ = millis();
+  }
+};
+
+
+// --- ReadOnly protocol: receives packets, distributes to children ---
+template<uint8_t RH0, uint8_t RDS, uint8_t RH3>
+class PanasonicProtocolReadOnly : public PanasonicProtocolInterface, public ProtocolReadMixin<PanasonicProtocolReadOnly<RH0, RDS, RH3>> {
+  friend class ProtocolReadMixin<PanasonicProtocolReadOnly<RH0, RDS, RH3>>;
+
+public:
+  PanasonicProtocolReadOnly() {
+    data_.reserve(RDS + 2);
   }
 
   bool supports(uint8_t header0, uint8_t datasize, uint8_t header3) const override {
-    return header0 == HEADER0 && datasize == DATASIZE && header3 == HEADER3;
+    return header0 == RH0 && datasize == RDS && header3 == RH3;
   }
+
+  void decode(const std::vector<uint8_t> &data) override { this->do_decode(data); }
+  void loop() override { this->do_loop(); }
+
+protected:
+  std::vector<uint8_t> data_;
+};
+
+
+// --- WriteOnly protocol: builds and sends packets ---
+template<uint8_t WH0, uint8_t WDS, uint8_t WH3>
+class PanasonicProtocolWriteOnly : public PanasonicProtocolInterface, public ProtocolWriteMixin<PanasonicProtocolWriteOnly<WH0, WDS, WH3>> {
+  friend class ProtocolWriteMixin<PanasonicProtocolWriteOnly<WH0, WDS, WH3>>;
+
+public:
+  PanasonicProtocolWriteOnly() {
+    write_data_.resize(WDS + 2, 0);
+    write_data_[0] = WH0;
+    write_data_[1] = WDS;
+    write_data_[2] = 0x01;
+    write_data_[3] = WH3;
+  }
+
+  bool supports(uint8_t header0, uint8_t datasize, uint8_t header3) const override {
+    return header0 == WH0 && datasize == WDS && header3 == WH3;
+  }
+
+  bool should_send() const override { return this->do_should_send(); }
+  void request_send(PanasonicAquareaChildBase *child) override { this->do_request_send(child); }
+  bool modify(PanasonicAquareaChildBase *child) override { return this->do_modify(child); }
+  void send(PanasonicAquareaDataSource *data_source) override { this->do_send(data_source); }
+
+protected:
+  std::vector<uint8_t> write_data_;
+  bool should_send_{false};
+  uint32_t last_send_{0};
+};
+
+
+// --- ReadWrite protocol: separate read and write buffers ---
+template<uint8_t RH0, uint8_t RDS, uint8_t RH3, uint8_t WH0, uint8_t WDS, uint8_t WH3>
+class PanasonicProtocolReadWrite : public PanasonicProtocolInterface,
+    public ProtocolReadMixin<PanasonicProtocolReadWrite<RH0, RDS, RH3, WH0, WDS, WH3>>,
+    public ProtocolWriteMixin<PanasonicProtocolReadWrite<RH0, RDS, RH3, WH0, WDS, WH3>> {
+  friend class ProtocolReadMixin<PanasonicProtocolReadWrite<RH0, RDS, RH3, WH0, WDS, WH3>>;
+  friend class ProtocolWriteMixin<PanasonicProtocolReadWrite<RH0, RDS, RH3, WH0, WDS, WH3>>;
+
+public:
+  PanasonicProtocolReadWrite() {
+    data_.reserve(RDS + 2);
+    write_data_.resize(WDS + 2, 0);
+    write_data_[0] = WH0;
+    write_data_[1] = WDS;
+    write_data_[2] = 0x01;
+    write_data_[3] = WH3;
+  }
+
+  bool supports(uint8_t header0, uint8_t datasize, uint8_t header3) const override {
+    return header0 == RH0 && datasize == RDS && header3 == RH3;
+  }
+
+  // Read side
+  void decode(const std::vector<uint8_t> &data) override { this->do_decode(data); }
+  void loop() override { this->do_loop(); }
+
+  // Write side
+  bool should_send() const override { return this->do_should_send(); }
+  void request_send(PanasonicAquareaChildBase *child) override { this->do_request_send(child); }
+  bool modify(PanasonicAquareaChildBase *child) override { return this->do_modify(child); }
+  void send(PanasonicAquareaDataSource *data_source) override { this->do_send(data_source); }
+
+protected:
+  std::vector<uint8_t> data_;
+  std::vector<uint8_t> write_data_;
+  bool should_send_{false};
+  uint32_t last_send_{0};
 };
 
 } // namespace panasonic_aquarea
