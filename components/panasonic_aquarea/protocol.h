@@ -38,7 +38,7 @@ public:
 
   void add_child(PanasonicAquareaChildBase *child) {
     children_.push_back(child);
-    child_it_ = children_.cend();
+    child_idx_ = children_.size();
   }
 
   static bool check_crc(const std::vector<uint8_t> &data) {
@@ -51,7 +51,7 @@ public:
 
 protected:
   std::vector<PanasonicAquareaChildBase*> children_;
-  std::vector<PanasonicAquareaChildBase*>::const_iterator child_it_{children_.cend()};
+  size_t child_idx_{0};
 
   static uint8_t compute_crc(std::vector<uint8_t> &data) {
     if (data.empty()) return 0;
@@ -76,14 +76,14 @@ public:
   void do_decode(const std::vector<uint8_t> &data) {
     if (self()->supports(data[0], data[1], data[3])) {
       self()->data_.assign(data.begin(), data.end());
-      self()->child_it_ = self()->children_.cbegin();
+      self()->child_idx_ = 0;
     }
   }
 
   void do_loop() {
-    if (self()->child_it_ != self()->children_.cend()) {
-      (*self()->child_it_)->update_from_packet(self()->data_.data(), self()->data_.size());
-      ++self()->child_it_;
+    if (self()->child_idx_ < self()->children_.size()) {
+      self()->children_[self()->child_idx_]->update_from_packet(self()->data_.data(), self()->data_.size());
+      ++self()->child_idx_;
     }
   }
 };
