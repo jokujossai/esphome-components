@@ -17,21 +17,18 @@ public:
 // Query packets sent to heat pump — time-based periodic sending
 class PanasonicAquareaProtocolMainRequest : public PanasonicProtocolWriteOnly<0x71, 0x6c, 0x10> {
 public:
+  PanasonicAquareaProtocolMainRequest() {
+    should_send_ = true;
+    send_interval_ = 1000;
+    reset_buffer_after_send_ = false;
+  }
+
   const std::string &get_topic() const override { return MAIN_PROTOCOL_REQUEST_NAME; }
 
-  bool should_send() const override {
-    return millis() >= next_send_;
-  }
-
   void send(PanasonicAquareaDataSource *data_source) override {
-    compute_crc(write_data_);
-    data_source->write_array(write_data_);
-    next_send_ = millis() + QUERY_INTERVAL;
+    this->do_send(data_source);
+    should_send_ = true;
   }
-
-private:
-  static const uint32_t QUERY_INTERVAL = 1000;
-  uint32_t next_send_{0};
 };
 
 } // namespace panasonic_aquarea

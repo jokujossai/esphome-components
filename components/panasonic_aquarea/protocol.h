@@ -97,7 +97,7 @@ class ProtocolWriteMixin {
 
 public:
   bool do_should_send() const {
-    return self()->should_send_ && millis() - self()->last_send_ > 3000;
+    return self()->should_send_ && millis() >= self()->next_send_;
   }
 
   void do_request_send(PanasonicAquareaChildBase *child) {
@@ -117,7 +117,10 @@ public:
     self()->compute_crc(self()->write_data_);
     data_source->write_array(self()->write_data_);
     self()->should_send_ = false;
-    self()->last_send_ = millis();
+    self()->next_send_ = millis() + self()->send_interval_;
+    if (self()->reset_buffer_after_send_) {
+      self()->init_write_buffer_();
+    }
   }
 };
 
@@ -150,13 +153,7 @@ class PanasonicProtocolWriteOnly : public PanasonicProtocolInterface, public Pro
   friend class ProtocolWriteMixin<PanasonicProtocolWriteOnly<WH0, WDS, WH3>>;
 
 public:
-  PanasonicProtocolWriteOnly() {
-    write_data_.resize(WDS + 2, 0);
-    write_data_[0] = WH0;
-    write_data_[1] = WDS;
-    write_data_[2] = 0x01;
-    write_data_[3] = WH3;
-  }
+  PanasonicProtocolWriteOnly() { init_write_buffer_(); }
 
   bool supports(uint8_t header0, uint8_t datasize, uint8_t header3) const override {
     return header0 == WH0 && datasize == WDS && header3 == WH3;
@@ -168,9 +165,19 @@ public:
   void send(PanasonicAquareaDataSource *data_source) override { this->do_send(data_source); }
 
 protected:
+  void init_write_buffer_() {
+    write_data_.assign(WDS + 2, 0);
+    write_data_[0] = WH0;
+    write_data_[1] = WDS;
+    write_data_[2] = 0x01;
+    write_data_[3] = WH3;
+  }
+
   std::vector<uint8_t> write_data_;
   bool should_send_{false};
-  uint32_t last_send_{0};
+  uint32_t next_send_{0};
+  uint32_t send_interval_{3000};
+  bool reset_buffer_after_send_{true};
 };
 
 
@@ -185,11 +192,7 @@ class PanasonicProtocolReadWrite : public PanasonicProtocolInterface,
 public:
   PanasonicProtocolReadWrite() {
     data_.reserve(RDS + 2);
-    write_data_.resize(WDS + 2, 0);
-    write_data_[0] = WH0;
-    write_data_[1] = WDS;
-    write_data_[2] = 0x01;
-    write_data_[3] = WH3;
+    init_write_buffer_();
   }
 
   bool supports(uint8_t header0, uint8_t datasize, uint8_t header3) const override {
@@ -207,10 +210,20 @@ public:
   virtual void send(PanasonicAquareaDataSource *data_source) override { this->do_send(data_source); }
 
 protected:
+  void init_write_buffer_() {
+    write_data_.assign(WDS + 2, 0);
+    write_data_[0] = WH0;
+    write_data_[1] = WDS;
+    write_data_[2] = 0x01;
+    write_data_[3] = WH3;
+  }
+
   std::vector<uint8_t> data_;
   std::vector<uint8_t> write_data_;
   bool should_send_{false};
-  uint32_t last_send_{0};
+  uint32_t next_send_{0};
+  uint32_t send_interval_{3000};
+  bool reset_buffer_after_send_{true};
 };
 
 } // namespace panasonic_aquarea
