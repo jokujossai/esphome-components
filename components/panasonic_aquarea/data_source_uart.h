@@ -64,12 +64,9 @@ public:
     }
   }
 
-  void write_array(const uint8_t *data, size_t len) override {
-    uart::UARTDevice::write_array(data, len);
-  }
-
-  void write(uint8_t data) override {
-    uart::UARTDevice::write(data);
+  void write_array(const std::vector<uint8_t>& data) override {
+    uart::UARTDevice::write_array(data);
+    this->call_packet_sent_callback(data);
   }
 
 private:
@@ -79,7 +76,7 @@ private:
     ESP_LOGD(TAG_UART, "Received %zu bytes, packet length: %d", this->rx_buffer_.size(), this->rx_buffer_[1]);
 
     // Call the packet callback
-    this->call_packet_callback(this->rx_buffer_);
+    this->call_packet_received_callback(this->rx_buffer_);
   }
 };
 

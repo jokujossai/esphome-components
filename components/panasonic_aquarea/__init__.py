@@ -223,3 +223,28 @@ async def to_code(config):
     await automation.build_automation(trigger, [(cg.std_vector.template(cg.uint8), "packet")], conf)
 
   return var
+
+
+@automation.register_action(
+    "panasonic_aquarea.handle_packet",
+    HandlePacketAction,
+    cv.Schema(
+        {
+            cv.GenerateID(): cv.use_id(PanasonicAquareaComponent),
+            cv.Required(CONF_PACKET): cv.templatable(cv.ensure_list(cv.hex_uint8_t)),
+        }
+    ),
+)
+async def handle_packet_action_to_code(config, action_id, template_arg, args):
+    parent = await cg.get_variable(config[cv.CONF_ID])
+    var = cg.new_Pvariable(action_id, template_arg, parent)
+
+    template_ = await cg.templatable(config[CONF_PACKET], args, cg.std_vector.template(cg.uint8))
+    if isinstance(template_, list):
+        # Wrap list in explicit std::vector so C++ can deduce the template
+        # parameter V in TEMPLATABLE_VALUE's set_packet(V)
+        hex_items = ", ".join(f"0x{b:02X}" for b in template_)
+        template_ = cg.RawExpression(f"std::vector<uint8_t>{{{hex_items}}}")
+    cg.add(var.set_packet(template_))
+
+    return var

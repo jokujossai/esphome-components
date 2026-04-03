@@ -36,18 +36,15 @@ public:
     // UDP packets are handled asynchronously via the UDP component's loop
   }
 
-  void write_array(const uint8_t *data, size_t len) override {
+  void write_array(const std::vector<uint8_t>& data) override {
     if (this->udp_ == nullptr) {
       ESP_LOGW(TAG_UDP, "UDP component not set");
       return;
     }
 
-    this->udp_->send_packet(data, len);
-    ESP_LOGD(TAG_UDP, "Sent %zu bytes via UDP", len);
-  }
-
-  void write(uint8_t data) override {
-    this->write_array(&data, 1);
+    this->udp_->send_packet(data);
+    ESP_LOGD(TAG_UDP, "Sent %zu bytes via UDP", data.size());
+    this->call_packet_sent_callback(data);
   }
 
 private:
@@ -60,7 +57,7 @@ private:
     }
 
     ESP_LOGD(TAG_UDP, "Received %zu bytes via UDP", data.size());
-    this->call_packet_callback(data);
+    this->call_packet_received_callback(data);
   }
 };
 

@@ -10,8 +10,9 @@ class PanasonicAquareaDataSourceNull : public PanasonicAquareaDataSource {
 public:
   void setup() override {}
   void loop() override {}
-  void write_array(const uint8_t *data, size_t len) override {}
-  void write(uint8_t data) override {}
+  void write_array(const std::vector<uint8_t>& data) override {
+    this->call_packet_sent_callback(data);
+  }
 };
 
 } // namespace panasonic_aquarea

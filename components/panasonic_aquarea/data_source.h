@@ -18,23 +18,33 @@ public:
   virtual void loop() = 0;
 
   // Write data to the data source
-  virtual void write_array(const uint8_t *data, size_t len) = 0;
-
-  // Write a single byte to the data source
-  virtual void write(uint8_t data) = 0;
+  virtual void write_array(const std::vector<uint8_t>& data) = 0;
 
   // Set the callback for when a complete packet is received
-  void set_packet_callback(std::function<void(const std::vector<uint8_t>&)> callback) {
-    packet_callback_ = callback;
+  void set_packet_received_callback(std::function<void(const std::vector<uint8_t>&)> callback) {
+    packet_received_callback_ = callback;
+  }
+
+  // Set the callback for when a packet is sent
+  void set_packet_sent_callback(std::function<void(const std::vector<uint8_t>&)> callback) {
+    packet_sent_callback_ = callback;
   }
 
 protected:
-  std::function<void(const std::vector<uint8_t>&)> packet_callback_;
+  std::function<void(const std::vector<uint8_t>&)> packet_received_callback_{nullptr};
+  std::function<void(const std::vector<uint8_t>&)> packet_sent_callback_{nullptr};
 
-  // Helper to invoke the packet callback
-  void call_packet_callback(const std::vector<uint8_t>& data) {
-    if (packet_callback_) {
-      packet_callback_(data);
+  // Helper to invoke the packet received callback
+  void call_packet_received_callback(const std::vector<uint8_t>& data) {
+    if (packet_received_callback_ != nullptr) {
+      packet_received_callback_(data);
+    }
+  }
+
+  // Helper to invoke the packet sent callback
+  void call_packet_sent_callback(const std::vector<uint8_t>& data) {
+    if (packet_sent_callback_ != nullptr) {
+      packet_sent_callback_(data);
     }
   }
 };

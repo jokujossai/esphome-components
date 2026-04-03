@@ -115,7 +115,7 @@ public:
   void do_send(PanasonicAquareaDataSource *data_source) {
     if (!self()->should_send_) return;
     self()->compute_crc(self()->write_data_);
-    data_source->write_array(self()->write_data_.data(), self()->write_data_.size());
+    data_source->write_array(self()->write_data_);
     self()->should_send_ = false;
     self()->last_send_ = millis();
   }
@@ -204,7 +204,7 @@ public:
   bool should_send() const override { return this->do_should_send(); }
   void request_send(PanasonicAquareaChildBase *child) override { this->do_request_send(child); }
   bool modify(PanasonicAquareaChildBase *child) override { return this->do_modify(child); }
-  void send(PanasonicAquareaDataSource *data_source) override { this->do_send(data_source); }
+  virtual void send(PanasonicAquareaDataSource *data_source) override { this->do_send(data_source); }
 
 protected:
   std::vector<uint8_t> data_;

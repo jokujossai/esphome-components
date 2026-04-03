@@ -45,19 +45,17 @@ public:
     // MQTT messages are handled asynchronously via callbacks
   }
 
-  void write_array(const uint8_t *data, size_t len) override {
+  void write_array(const std::vector<uint8_t>& data) override {
     if (this->mqtt_client_ == nullptr || this->publish_topic_.empty()) {
       ESP_LOGW(TAG_MQTT, "Cannot write: MQTT client or publish topic not configured");
       return;
     }
 
     // Publish binary data directly
-    this->mqtt_client_->publish(this->publish_topic_, reinterpret_cast<const char*>(data), len, 0, false);
+    this->mqtt_client_->publish(this->publish_topic_, reinterpret_cast<const char*>(data.data()), len, 0, false);
     ESP_LOGD(TAG_MQTT, "Published %zu bytes to %s", len, this->publish_topic_.c_str());
-  }
 
-  void write(uint8_t data) override {
-    this->write_array(&data, 1);
+    this->call_packet_sent_callback(data);
   }
 
 private:
@@ -73,7 +71,7 @@ private:
 
     ESP_LOGD(TAG_MQTT, "Received %zu bytes from MQTT", payload.length());
     std::vector<uint8_t> data(payload.begin(), payload.end());
-    this->call_packet_callback(data);
+    this->call_packet_received_callback(data);
   }
 };
 

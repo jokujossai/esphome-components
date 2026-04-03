@@ -25,7 +25,7 @@ public:
 
   void send(PanasonicAquareaDataSource *data_source) override {
     compute_crc(write_data_);
-    data_source->write_array(write_data_.data(), write_data_.size());
+    data_source->write_array(write_data_);
     next_send_ = millis() + QUERY_INTERVAL;
   }
 

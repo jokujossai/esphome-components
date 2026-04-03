@@ -7,8 +7,11 @@ namespace panasonic_aquarea {
 static const char *const TAG = "panasonic_aquarea";
 
 void PanasonicAquareaComponent::setup() {
-  this->data_source_->set_packet_callback([this](const std::vector<uint8_t> &data) {
+  this->data_source_->set_packet_received_callback([this](const std::vector<uint8_t> &data) {
     this->handle_packet(data);
+  });
+  this->data_source_->set_packet_sent_callback([this](const std::vector<uint8_t>& data) {
+    this->on_packet_send_callback_.call(data);
   });
   this->data_source_->setup();
 }
@@ -30,11 +33,6 @@ void PanasonicAquareaComponent::loop() {
       }
     }
   }
-}
-
-void PanasonicAquareaComponent::write_array(const std::vector<uint8_t> &data) {
-  this->data_source_->write_array(data.data(), data.size());
-  this->on_packet_send_callback_.call(data);
 }
 
 void PanasonicAquareaComponent::handle_packet(const std::vector<uint8_t> &data) {
