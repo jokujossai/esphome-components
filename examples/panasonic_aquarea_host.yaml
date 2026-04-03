@@ -26,6 +26,7 @@ panasonic_aquarea:
   id: aquarea
   protocols:
     - main
+    - main_request
     - optional
   data_source: null  # No data source - using custom control only
   on_packet_send:

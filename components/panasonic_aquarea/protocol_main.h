@@ -14,10 +14,24 @@ public:
   const std::string &get_topic() const override { return MAIN_PROTOCOL_NAME; }
 };
 
-// Query packets sent to heat pump
+// Query packets sent to heat pump — time-based periodic sending
 class PanasonicAquareaProtocolMainRequest : public PanasonicProtocolWriteOnly<0x71, 0x6c, 0x10> {
 public:
   const std::string &get_topic() const override { return MAIN_PROTOCOL_REQUEST_NAME; }
+
+  bool should_send() const override {
+    return millis() >= next_send_;
+  }
+
+  void send(PanasonicAquareaDataSource *data_source) override {
+    compute_crc(write_data_);
+    data_source->write_array(write_data_.data(), write_data_.size());
+    next_send_ = millis() + QUERY_INTERVAL;
+  }
+
+private:
+  static const uint32_t QUERY_INTERVAL = 1000;
+  uint32_t next_send_{0};
 };
 
 } // namespace panasonic_aquarea

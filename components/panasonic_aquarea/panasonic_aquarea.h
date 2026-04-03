@@ -37,12 +37,7 @@ private:
   PanasonicAquareaDataSource *data_source_{nullptr};
   std::vector<PanasonicProtocolInterface*> protocols_;
 
-  uint32_t last_query_time_{0};
-  static const uint32_t QUERY_INTERVAL = 1000; // 1 second interval like HeishaMon
-
   CallbackManager<void(const std::vector<uint8_t>&)> on_packet_send_callback_;
-
-  void send_query();
 };
 
 // Action to handle packet

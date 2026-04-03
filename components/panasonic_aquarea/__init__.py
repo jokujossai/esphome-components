@@ -46,6 +46,9 @@ PanasonicAquareaMQTTDataSource = panasonic_aquarea_ns.class_(
 PanasonicAquareaUDPDataSource = panasonic_aquarea_ns.class_(
   "PanasonicAquareaUDPDataSource"
 )
+PanasonicAquareaDataSourceNull = panasonic_aquarea_ns.class_(
+  "PanasonicAquareaDataSourceNull"
+)
 
 # Actions and Triggers
 HandlePacketAction = panasonic_aquarea_ns.class_("HandlePacketAction", automation.Action)
@@ -59,6 +62,9 @@ PanasonicAquareaProtocolMain = panasonic_aquarea_ns.class_(
 )
 PanasonicAquareaProtocolOptional = panasonic_aquarea_ns.class_(
   "PanasonicAquareaProtocolOptional", PanasonicAquareaProtocol
+)
+PanasonicAquareaProtocolMainRequest = panasonic_aquarea_ns.class_(
+  "PanasonicAquareaProtocolMainRequest", PanasonicAquareaProtocol
 )
 
 PROTOCOL_REGISTRY = Registry()
@@ -92,52 +98,54 @@ async def optional_protocol_to_code(config, protocol_id):
   PROTOCOLS["optional"] = protocol_id
   return cg.new_Pvariable(protocol_id)
 
+@PROTOCOL_REGISTRY.register("main_request", PanasonicAquareaProtocolMainRequest, {})
+async def main_request_protocol_to_code(config, protocol_id):
+  PROTOCOLS["main_request"] = protocol_id
+  return cg.new_Pvariable(protocol_id)
+
 
 DATA_SOURCE_REGISTRY = Registry({
   cv.GenerateID("data_source_id"): cv.declare_id(panasonic_aquarea_ns.class_("PanasonicAquareaDataSource")),
 })
 
-def register_data_source(name, type, schema):
-  registerer = DATA_SOURCE_REGISTRY.register(name, type, schema)
-
-  def decorator(func):
-    async def new_func(config, data_source_id):
-      var = cg.new_Pvariable(data_source_id)
-      await coroutine(func)(var, config)
-      return var
-
-    return registerer(new_func)
-
-  return decorator
-
-@register_data_source(DATA_SOURCE_UART, PanasonicAquareaUARTDataSource, uart.UART_DEVICE_SCHEMA)
-async def uart_data_source(var, config):
+@DATA_SOURCE_REGISTRY.register(DATA_SOURCE_UART, PanasonicAquareaUARTDataSource, uart.UART_DEVICE_SCHEMA)
+async def uart_data_source(config, data_source_id):
+  var = cg.new_Pvariable(data_source_id)
   await uart.register_uart_device(var, config)
+  return var
 
-@register_data_source(DATA_SOURCE_MQTT, PanasonicAquareaMQTTDataSource, {
+@DATA_SOURCE_REGISTRY.register(DATA_SOURCE_MQTT, PanasonicAquareaMQTTDataSource, {
   cv.Required(CONF_MQTT_ID): cv.use_id(mqtt.MQTTClientComponent),
   cv.Required(CONF_SUBSCRIBE_TOPIC): cv.subscribe_topic,
   cv.Required(CONF_PUBLISH_TOPIC): cv.publish_topic,
 })
-async def mqtt_data_source(var, config):
+async def mqtt_data_source(config, data_source_id):
+  var = cg.new_Pvariable(data_source_id)
   mqtt_client = await cg.get_variable(config[CONF_MQTT_ID])
   cg.add(var.set_mqtt_client(mqtt_client))
   cg.add(var.set_subscribe_topic(config[CONF_SUBSCRIBE_TOPIC]))
   cg.add(var.set_publish_topic(config[CONF_PUBLISH_TOPIC]))
+  return var
 
-@register_data_source(DATA_SOURCE_UDP, PanasonicAquareaUDPDataSource, {
+@DATA_SOURCE_REGISTRY.register(DATA_SOURCE_UDP, PanasonicAquareaUDPDataSource, {
   cv.Required(CONF_UDP_ID): cv.use_id(udp.UDPComponent),
 })
-async def udp_data_source(var, config):
+async def udp_data_source(config, data_source_id):
+  var = cg.new_Pvariable(data_source_id)
   udp_component = await cg.get_variable(config[CONF_UDP_ID])
   cg.add(var.set_udp_component(udp_component))
+  return var
+
+@DATA_SOURCE_REGISTRY.register("null", PanasonicAquareaDataSourceNull, {})
+async def null_data_source(config, data_source_id):
+  return cg.new_Pvariable(data_source_id)
 
 
 def validate_data_source(value):
   """Validate and normalize data_source configuration."""
   # Allow None/null for custom control mode
   if value is None:
-    return None
+    value = {"null": {}}
 
   if isinstance(value, str):
     # Simple string format: "uart", "mqtt", or "udp"
@@ -159,12 +167,20 @@ def validate_data_source(value):
   return cv.validate_registry_entry("data_source", DATA_SOURCE_REGISTRY)(value)
 
 
+def _validate_protocol_dependencies(config):
+  if config.get(CONF_LISTEN_ONLY, False):
+    return config
+  protocol_names = {list(p.keys())[0] for p in config.get(CONF_PROTOCOLS, [])}
+  if "main" in protocol_names and "main_request" not in protocol_names:
+    raise cv.Invalid("main_request protocol is required when main protocol is active and listen_only is false")
+  return config
+
 CONFIG_SCHEMA = cv.All(
   cv.Schema(
     {
       cv.GenerateID(): cv.declare_id(PanasonicAquareaComponent),
       cv.Optional(CONF_LISTEN_ONLY, default=False): cv.boolean,
-      cv.Optional(CONF_PROTOCOLS, default=["main"]): validate_protocols,
+      cv.Optional(CONF_PROTOCOLS, default=["main", "main_request"]): validate_protocols,
       cv.Optional(CONF_DATA_SOURCE, default=DATA_SOURCE_UART): validate_data_source,
       cv.Optional(CONF_ON_PACKET_SEND): automation.validate_automation(
         {
@@ -174,6 +190,7 @@ CONFIG_SCHEMA = cv.All(
     }
   )
   .extend(cv.COMPONENT_SCHEMA),
+  _validate_protocol_dependencies,
 )
 
 CHILD_SCHEMA_BASE = (
@@ -185,11 +202,10 @@ CHILD_SCHEMA_BASE = (
 async def to_code(config):
   var = cg.new_Pvariable(config[CONF_ID])
 
-  # Setup data source using registry (if provided and not null)
-  if CONF_DATA_SOURCE in config and config[CONF_DATA_SOURCE] is not None:
-    data_source_config = config[CONF_DATA_SOURCE]
-    data_source = await cg.build_registry_entry(DATA_SOURCE_REGISTRY, data_source_config)
-    cg.add(var.set_data_source(data_source))
+  # Setup data source
+  data_source_config = config[CONF_DATA_SOURCE]
+  data_source = await cg.build_registry_entry(DATA_SOURCE_REGISTRY, data_source_config)
+  cg.add(var.set_data_source(data_source))
 
   protocols = await build_protocols(config[CONF_PROTOCOLS])
   for protocol in protocols:
