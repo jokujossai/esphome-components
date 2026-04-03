@@ -141,38 +141,55 @@ struct TempWithFracField {
 };
 
 template<const Uint8Field& def>
-__attribute__((always_inline)) inline constexpr uint8_t getFieldForce(const std::vector<uint8_t>& data, bool& valid) {
-  // Compile-time validation: offset must be in range -255 to 0
-  static_assert(def.offset >= -255 && def.offset <= 0, "uint8_t getField offset must be in range -255 to 0");
+__attribute__((always_inline)) inline auto getFieldForce(const std::vector<uint8_t>& data, bool& valid) {
+  if constexpr (def.bit_width > 8) {
+    // Multi-byte raw field: returns std::vector<uint8_t>
+    static_assert(def.bit_width % 8 == 0, "Multi-byte Uint8Field bit_width must be a multiple of 8");
+    static_assert(def.bit_offset == 0, "Multi-byte Uint8Field must be byte-aligned");
+    static_assert(def.offset == 0 || def.offset == -1, "Multi-byte Uint8Field does not support offset");
+    constexpr uint8_t num_bytes = def.bit_width / 8;
 
-  if (def.byte_offset >= data.size()) {
-    valid = false;
-    return 0;
-  }
-
-  uint8_t byte_value = data[def.byte_offset];
-
-  // Extract raw bit field value using helper functions
-  uint8_t raw_value = apply_mask<def.bit_width>(apply_shift<def.bit_offset>(byte_value));
-
-  // Apply offset for non-zero values
-  if constexpr (def.offset == 0) {
-    valid = true;
-    return raw_value;
-  } else {
-    // Negative offset: check if raw_value is smaller than absolute offset
-    constexpr uint8_t abs_offset = -def.offset;
-    if (raw_value < abs_offset) {
+    if (def.byte_offset + num_bytes > data.size()) {
       valid = false;
-      return 0;
+      return std::vector<uint8_t>{};
     }
+
     valid = true;
-    return raw_value + def.offset;  // offset is negative, so this subtracts
+    return std::vector<uint8_t>(data.begin() + def.byte_offset, data.begin() + def.byte_offset + num_bytes);
+  } else {
+    // Single-byte field: returns uint8_t
+    // Compile-time validation: offset must be in range -255 to 0
+    static_assert(def.offset >= -255 && def.offset <= 0, "uint8_t getField offset must be in range -255 to 0");
+
+    if (def.byte_offset >= data.size()) {
+      valid = false;
+      return (uint8_t)0;
+    }
+
+    uint8_t byte_value = data[def.byte_offset];
+
+    // Extract raw bit field value using helper functions
+    uint8_t raw_value = apply_mask<def.bit_width>(apply_shift<def.bit_offset>(byte_value));
+
+    // Apply offset for non-zero values
+    if constexpr (def.offset == 0) {
+      valid = true;
+      return raw_value;
+    } else {
+      // Negative offset: check if raw_value is smaller than absolute offset
+      constexpr uint8_t abs_offset = -def.offset;
+      if (raw_value < abs_offset) {
+        valid = false;
+        return (uint8_t)0;
+      }
+      valid = true;
+      return (uint8_t)(raw_value + def.offset);  // offset is negative, so this subtracts
+    }
   }
 }
 
 template<const Uint8Field& def>
-__attribute__((always_inline)) inline constexpr uint8_t getField(const std::vector<uint8_t>& data, bool& valid) {
+__attribute__((always_inline)) inline auto getField(const std::vector<uint8_t>& data, bool& valid) {
   // Compile-time access validation
   static_assert(def.access == R || def.access == RW, "getField requires read access (R or RW)");
 
@@ -429,6 +446,7 @@ __attribute__((always_inline)) inline constexpr float getField(const std::vector
 
 template<const Uint8Field& def>
 __attribute__((always_inline)) inline constexpr bool setFieldForce(std::vector<uint8_t>& data, uint8_t value) {
+  static_assert(def.bit_width <= 8, "setField does not support multi-byte Uint8Field (bit_width > 8)");
   if (def.byte_offset >= data.size()) return false;
 
   // Apply offset to convert logical value to raw value
