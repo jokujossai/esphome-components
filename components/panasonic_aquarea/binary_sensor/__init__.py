@@ -61,9 +61,8 @@ async def to_code(config):
     parent = await cg.get_variable(config[CONF_PANASONIC_AQUAREA_ID])
     cg.add(var.set_parent(parent))
 
-    protocol_id = get_protocol(config[CONF_PANASONIC_AQUAREA_ID], protocol)
-    protocol = await cg.get_variable(protocol_id)
-    cg.add(var.set_protocol(protocol))
-    cg.add(protocol.add_child(var))
+    protocol_var = get_protocol(config[CONF_PANASONIC_AQUAREA_ID], protocol)
+    cg.add(var.set_protocol(protocol_var))
+    cg.add(protocol_var.add_child(var))
 
     return var

@@ -7,6 +7,16 @@ esphome:
       then:
         - script.execute: test_script
 
+globals:
+  - id: aquarea_send_count
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: aquarea2_send_count
+    type: int
+    restore_value: no
+    initial_value: '0'
+
 external_components:
   - source:
       type: local
@@ -23,68 +33,93 @@ logger:
 # Panasonic Aquarea component with custom packet handling
 # No data_source - using only on_packet_send and handle_packet for testing
 panasonic_aquarea:
-  id: aquarea
-  protocols:
-    - main
-    - main_request
-    - optional
-  data_source: null  # No data source - using custom control only
-  on_packet_send:
-    then:
-      - lambda: |-
-          ESP_LOGD("aquarea", "on_packet_send triggered - sending %zu bytes", packet.size());
-          if (packet.size() > 4) {
-            ESP_LOGD("aquarea", "Packet header: %02X %02X %02X %02X",
-                     packet[0], packet[1], packet[2], packet[3]);
-          }
+  - id: aquarea
+    protocols:
+      - main
+      - main_request
+      - optional
+    data_source: null  # No data source - using custom control only
+    on_packet_send:
+      then:
+        - lambda: |-
+            ESP_LOGD("aquarea", "on_packet_send triggered - sending %zu bytes", packet.size());
+            if (packet.size() > 4) {
+              ESP_LOGD("aquarea", "Packet header: %02X %02X %02X %02X",
+                      packet[0], packet[1], packet[2], packet[3]);
+            }
+        - lambda: |-
+            id(aquarea_send_count) += 1;
+  - id: aquarea2
+    protocols:
+      - main
+      - optional
+    data_source: null
+    listen_only: true
+    on_packet_send:
+      then:
+        - lambda: |-
+            id(aquarea2_send_count) += 1;
 
 # Example sensors to display decoded values
 sensor:
   - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
     id: pump_flow_sensor
     field: pumpFlow
   - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
     id: dhw_target_temp_sensor
     field: dhwTargetTemp
 
 switch:
   - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
     id: force_dhw_switch
     field: forceDhwState
 
 binary_sensor:
   - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
     id: heat_pump_state
     field: heatpumpState
   - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
     id: dhw_heater_state
     field: dhwHeaterState
   - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
     id: z1_water_pump
     field: z1WaterPumpState
   - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
     id: pool_water_pump
     field: poolWaterPumpState
   - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
     id: solar_water_pump
     field: solarWaterPumpState
   - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
     id: alarm_state
     field: alarmState
 
 select:
   - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
     id: operating_mode_select
     field: operatingModeState
   - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
     id: quiet_mode_select
     field: quietModeLevel
 
 text_sensor:
   - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
     id: error_code_text
     field: errorCode
   - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
     id: z1_mixing_valve
     field: z1MixingValveState
 

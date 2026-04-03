@@ -29,6 +29,8 @@ CONF_PACKET = "packet"
 
 DEPENDENCIES = []
 
+MULTI_CONF = True
+
 DATA_SOURCE_UART = "uart"
 DATA_SOURCE_MQTT = "mqtt"
 DATA_SOURCE_UDP = "udp"
@@ -70,37 +72,36 @@ PanasonicAquareaProtocolMainRequest = panasonic_aquarea_ns.class_(
 PROTOCOL_REGISTRY = Registry()
 validate_protocols = cv.validate_registry("protocol", PROTOCOL_REGISTRY)
 
-async def build_protocols(config):
+async def build_protocols(config, parent_id):
   protocols = []
   for conf in config:
     protocol = await cg.build_registry_entry(PROTOCOL_REGISTRY, conf)
     protocols.append(protocol)
     await cg.register_component(protocol, conf)
+    # Store mapping: (parent_id, protocol_name) -> protocol_id
+    protocol_name = list(conf.keys())[0]
+    protocol_conf = conf[protocol_name]
+    PROTOCOLS[(str(parent_id), protocol_name)] = protocol
   return protocols
 
 PROTOCOLS = {}
 
-def get_protocol(id, name):
-  for k, protocol_id in PROTOCOLS.items():
-    if k != name:
-      continue
-    
-    return protocol_id
-  raise cv.Invalid(f"Component {id.id} not found")
+def get_protocol(parent_id, name):
+  key = (str(parent_id), name)
+  if key in PROTOCOLS:
+    return PROTOCOLS[key]
+  raise cv.Invalid(f"Protocol '{name}' not found for component {parent_id}")
 
 @PROTOCOL_REGISTRY.register("main", PanasonicAquareaProtocolMain, {})
 async def main_protocol_to_code(config, protocol_id):
-  PROTOCOLS["main"] = protocol_id
   return cg.new_Pvariable(protocol_id)
 
 @PROTOCOL_REGISTRY.register("optional", PanasonicAquareaProtocolOptional, {})
 async def optional_protocol_to_code(config, protocol_id):
-  PROTOCOLS["optional"] = protocol_id
   return cg.new_Pvariable(protocol_id)
 
 @PROTOCOL_REGISTRY.register("main_request", PanasonicAquareaProtocolMainRequest, {})
 async def main_request_protocol_to_code(config, protocol_id):
-  PROTOCOLS["main_request"] = protocol_id
   return cg.new_Pvariable(protocol_id)
 
 
@@ -207,7 +208,7 @@ async def to_code(config):
   data_source = await cg.build_registry_entry(DATA_SOURCE_REGISTRY, data_source_config)
   cg.add(var.set_data_source(data_source))
 
-  protocols = await build_protocols(config[CONF_PROTOCOLS])
+  protocols = await build_protocols(config[CONF_PROTOCOLS], config[CONF_ID])
   for protocol in protocols:
     cg.add(var.add_protocol(protocol))
 
