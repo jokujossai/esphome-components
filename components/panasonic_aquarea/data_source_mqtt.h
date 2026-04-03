@@ -52,8 +52,8 @@ public:
     }
 
     // Publish binary data directly
-    this->mqtt_client_->publish(this->publish_topic_, reinterpret_cast<const char*>(data.data()), len, 0, false);
-    ESP_LOGD(TAG_MQTT, "Published %zu bytes to %s", len, this->publish_topic_.c_str());
+    this->mqtt_client_->publish(this->publish_topic_, reinterpret_cast<const char*>(data.data()), data.size(), 0, false);
+    ESP_LOGD(TAG_MQTT, "Published %zu bytes to %s", data.size(), this->publish_topic_.c_str());
 
     this->call_packet_sent_callback(data);
   }

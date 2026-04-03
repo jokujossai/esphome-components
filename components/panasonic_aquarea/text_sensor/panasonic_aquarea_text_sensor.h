@@ -11,7 +11,7 @@ namespace panasonic_aquarea {
 
 class PanasonicAquareaTextSensorBase : public text_sensor::TextSensor, public PanasonicAquareaChildBase {
 public:
-  bool set_packet_value(uint8_t *data, uint8_t len) override {
+  bool set_packet_value(std::vector<uint8_t>& data) override {
     // Text sensors are read-only
     return false;
   }
@@ -34,10 +34,10 @@ public:
   void set_options(const std::vector<std::string> &options) { options_ = options; }
   void set_options_values(const std::vector<value_type> &options_values) { options_values_ = options_values; }
 
-  void update_from_packet(const uint8_t *data, uint8_t len) override {
+  void update_from_packet(const std::vector<uint8_t>& data) override {
     ESP_LOGD("panasonic_aquarea.text_sensor", "Updating from packet for field %s", this->get_name().c_str());
     bool valid;
-    auto value = fields::getField<field>(data, len, valid);
+    auto value = fields::getField<field>(data, valid);
     if (valid) {
       // Find option value in options_values_
       auto it = std::find(options_values_.begin(), options_values_.end(), value);

@@ -7,6 +7,11 @@ namespace panasonic_aquarea {
 static const char *const TAG = "panasonic_aquarea";
 
 void PanasonicAquareaComponent::setup() {
+  if (this->data_source_ == nullptr) {
+    this->mark_failed();
+    return;
+  }
+
   this->data_source_->set_packet_received_callback([this](const std::vector<uint8_t> &data) {
     this->handle_packet(data);
   });

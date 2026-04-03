@@ -96,14 +96,14 @@ void PanasonicAquareaZoneClimate::control(const climate::ClimateCall &call) {
   this->publish_state();
 }
 
-void PanasonicAquareaZoneClimate::update_from_packet(const uint8_t *data, uint8_t len) {
+void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>& data) {
   ESP_LOGD(TAG, "Updating from packet for field %s", this->get_name().c_str());
   using namespace fields;
   bool valid = false;
   bool traits_changed = false;
 
   // Read heating mode (1=Compensation Curve, 2=Direct)
-  uint8_t new_heating_mode = getField<heatingMode>(data, len, valid);
+  uint8_t new_heating_mode = getField<heatingMode>(data, valid);
   if (valid && this->heating_mode_ != new_heating_mode) {
     this->heating_mode_ = new_heating_mode;
     traits_changed = true;
@@ -113,7 +113,7 @@ void PanasonicAquareaZoneClimate::update_from_packet(const uint8_t *data, uint8_
   }
 
   // Read operating mode state (1=Heat, 2=Cool, 8=Auto(Heat), 9=Auto(Cool))
-  uint8_t operating_mode = getField<operatingModeState>(data, len, valid);
+  uint8_t operating_mode = getField<operatingModeState>(data, valid);
   if (valid) {
     uint8_t new_heating_mode_state = 0;
     switch (operating_mode) {
@@ -141,9 +141,9 @@ void PanasonicAquareaZoneClimate::update_from_packet(const uint8_t *data, uint8_
   // Read current temperature (water temp for this zone)
   float current_temp;
   if (zone_ == 1) {
-    current_temp = getField<z1WaterTemp>(data, len, valid);
+    current_temp = getField<z1WaterTemp>(data, valid);
   } else {
-    current_temp = getField<z2WaterTemp>(data, len, valid);
+    current_temp = getField<z2WaterTemp>(data, valid);
   }
   if (valid && !isnan(current_temp)) {
     this->current_temperature = current_temp;
@@ -152,9 +152,9 @@ void PanasonicAquareaZoneClimate::update_from_packet(const uint8_t *data, uint8_
   // Read target temperature (heat request temp for this zone)
   float target_temp;
   if (zone_ == 1) {
-    target_temp = getField<z1HeatRequestTemp>(data, len, valid);
+    target_temp = getField<z1HeatRequestTemp>(data, valid);
   } else {
-    target_temp = getField<z2HeatRequestTemp>(data, len, valid);
+    target_temp = getField<z2HeatRequestTemp>(data, valid);
   }
   if (valid && !isnan(target_temp)) {
     this->target_temperature = target_temp;
@@ -186,7 +186,7 @@ void PanasonicAquareaZoneClimate::update_from_packet(const uint8_t *data, uint8_
   this->publish_state();
 }
 
-bool PanasonicAquareaZoneClimate::set_packet_value(uint8_t *data, uint8_t len) {
+bool PanasonicAquareaZoneClimate::set_packet_value(std::vector<uint8_t>& data) {
   using namespace fields;
 
   if (!this->pending_target_temp_.has_value()) {
@@ -198,9 +198,9 @@ bool PanasonicAquareaZoneClimate::set_packet_value(uint8_t *data, uint8_t len) {
 
   bool success;
   if (zone_ == 1) {
-    success = setField<z1HeatRequestTemp>(data, len, target);
+    success = setField<z1HeatRequestTemp>(data, target);
   } else {
-    success = setField<z2HeatRequestTemp>(data, len, target);
+    success = setField<z2HeatRequestTemp>(data, target);
   }
 
   if (success) {

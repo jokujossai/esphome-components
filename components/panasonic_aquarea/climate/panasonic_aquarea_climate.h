@@ -21,8 +21,8 @@ class PanasonicAquareaZoneClimate : public climate::Climate, public PanasonicAqu
   uint8_t get_zone() const { return zone_; }
 
   // PanasonicAquareaChildBase interface
-  void update_from_packet(const uint8_t *data, uint8_t len) override;
-  bool set_packet_value(uint8_t *data, uint8_t len) override;
+  void update_from_packet(const std::vector<uint8_t>& data) override;
+  bool set_packet_value(std::vector<uint8_t>& data) override;
 
  protected:
   uint8_t zone_{1};  // Zone number (1 or 2)

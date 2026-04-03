@@ -82,7 +82,7 @@ public:
 
   void do_loop() {
     if (self()->child_idx_ < self()->children_.size()) {
-      self()->children_[self()->child_idx_]->update_from_packet(self()->data_.data(), self()->data_.size());
+      self()->children_[self()->child_idx_]->update_from_packet(self()->data_);
       ++self()->child_idx_;
     }
   }
@@ -105,7 +105,7 @@ public:
   }
 
   bool do_modify(PanasonicAquareaChildBase *child) {
-    if (child->set_packet_value(self()->write_data_.data(), self()->write_data_.size())) {
+    if (child->set_packet_value(self()->write_data_)) {
       self()->should_send_ = true;
       return true;
     }
