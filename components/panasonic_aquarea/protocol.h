@@ -27,9 +27,6 @@ public:
 
   // Write operations — safe defaults for read-only protocols
   virtual bool should_send() const { return false; }
-  virtual void request_send(PanasonicAquareaChildBase *child) {
-    ESP_LOGE("protocol", "request_send called on non-writable protocol");
-  }
   virtual bool modify(PanasonicAquareaChildBase *child) {
     ESP_LOGE("protocol", "modify called on non-writable protocol");
     return false;
@@ -100,10 +97,6 @@ public:
     return self()->should_send_ && millis() >= self()->next_send_;
   }
 
-  void do_request_send(PanasonicAquareaChildBase *child) {
-    self()->should_send_ = true;
-  }
-
   bool do_modify(PanasonicAquareaChildBase *child) {
     if (child->set_packet_value(self()->write_data_)) {
       self()->should_send_ = true;
@@ -160,7 +153,6 @@ public:
   }
 
   bool should_send() const override { return this->do_should_send(); }
-  void request_send(PanasonicAquareaChildBase *child) override { this->do_request_send(child); }
   bool modify(PanasonicAquareaChildBase *child) override { return this->do_modify(child); }
   void send(PanasonicAquareaDataSource *data_source) override { this->do_send(data_source); }
 
@@ -205,7 +197,6 @@ public:
 
   // Write side
   bool should_send() const override { return this->do_should_send(); }
-  void request_send(PanasonicAquareaChildBase *child) override { this->do_request_send(child); }
   bool modify(PanasonicAquareaChildBase *child) override { return this->do_modify(child); }
   virtual void send(PanasonicAquareaDataSource *data_source) override { this->do_send(data_source); }
 

@@ -56,7 +56,7 @@ public:
       }
     }
     else {
-      ESP_LOGE("panasonic_aquarea.text_sensor", "Invalid value for field %s: %d", this->get_name().c_str(), value);
+      ESP_LOGE("panasonic_aquarea.text_sensor", "Invalid value for field %s: (uninitialized)", this->get_name().c_str());
     }
   }
 
