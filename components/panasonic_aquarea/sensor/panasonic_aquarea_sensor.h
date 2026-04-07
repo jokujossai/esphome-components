@@ -19,7 +19,7 @@ template<const auto& field>
 class PanasonicAquareaSensor : public PanasonicAquareaSensorBase {
 public:
   void update_from_packet(const std::vector<uint8_t>& data) override {
-    ESP_LOGD("panasonic_aquarea.sensor", "Updating from packet for field %s", this->get_name().c_str());
+    ESP_LOGV("panasonic_aquarea.sensor", "Updating from packet for field %s", this->get_name().c_str());
     bool valid;
     auto value = fields::getField<field>(data, valid);
     if (valid) {

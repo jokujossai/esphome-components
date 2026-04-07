@@ -35,7 +35,7 @@ public:
   void set_options_values(const std::vector<value_type> &options_values) { options_values_ = options_values; }
 
   void update_from_packet(const std::vector<uint8_t>& data) override {
-    ESP_LOGD("panasonic_aquarea.text_sensor", "Updating from packet for field %s", this->get_name().c_str());
+    ESP_LOGV("panasonic_aquarea.text_sensor", "Updating from packet for field %s", this->get_name().c_str());
     bool valid;
     auto value = fields::getField<field>(data, valid);
     if (!valid) {
@@ -48,7 +48,7 @@ public:
     if (it != options_values_.end()) {
       auto index = std::distance(options_values_.begin(), it);
       if (index < options_.size()) {
-        ESP_LOGD("panasonic_aquarea.text_sensor", "Publishing state for field %s: %s", this->get_name().c_str(), options_[index].c_str());
+        ESP_LOGV("panasonic_aquarea.text_sensor", "Publishing state for field %s: %s", this->get_name().c_str(), options_[index].c_str());
         this->publish_state(options_[index]);
         return;
       }
@@ -63,7 +63,7 @@ public:
       uint8_t low_byte = static_cast<uint8_t>(value & 0xFF);
       for (size_t i = 0; i < options_values_.size() && i < options_.size(); i++) {
         if (options_values_[i] <= 0xFF && options_values_[i] == low_byte) {
-          ESP_LOGD("panasonic_aquarea.text_sensor",
+          ESP_LOGV("panasonic_aquarea.text_sensor",
                    "Publishing low-byte fallback for field %s: %s",
                    this->get_name().c_str(), options_[i].c_str());
           this->publish_state(options_[i]);

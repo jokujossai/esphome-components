@@ -27,7 +27,7 @@ public:
   void set_options_values(const std::vector<value_type> &options_values) { options_values_ = options_values; }
 
   void update_from_packet(const std::vector<uint8_t>& data) override {
-    ESP_LOGD("panasonic_aquarea.select", "Updating from packet for field %s", this->get_name().c_str());
+    ESP_LOGV("panasonic_aquarea.select", "Updating from packet for field %s", this->get_name().c_str());
     bool valid;
     value_type value = fields::getField<field>(data, valid);
     if (valid) {
