@@ -180,6 +180,7 @@ constexpr Int8Field z2WaterTargetTemp(148);         // TOP43: Zone 2 water targe
 constexpr Int8Field bufferTemp(149);                // TOP46: Buffer temp
 constexpr Int8Field solarTemp(150);                 // TOP47: Solar temp
 constexpr Int8Field poolTemp(151);                  // TOP48: Pool temp
+constexpr Int8Field mainTemperatureSet(152);        // Water shift set or direct mode value Temperature For Heat Mode
 constexpr Int8Field mainTargetTemp(153);            // TOP7: Main target temp
 constexpr Int8Field mainHexOutletTemp(154);         // TOP49: Main hex outlet temp
 constexpr Int8Field dischargeTemp(155);             // TOP50: Discharge temp
