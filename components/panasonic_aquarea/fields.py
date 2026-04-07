@@ -886,109 +886,118 @@ FIELD_REGISTRY = {
         "name": "Error Code",
         "type": "text_sensor",
         "accuracy_decimals": 0,
+        # Uint16Field reads bytes 113-114 little-endian:
+        # byte 113 (error type: 0xA1=H, 0xB1=F) -> low byte
+        # byte 114 (error number + 17)          -> high byte
+        # Value format: 0x{number}{type}, e.g. H12 = type 0xA1 + number 0x1D -> 0x1DA1
         "options": {
+            # Low-byte fallback entries (value <= 0xFF): matched against byte 113 only
+            # when the full uint16 lookup fails. Used when no active error - byte 114
+            # holds a stale leftover number.
+            0x21: "No error (after H-error)",
+            0x31: "No error (after F-error)",
             # H12
-            0xa11d: "H12 Capacity mismatch",
+            0x1da1: "H12 Capacity mismatch",
             # H15
-            0xa11f: "H15 Compressor sensor error",
+            0x1fa1: "H15 Compressor sensor error",
             # H20
-            0xa125: "H20 Pump error",
+            0x25a1: "H20 Pump error",
             # H23
-            0xa128: "H23 Refrigerant sensor error",
+            0x28a1: "H23 Refrigerant sensor error",
             # H27
-            0xa12c: "H27 Service valve error",
+            0x2ca1: "H27 Service valve error",
             # H28
-            0xa12d: "H28 Solar sensor error",
+            0x2da1: "H28 Solar sensor error",
             # H31
-            0xa130: "H31 Pool sensor error",
+            0x30a1: "H31 Pool sensor error",
             # H36
-            0xa135: "H36 Buffer tank sensor error",
+            0x35a1: "H36 Buffer tank sensor error",
             # H38
-            0xa137: "H38 Brand mismatch error",
+            0x37a1: "H38 Brand mismatch error",
             # H42
-            0xa13b: "H42 Low pressure protection",
+            0x3ba1: "H42 Low pressure protection",
             # H43
-            0xa13c: "H43 Zone 1 sensor error",
+            0x3ca1: "H43 Zone 1 sensor error",
             # H44
-            0xa13d: "H44 Zone 2 sensor error",
+            0x3da1: "H44 Zone 2 sensor error",
             # H62
-            0xa14f: "H62 Water flow error",
+            0x4fa1: "H62 Water flow error",
             # H63
-            0xa150: "H63 Low pressure sensor error",
+            0x50a1: "H63 Low pressure sensor error",
             # H64
-            0xa151: "H64 High pressure sensor error",
+            0x51a1: "H64 High pressure sensor error",
             # H65
-            0xa152: "H65 Device water circulation error",
+            0x52a1: "H65 Device water circulation error",
             # H67
-            0xa154: "H67 External thermistor 1 error",
+            0x54a1: "H67 External thermistor 1 error",
             # H68
-            0xa155: "H68 External thermistor 2 error",
+            0x55a1: "H68 External thermistor 2 error",
             # H70
-            0xa157: "H70 Back-up heater OLP error",
+            0x57a1: "H70 Back-up heater OLP error",
             # H72
-            0xa159: "H72 Tank sensor error",
+            0x59a1: "H72 Tank sensor error",
             # H74
-            0xa15b: "H74 OCB communication error",
+            0x5ba1: "H74 OCB communication error",
             # H75
-            0xa15c: "H75 Low water temp protection",
+            0x5ca1: "H75 Low water temp protection",
             # H76
-            0xa15d: "H76 RC-Indoor communication error",
+            0x5da1: "H76 RC-Indoor communication error",
             # H90
-            0xa16b: "H90 Indoor-Outdoor communication error",
+            0x6ba1: "H90 Indoor-Outdoor communication error",
             # H91
-            0xa16c: "H91 Tank heater OLP error",
+            0x6ca1: "H91 Tank heater OLP error",
             # H95
-            0xa170: "H95 Voltage connaction error",
+            0x70a1: "H95 Voltage connaction error",
             # H98
-            0xa173: "H98 High pressure protection",
+            0x73a1: "H98 High pressure protection",
             # H99
-            0xa174: "H99 Indoor freeze prevention",
+            0x74a1: "H99 Indoor freeze prevention",
             # F12
-            0xb11d: "F12 Pressure switch activated",
+            0x1db1: "F12 Pressure switch activated",
             # F14
-            0xb11f: "F14 Poor compressor rotation",
+            0x1fb1: "F14 Poor compressor rotation",
             # F15
-            0xb120: "F15 Fan motor lock error",
+            0x20b1: "F15 Fan motor lock error",
             # F16
-            0xb121: "F16 Current protection",
+            0x21b1: "F16 Current protection",
             # F20
-            0xb125: "F20 Compressor overload protection",
+            0x25b1: "F20 Compressor overload protection",
             # F22
-            0xb127: "F22 Transistor module overload protection",
+            0x27b1: "F22 Transistor module overload protection",
             # F23
-            0xb128: "F23 DC peak",
+            0x28b1: "F23 DC peak",
             # F24
-            0xb129: "F24 Refrigerant cycle error",
+            0x29b1: "F24 Refrigerant cycle error",
             # F25
-            0xb12a: "F25 Cool / heat cycle error",
+            0x2ab1: "F25 Cool / heat cycle error",
             # F27
-            0xb12c: "F27 Pressure switch error",
+            0x2cb1: "F27 Pressure switch error",
             # F29
-            0xb12e: "F29 Low discharge super heat",
+            0x2eb1: "F29 Low discharge super heat",
             # F30
-            0xb12f: "F30 Water outlet sensor 2 error",
+            0x2fb1: "F30 Water outlet sensor 2 error",
             # F32
-            0xb131: "F32 Internal thermostat error",
+            0x31b1: "F32 Internal thermostat error",
             # F36
-            0xb135: "F36 Outdoor ambient sensor error",
+            0x35b1: "F36 Outdoor ambient sensor error",
             # F40
-            0xb139: "F40 Outdoor discharge sensor error",
+            0x39b1: "F40 Outdoor discharge sensor error",
             # F41
-            0xb13a: "F41 Power factor correction error",
+            0x3ab1: "F41 Power factor correction error",
             # F42
-            0xb13b: "F42 Outdoor heat exchanger sensor error",
+            0x3bb1: "F42 Outdoor heat exchanger sensor error",
             # F43
-            0xb13c: "F43 Outdoor defrost sensor error",
+            0x3cb1: "F43 Outdoor defrost sensor error",
             # F45
-            0xb13e: "F45 Water outlet sensor error",
+            0x3eb1: "F45 Water outlet sensor error",
             # F46
-            0xb13f: "F46 Current transformer disconnection",
+            0x3fb1: "F46 Current transformer disconnection",
             # F48
-            0xb141: "F48 Evaporator outlet sensor error",
+            0x41b1: "F48 Evaporator outlet sensor error",
             # F49
-            0xb142: "F49 Bypass outlet sensor error",
+            0x42b1: "F49 Bypass outlet sensor error",
             # F95
-            0xb170: "F95 Cooling high pressure error",
+            0x70b1: "F95 Cooling high pressure error",
         },
     },
 

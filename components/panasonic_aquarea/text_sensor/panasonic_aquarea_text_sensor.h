@@ -38,26 +38,41 @@ public:
     ESP_LOGD("panasonic_aquarea.text_sensor", "Updating from packet for field %s", this->get_name().c_str());
     bool valid;
     auto value = fields::getField<field>(data, valid);
-    if (valid) {
-      // Find option value in options_values_
-      auto it = std::find(options_values_.begin(), options_values_.end(), value);
-      if (it != options_values_.end()) {
-        auto index = std::distance(options_values_.begin(), it);
-        if (index < options_.size()) {
-          ESP_LOGD("panasonic_aquarea.text_sensor", "Publishing state for field %s: %s", this->get_name().c_str(), options_[index].c_str());
-          this->publish_state(options_[index]);
-        }
-        else {
-          ESP_LOGE("panasonic_aquarea.text_sensor", "Invalid index for field %s: %d", this->get_name().c_str(), index);
-        }
-      }
-      else {
-        ESP_LOGE("panasonic_aquarea.text_sensor", "Invalid value for field %s: 0x%04X (%d)", this->get_name().c_str(), value, value);
-      }
-    }
-    else {
+    if (!valid) {
       ESP_LOGE("panasonic_aquarea.text_sensor", "Invalid value for field %s: (uninitialized)", this->get_name().c_str());
+      return;
     }
+
+    // Primary lookup: exact full-value match
+    auto it = std::find(options_values_.begin(), options_values_.end(), value);
+    if (it != options_values_.end()) {
+      auto index = std::distance(options_values_.begin(), it);
+      if (index < options_.size()) {
+        ESP_LOGD("panasonic_aquarea.text_sensor", "Publishing state for field %s: %s", this->get_name().c_str(), options_[index].c_str());
+        this->publish_state(options_[index]);
+        return;
+      }
+      ESP_LOGE("panasonic_aquarea.text_sensor", "Invalid index for field %s: %d", this->get_name().c_str(), index);
+      return;
+    }
+
+    // Low-byte fallback: for Uint16 fields, entries with value <= 0xFF
+    // match against the low byte only. Enables "catch-all" mappings like
+    // post-reset error states where only the type byte is meaningful.
+    if constexpr (std::is_same_v<value_type, uint16_t>) {
+      uint8_t low_byte = static_cast<uint8_t>(value & 0xFF);
+      for (size_t i = 0; i < options_values_.size() && i < options_.size(); i++) {
+        if (options_values_[i] <= 0xFF && options_values_[i] == low_byte) {
+          ESP_LOGD("panasonic_aquarea.text_sensor",
+                   "Publishing low-byte fallback for field %s: %s",
+                   this->get_name().c_str(), options_[i].c_str());
+          this->publish_state(options_[i]);
+          return;
+        }
+      }
+    }
+
+    ESP_LOGE("panasonic_aquarea.text_sensor", "Invalid value for field %s: 0x%04X (%d)", this->get_name().c_str(), value, value);
   }
 
 protected:
