@@ -372,9 +372,9 @@ __attribute__((always_inline)) inline constexpr float getFieldForce(const std::v
     // 16-bit float field (currently only used by pumpFlow).
     // Reads integer (high byte) and fractional (low byte) parts separately
     // with signed interpretation to match HeishaMon's char* behavior.
-    // Formula: integer_byte + (frac_byte + offset) / divider
-    int integer_byte = (int)(int8_t)data[def.byte_offset + 1];
-    int frac_byte = (int)(int8_t)data[def.byte_offset];
+    // Formula: integer_byte + ((frac_byte + offset) / divider)
+    int integer_byte = (int)data[def.byte_offset + 1];
+    int frac_byte = (int)data[def.byte_offset];
 
     // Return invalid for 0 (reserved for "no change")
     if (integer_byte == 0 && frac_byte == 0) {
@@ -430,8 +430,13 @@ __attribute__((always_inline)) inline constexpr float getFieldForce(const std::v
   else if (frac_bits == 3) frac_value = 0.50f;
   else if (frac_bits == 4) frac_value = 0.75f;
 
+  // Match HeishaMon logic
+  if (temp_int < 0) {
+    frac_value *= -1.0f;
+  }
+
   valid = true;
-  return temp_int + frac_value;
+  return (float)temp_int + frac_value;
 }
 
 template<const TempWithFracField& def>
