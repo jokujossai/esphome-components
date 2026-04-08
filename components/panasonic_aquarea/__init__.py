@@ -26,6 +26,7 @@ CONF_PUBLISH_TOPIC = "publish_topic"
 CONF_UDP_ID = "udp_id"
 CONF_ON_PACKET_SEND = "on_packet_send"
 CONF_PACKET = "packet"
+CONF_QUERY_INTERVAL = "query_interval"
 
 DEPENDENCIES = []
 
@@ -100,9 +101,13 @@ async def main_protocol_to_code(config, protocol_id):
 async def optional_protocol_to_code(config, protocol_id):
   return cg.new_Pvariable(protocol_id)
 
-@PROTOCOL_REGISTRY.register("main_request", PanasonicAquareaProtocolMainRequest, {})
+@PROTOCOL_REGISTRY.register("main_request", PanasonicAquareaProtocolMainRequest, {
+  cv.Optional(CONF_QUERY_INTERVAL, default="5s"): cv.positive_time_period_milliseconds,
+})
 async def main_request_protocol_to_code(config, protocol_id):
-  return cg.new_Pvariable(protocol_id)
+  var = cg.new_Pvariable(protocol_id)
+  cg.add(var.set_query_interval(config[CONF_QUERY_INTERVAL]))
+  return var
 
 
 DATA_SOURCE_REGISTRY = Registry({
