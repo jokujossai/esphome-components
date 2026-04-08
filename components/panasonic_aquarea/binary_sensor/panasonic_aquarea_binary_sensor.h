@@ -3,6 +3,7 @@
 #include "../base.h"
 
 #include "esphome/components/binary_sensor/binary_sensor.h"
+#include "esphome/core/helpers.h"
 
 namespace esphome {
 namespace panasonic_aquarea {
@@ -22,10 +23,14 @@ public:
     ESP_LOGV("panasonic_aquarea.binary_sensor", "Updating from packet for field %s", this->get_name().c_str());
     bool valid;
     auto value = fields::getField<field>(data, valid);
-    if (valid) {
+    if (valid && (this->dedup_.next(value) || this->publish_interval_expired())) {
       this->publish_state(value);
+      this->mark_published();
     }
   }
+
+protected:
+  Deduplicator<bool> dedup_;
 };
 
 } // namespace panasonic_aquarea

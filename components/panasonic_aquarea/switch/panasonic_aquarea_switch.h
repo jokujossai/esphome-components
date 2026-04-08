@@ -20,7 +20,7 @@ public:
     bool valid;
     auto value = fields::getField<field>(data, valid);
     if (valid) {
-      this->publish_state(value);
+      this->publish_state(value);  // switch has built-in dedup
     }
   }
 

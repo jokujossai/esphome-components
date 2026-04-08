@@ -4,6 +4,7 @@
 
 #include "esphome/components/select/select.h"
 #include "esphome/core/log.h"
+#include "esphome/core/helpers.h"
 #include <type_traits>
 
 namespace esphome {
@@ -31,13 +32,15 @@ public:
     bool valid;
     value_type value = fields::getField<field>(data, valid);
     if (valid) {
-      // Find option value in options_values_
       auto it = std::find(options_values_.begin(), options_values_.end(), value);
       const auto &options = this->traits.get_options();
       if (it != options_values_.end()) {
-        auto index = std::distance(options_values_.begin(), it);
+        size_t index = std::distance(options_values_.begin(), it);
         if (index < options.size()) {
-          this->publish_state(options[index]);
+          if (this->dedup_.next(value) || this->publish_interval_expired()) {
+            this->publish_state(options[index]);
+            this->mark_published();
+          }
         }
         else {
           ESP_LOGE("panasonic_aquarea.select", "Invalid index: %d", index);
@@ -69,12 +72,21 @@ protected:
       return;
     }
 
+    // Feed dedup with the commanded raw value so that update_from_packet
+    // can detect whether the heat pump accepted or rejected the change.
+    auto index = this->index_of(value);
+    if (index.has_value() && index.value() < options_values_.size()) {
+      this->dedup_.next(options_values_[index.value()]);
+    }
+
     this->publish_state(value);
+    this->mark_published();
 
     this->protocol_->modify(this);
   }
 
 private:
+  Deduplicator<value_type> dedup_;
   std::vector<value_type> options_values_;
 };
 
