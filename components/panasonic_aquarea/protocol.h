@@ -125,7 +125,7 @@ class PanasonicProtocolReadOnly : public PanasonicProtocolInterface, public Prot
 
 public:
   PanasonicProtocolReadOnly() {
-    data_.reserve(RDS + 2);
+    data_.reserve(RDS + 3);
   }
 
   bool supports(uint8_t header0, uint8_t datasize, uint8_t header3) const override {
@@ -158,7 +158,7 @@ public:
 
 protected:
   void init_write_buffer_() {
-    write_data_.assign(WDS + 2, 0);
+    write_data_.assign(WDS + 3, 0);  // header(1) + datasize(1) + data(WDS) + checksum(1)
     write_data_[0] = WH0;
     write_data_[1] = WDS;
     write_data_[2] = 0x01;
@@ -183,7 +183,7 @@ class PanasonicProtocolReadWrite : public PanasonicProtocolInterface,
 
 public:
   PanasonicProtocolReadWrite() {
-    data_.reserve(RDS + 2);
+    data_.reserve(RDS + 3);
     init_write_buffer_();
   }
 
@@ -202,7 +202,7 @@ public:
 
 protected:
   void init_write_buffer_() {
-    write_data_.assign(WDS + 2, 0);
+    write_data_.assign(WDS + 3, 0);  // header(1) + datasize(1) + data(WDS) + checksum(1)
     write_data_[0] = WH0;
     write_data_[1] = WDS;
     write_data_[2] = 0x01;
