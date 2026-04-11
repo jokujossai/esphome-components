@@ -22,19 +22,16 @@ class PanasonicAquareaZoneClimate : public climate::Climate, public PanasonicAqu
 
   // PanasonicAquareaChildBase interface
   void update_from_packet(const std::vector<uint8_t>& data) override;
-  bool set_packet_value(std::vector<uint8_t>& data) override;
 
  protected:
   uint8_t zone_{1};  // Zone number (1 or 2)
 
-  // Current heating mode (0=invalid, 1=Compensation Curve, 2=Direct)
-  uint8_t heating_mode_{0};
+  // Current heating mode (0=Compensation Curve, 1=Direct, 0xFF=unknown until first valid packet)
+  // Matches getField<heatingMode> which returns raw-1: raw 0b01 -> 0, raw 0b10 -> 1.
+  uint8_t heating_mode_{0xFF};
 
   // Current heating mode state (0=invalid, 1=Off/DHW, 2=Heat, 3=Cool, 4=Auto)
   uint8_t heating_mode_state_{0};
-
-  // Pending target temperature for writing
-  optional<float> pending_target_temp_;
 
   void update_traits_();
 };

@@ -10,11 +10,8 @@
 namespace esphome {
 namespace panasonic_aquarea {
 
-class PanasonicAquareaSelectBase : public select::Select, public PanasonicAquareaChildBase {
-};
-
 template<const auto& field>
-class PanasonicAquareaSelect : public PanasonicAquareaSelectBase {
+class PanasonicAquareaSelect : public select::Select, public PanasonicAquareaChildBase {
 public:
   using field_type = std::decay_t<decltype(field)>;
   using value_type = std::conditional_t<std::is_same_v<field_type, fields::Uint16Field>, uint16_t, uint8_t>;
@@ -49,19 +46,6 @@ public:
     }
   }
 
-  bool set_packet_value(std::vector<uint8_t>& data) override {
-    auto index = this->index_of(this->current_option());
-    if (index.has_value()) {
-      if(index.value() < options_values_.size()) {
-        return fields::setField<field>(data, options_values_[index.value()]);
-      }
-      else {
-        ESP_LOGE("panasonic_aquarea.select", "Invalid index: %d", index.value());
-      }
-    }
-    return false;
-  }
-
 protected:
   void control(const std::string &value) override {
     // Compile-time access validation
@@ -72,17 +56,17 @@ protected:
       return;
     }
 
-    // Feed dedup with the commanded raw value so that update_from_packet
-    // can detect whether the heat pump accepted or rejected the change.
     auto index = this->index_of(value);
-    if (index.has_value() && index.value() < options_values_.size()) {
-      this->dedup_.next(options_values_[index.value()]);
+    if (!index.has_value() || index.value() >= options_values_.size()) {
+      ESP_LOGE("panasonic_aquarea.select", "Invalid option: %s", value.c_str());
+      return;
     }
 
-    this->publish_state(value);
-    this->mark_published();
-
-    this->protocol_->modify(this);
+    value_type raw_value = options_values_[index.value()];
+    // No optimistic publish — wait for the heat pump to confirm.
+    this->protocol_->modify([raw_value](std::vector<uint8_t>& data) {
+      return fields::setField<field>(data, raw_value);
+    });
   }
 
 private:

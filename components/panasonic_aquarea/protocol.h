@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -16,6 +17,11 @@ namespace panasonic_aquarea {
 class PanasonicAquareaComponent;
 class PanasonicAquareaChildBase;
 
+// Callback applied to a protocol's write buffer. Return true if a field was
+// written and the packet should be queued for send.
+using ProtocolBuffer = std::vector<uint8_t>;
+using ProtocolModifyFn = std::function<bool(ProtocolBuffer &)>;
+
 // --- Slim abstract interface ---
 class PanasonicProtocolInterface : public Component {
 public:
@@ -27,7 +33,7 @@ public:
 
   // Write operations — safe defaults for read-only protocols
   virtual bool should_send() const { return false; }
-  virtual bool modify(PanasonicAquareaChildBase *child) {
+  virtual bool modify(const ProtocolModifyFn &fn) {
     ESP_LOGE("protocol", "modify called on non-writable protocol");
     return false;
   }
@@ -97,8 +103,8 @@ public:
     return self()->should_send_ && millis() >= self()->next_send_;
   }
 
-  bool do_modify(PanasonicAquareaChildBase *child) {
-    if (child->set_packet_value(self()->write_data_)) {
+  bool do_modify(const ProtocolModifyFn &fn) {
+    if (fn(self()->write_data_)) {
       self()->should_send_ = true;
       return true;
     }
@@ -153,7 +159,7 @@ public:
   }
 
   bool should_send() const override { return this->do_should_send(); }
-  bool modify(PanasonicAquareaChildBase *child) override { return this->do_modify(child); }
+  bool modify(const ProtocolModifyFn &fn) override { return this->do_modify(fn); }
   void send(PanasonicAquareaDataSource *data_source) override { this->do_send(data_source); }
 
 protected:
@@ -197,7 +203,7 @@ public:
 
   // Write side
   bool should_send() const override { return this->do_should_send(); }
-  bool modify(PanasonicAquareaChildBase *child) override { return this->do_modify(child); }
+  bool modify(const ProtocolModifyFn &fn) override { return this->do_modify(fn); }
   virtual void send(PanasonicAquareaDataSource *data_source) override { this->do_send(data_source); }
 
 protected:

@@ -19,7 +19,6 @@ public:
   void set_publish_interval(uint32_t interval_ms) { publish_interval_ = interval_ms; }
 
   virtual void update_from_packet(const std::vector<uint8_t>& data) = 0;
-  virtual bool set_packet_value(std::vector<uint8_t>& data) = 0;
 
 protected:
   bool publish_interval_expired() const {

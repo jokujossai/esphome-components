@@ -10,18 +10,8 @@
 namespace esphome {
 namespace panasonic_aquarea {
 
-class PanasonicAquareaTextSensorBase : public text_sensor::TextSensor, public PanasonicAquareaChildBase {
-public:
-  bool set_packet_value(std::vector<uint8_t>& data) override {
-    // Text sensors are read-only
-    return false;
-  }
-
-protected:
-};
-
 template<const auto& field>
-class PanasonicAquareaTextSensor : public PanasonicAquareaTextSensorBase {
+class PanasonicAquareaTextSensor : public text_sensor::TextSensor, public PanasonicAquareaChildBase {
 public:
   using field_type = std::decay_t<decltype(field)>;
   using value_type = std::conditional_t<std::is_same_v<field_type, fields::Uint16Field>, uint16_t, uint8_t>;

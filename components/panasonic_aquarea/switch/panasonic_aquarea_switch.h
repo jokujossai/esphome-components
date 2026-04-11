@@ -9,11 +9,8 @@
 namespace esphome {
 namespace panasonic_aquarea {
 
-class PanasonicAquareaSwitchBase : public switch_::Switch, public PanasonicAquareaChildBase {
-};
-
 template<const auto& field>
-class PanasonicAquareaSwitch : public PanasonicAquareaSwitchBase {
+class PanasonicAquareaSwitch : public switch_::Switch, public PanasonicAquareaChildBase {
 public:
   void update_from_packet(const std::vector<uint8_t>& data) override {
     ESP_LOGV("panasonic_aquarea.switch", "Updating from packet for field %s", this->get_name().c_str());
@@ -22,10 +19,6 @@ public:
     if (valid) {
       this->publish_state(value);  // switch has built-in dedup
     }
-  }
-
-  bool set_packet_value(std::vector<uint8_t>& data) override {
-    return fields::setField<field>(data, this->state);
   }
 
 protected:
@@ -38,7 +31,10 @@ protected:
       return;
     }
 
-    this->protocol_->modify(this);
+    // No optimistic publish — wait for the heat pump to confirm.
+    this->protocol_->modify([state](std::vector<uint8_t>& data) {
+      return fields::setField<field>(data, state);
+    });
   }
 };
 
