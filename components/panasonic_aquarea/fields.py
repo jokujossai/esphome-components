@@ -1053,7 +1053,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "economizerOutletTemp": {
         "protocol": "main",
@@ -1062,7 +1062,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "secondRoomThermostatTemp": {
         "protocol": "main",
@@ -1071,7 +1071,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     # Byte 129-138 TODO: heatPumpModel
     # Byte 139-162
@@ -1082,7 +1082,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "z2Temp": {
         "protocol": "main",
@@ -1091,7 +1091,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "dhwTemp": {
         "protocol": "main",
@@ -1100,7 +1100,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "outsideTemp": {
         "protocol": "main",
@@ -1109,7 +1109,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "mainInletTemp": {
         "protocol": "main",
@@ -1136,7 +1136,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "z2WaterTemp": {
         "protocol": "main",
@@ -1145,7 +1145,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "z1WaterTargetTemp": {
         "protocol": "main",
@@ -1154,7 +1154,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "z2WaterTargetTemp": {
         "protocol": "main",
@@ -1163,7 +1163,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "bufferTemp": {
         "protocol": "main",
@@ -1172,7 +1172,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "solarTemp": {
         "protocol": "main",
@@ -1181,7 +1181,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "poolTemp": {
         "protocol": "main",
@@ -1190,7 +1190,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "mainTemperatureSet": {
         "protocol": "main",
@@ -1200,7 +1200,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "mainTargetTemp": {
         "protocol": "main",
@@ -1209,7 +1209,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "mainHexOutletTemp": {
         "protocol": "main",
@@ -1218,7 +1218,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "dischargeTemp": {
         "protocol": "main",
@@ -1227,7 +1227,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "roomThermostatTemp": {
         "protocol": "main",
@@ -1236,7 +1236,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "insidePipeTemp": {
         "protocol": "main",
@@ -1245,7 +1245,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "outsidePipeTemp": {
         "protocol": "main",
@@ -1254,7 +1254,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "defrostTemp": {
         "protocol": "main",
@@ -1263,7 +1263,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "evaOutletTemp": {
         "protocol": "main",
@@ -1272,7 +1272,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "bypassOutletTemp": {
         "protocol": "main",
@@ -1281,7 +1281,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "ipmTemp": {
         "protocol": "main",
@@ -1290,7 +1290,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "state_class": "measurement",
         "device_class": "temperature",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     # Byte 163-166
     "highPressure": {
@@ -1300,7 +1300,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "kgf/cm2",
         "state_class": "measurement",
         "device_class": "pressure",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 1,
     },
     "lowPressure": {
         "protocol": "main",
@@ -1309,7 +1309,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "kgf/cm2",
         "state_class": "measurement",
         "device_class": "pressure",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "compressorCurrent": {
         "protocol": "main",
@@ -1318,7 +1318,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "A",
         "state_class": "measurement",
         "device_class": "current",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 1,
     },
     "compressorFreq": {
         "protocol": "main",
@@ -1327,7 +1327,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "Hz",
         "state_class": "measurement",
         "device_class": "frequency",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     # Byte 169-170
     "pumpFlow": {
@@ -1346,14 +1346,14 @@ FIELD_REGISTRY = {
         "type": "sensor",
         "unit_of_measurement": "rpm",
         "state_class": "measurement",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "pumpDuty": {
         "protocol": "main",
         "name": "Pump Duty",
         "type": "sensor",
         "state_class": "measurement",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "fan1MotorSpeed": {
         "protocol": "main",
@@ -1361,7 +1361,7 @@ FIELD_REGISTRY = {
         "type": "sensor",
         "unit_of_measurement": "rpm",
         "state_class": "measurement",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "fan2MotorSpeed": {
         "protocol": "main",
@@ -1369,7 +1369,7 @@ FIELD_REGISTRY = {
         "type": "sensor",
         "unit_of_measurement": "rpm",
         "state_class": "measurement",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "z1ValvePid": {
         "protocol": "main",
@@ -1377,7 +1377,7 @@ FIELD_REGISTRY = {
         "type": "sensor",
         "unit_of_measurement": "%",
         "state_class": "measurement",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 1,
     },
     "z2ValvePid": {
         "protocol": "main",
@@ -1385,7 +1385,7 @@ FIELD_REGISTRY = {
         "type": "sensor",
         "unit_of_measurement": "%",
         "state_class": "measurement",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 1,
     },
     # Byte 179-198,
     "operationsCounter": {
@@ -1393,7 +1393,7 @@ FIELD_REGISTRY = {
         "name": "Operations Counter",
         "type": "sensor",
         "state_class": "measurement",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "operationsHours": {
         "protocol": "main",
@@ -1402,7 +1402,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "h",
         "state_class": "measurement",
         "device_class": "duration",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "roomHeaterOperationsHours": {
         "protocol": "main",
@@ -1411,7 +1411,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "h",
         "state_class": "measurement",
         "device_class": "duration",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "dhwHeaterOperationsHours": {
         "protocol": "main",
@@ -1420,7 +1420,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "h",
         "state_class": "measurement",
         "device_class": "duration",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 0,
     },
     "heatPowerConsumption": {
         "protocol": "main",
@@ -1429,7 +1429,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "kW",
         "state_class": "measurement",
         "device_class": "power",
-        "accuracy_decimals": 3,
+        "accuracy_decimals": 1,
     },
     "heatPowerProduction": {
         "protocol": "main",
@@ -1438,7 +1438,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "kW",
         "state_class": "measurement",
         "device_class": "power",
-        "accuracy_decimals": 3,
+        "accuracy_decimals": 1,
     },
     "coolPowerConsumption": {
         "protocol": "main",
@@ -1447,7 +1447,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "kW",
         "state_class": "measurement",
         "device_class": "power",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 1,
     },
     "coolPowerProduction": {
         "protocol": "main",
@@ -1456,7 +1456,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "kW",
         "state_class": "measurement",
         "device_class": "power",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 1,
     },
     "dhwPowerConsumption": {
         "protocol": "main",
@@ -1465,7 +1465,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "kW",
         "state_class": "measurement",
         "device_class": "power",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 1,
     },
     "dhwPowerProduction": {
         "protocol": "main",
@@ -1474,7 +1474,7 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "kW",
         "state_class": "measurement",
         "device_class": "power",
-        "accuracy_decimals": 2,
+        "accuracy_decimals": 1,
     },
 
     # Optional PCB protocol fields
