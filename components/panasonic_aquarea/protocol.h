@@ -93,6 +93,26 @@ public:
 };
 
 
+// --- Write state: shared by all writable protocols ---
+template<uint8_t WH0, uint8_t WDS, uint8_t WH3>
+struct WritableProtocolState {
+protected:
+  void init_write_buffer_() {
+    write_data_.assign(WDS + 3, 0);  // header(1) + datasize(1) + data(WDS) + checksum(1)
+    write_data_[0] = WH0;
+    write_data_[1] = WDS;
+    write_data_[2] = 0x01;
+    write_data_[3] = WH3;
+  }
+
+  std::vector<uint8_t> write_data_;
+  bool should_send_{false};
+  uint32_t next_send_{0};
+  uint32_t send_interval_{3000};
+  bool reset_buffer_after_send_{true};
+};
+
+
 // --- CRTP mixin: write capability (should_send + modify + send) ---
 template<typename Derived>
 class ProtocolWriteMixin {
@@ -149,11 +169,13 @@ protected:
 
 // --- WriteOnly protocol: builds and sends packets ---
 template<uint8_t WH0, uint8_t WDS, uint8_t WH3>
-class PanasonicProtocolWriteOnly : public PanasonicProtocolInterface, public ProtocolWriteMixin<PanasonicProtocolWriteOnly<WH0, WDS, WH3>> {
+class PanasonicProtocolWriteOnly : public PanasonicProtocolInterface,
+    public WritableProtocolState<WH0, WDS, WH3>,
+    public ProtocolWriteMixin<PanasonicProtocolWriteOnly<WH0, WDS, WH3>> {
   friend class ProtocolWriteMixin<PanasonicProtocolWriteOnly<WH0, WDS, WH3>>;
 
 public:
-  PanasonicProtocolWriteOnly() { init_write_buffer_(); }
+  PanasonicProtocolWriteOnly() { this->init_write_buffer_(); }
 
   bool supports(uint8_t header0, uint8_t datasize, uint8_t header3) const override {
     return header0 == WH0 && datasize == WDS && header3 == WH3;
@@ -162,21 +184,6 @@ public:
   bool should_send() const override { return this->do_should_send(); }
   bool modify(const ProtocolModifyFn &fn) override { return this->do_modify(fn); }
   void send(PanasonicAquareaDataSource *data_source) override { this->do_send(data_source); }
-
-protected:
-  void init_write_buffer_() {
-    write_data_.assign(WDS + 3, 0);  // header(1) + datasize(1) + data(WDS) + checksum(1)
-    write_data_[0] = WH0;
-    write_data_[1] = WDS;
-    write_data_[2] = 0x01;
-    write_data_[3] = WH3;
-  }
-
-  std::vector<uint8_t> write_data_;
-  bool should_send_{false};
-  uint32_t next_send_{0};
-  uint32_t send_interval_{3000};
-  bool reset_buffer_after_send_{true};
 };
 
 
@@ -184,6 +191,7 @@ protected:
 template<uint8_t RH0, uint8_t RDS, uint8_t RH3, uint8_t WH0, uint8_t WDS, uint8_t WH3>
 class PanasonicProtocolReadWrite : public PanasonicProtocolInterface,
     public ProtocolReadMixin<PanasonicProtocolReadWrite<RH0, RDS, RH3, WH0, WDS, WH3>>,
+    public WritableProtocolState<WH0, WDS, WH3>,
     public ProtocolWriteMixin<PanasonicProtocolReadWrite<RH0, RDS, RH3, WH0, WDS, WH3>> {
   friend class ProtocolReadMixin<PanasonicProtocolReadWrite<RH0, RDS, RH3, WH0, WDS, WH3>>;
   friend class ProtocolWriteMixin<PanasonicProtocolReadWrite<RH0, RDS, RH3, WH0, WDS, WH3>>;
@@ -191,7 +199,7 @@ class PanasonicProtocolReadWrite : public PanasonicProtocolInterface,
 public:
   PanasonicProtocolReadWrite() {
     data_.reserve(RDS + 3);
-    init_write_buffer_();
+    this->init_write_buffer_();
   }
 
   bool supports(uint8_t header0, uint8_t datasize, uint8_t header3) const override {
@@ -205,23 +213,10 @@ public:
   // Write side
   bool should_send() const override { return this->do_should_send(); }
   bool modify(const ProtocolModifyFn &fn) override { return this->do_modify(fn); }
-  virtual void send(PanasonicAquareaDataSource *data_source) override { this->do_send(data_source); }
+  void send(PanasonicAquareaDataSource *data_source) override { this->do_send(data_source); }
 
 protected:
-  void init_write_buffer_() {
-    write_data_.assign(WDS + 3, 0);  // header(1) + datasize(1) + data(WDS) + checksum(1)
-    write_data_[0] = WH0;
-    write_data_[1] = WDS;
-    write_data_[2] = 0x01;
-    write_data_[3] = WH3;
-  }
-
   std::vector<uint8_t> data_;
-  std::vector<uint8_t> write_data_;
-  bool should_send_{false};
-  uint32_t next_send_{0};
-  uint32_t send_interval_{3000};
-  bool reset_buffer_after_send_{true};
 };
 
 } // namespace panasonic_aquarea
