@@ -1,0 +1,48 @@
+# HeishaMon PCB has two S0 pulse counter inputs for energy meters
+sensor:
+  - platform: pulse_meter
+    pin:
+      number: GPIO12
+      mode:
+        input: true
+        pullup: true
+    name: "S0 Meter 1 Power"
+    id: s0_meter_1
+    unit_of_measurement: "W"
+    device_class: power
+    state_class: measurement
+    # Default 1000 pulses/kWh — set per your meter's rating
+    internal_filter: 13ms
+    filters:
+      - multiply: 60  # convert pulses/min to W (assuming 1000 pulses/kWh)
+    total:
+      name: "S0 Meter 1 Total Energy"
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+      accuracy_decimals: 3
+      filters:
+        - multiply: 0.001  # 1000 pulses = 1 kWh
+
+  - platform: pulse_meter
+    pin:
+      number: GPIO14
+      mode:
+        input: true
+        pullup: true
+    name: "S0 Meter 2 Power"
+    id: s0_meter_2
+    unit_of_measurement: "W"
+    device_class: power
+    state_class: measurement
+    internal_filter: 13ms
+    filters:
+      - multiply: 60
+    total:
+      name: "S0 Meter 2 Total Energy"
+      unit_of_measurement: "kWh"
+      device_class: energy
+      state_class: total_increasing
+      accuracy_decimals: 3
+      filters:
+        - multiply: 0.001

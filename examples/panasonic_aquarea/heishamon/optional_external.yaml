@@ -1,0 +1,13 @@
+switch:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: externalHeatCoolControl
+    name: "120 External_Heat_Cool_Control"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: externalErrorSignal
+    name: "121 External_Error_Signal"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: externalCompressorControl
+    name: "122 External_Compressor_Control"

@@ -1,0 +1,45 @@
+substitutions:
+  device_name: "heishamon"
+  wifi_ssid: !secret wifi_ssid
+  wifi_password: !secret wifi_password
+  ota_password: !secret ota_password
+  ap_password: !secret ap_password
+  panasonic_aquarea_id: "aquarea"
+  # Zone 1 request temp ranges
+  # Compensation curve mode (default): -5 to 5
+  # Direct mode: depends on model (e.g. 20-55, 25-60, 35-65)
+  z1_heat_request_temp_min: "-5"
+  z1_heat_request_temp_max: "5"
+  z1_cool_request_temp_min: "-5"
+  z1_cool_request_temp_max: "5"
+  # Zone 2 request temp ranges (same logic as zone 1)
+  z2_heat_request_temp_min: "-5"
+  z2_heat_request_temp_max: "5"
+  z2_cool_request_temp_min: "-5"
+  z2_cool_request_temp_max: "5"
+
+packages:
+  base: !include heishamon/base.yaml
+  common: !include heishamon/common.yaml
+  zone1_cool: !include heishamon/zone1_cool.yaml
+  zone2: !include heishamon/zone2.yaml
+  zone2_cool: !include heishamon/zone2_cool.yaml
+  bivalent: !include heishamon/bivalent.yaml
+  optional_solar: !include heishamon/optional_solar.yaml
+  optional_buffer: !include heishamon/optional_buffer.yaml
+  optional_external: !include heishamon/optional_external.yaml
+  # (Optional) Enable 1-Wire bus
+  #one_wire: !include heishamon/one_wire.yaml
+  # (Optional) Add 1-Wire sensor/sensors
+  #one_wire_sensor_1: !include
+  #  file: heishamon/one_wire_sensor.yaml
+  #  vars:
+  #    one_wire_sensor_address: "0x1234567890abcdef"
+  #    one_wire_sensor_name: "Tank Top"
+  # (Optional) Enable S0 pulse counters
+  #s0: !include heishamon/s0.yaml
+
+# (Optional) Enable native api
+# api:
+#   encryption:
+#     key: ...

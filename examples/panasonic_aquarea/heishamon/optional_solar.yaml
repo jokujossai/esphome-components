@@ -1,0 +1,27 @@
+sensor:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: solarTemp
+    name: "047 Solar_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: solarOnDelta
+    name: "102 Solar_On_Delta"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: solarOffDelta
+    name: "103 Solar_Off_Delta"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: solarFrostProtection
+    name: "104 Solar_Frost_Protection"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: solarHighLimit
+    name: "105 Solar_High_Limit"
+
+text_sensor:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: solarMode
+    name: "101 Solar_Mode"

@@ -1,0 +1,5 @@
+# HeishaMon PCB has a DS18B20 1-Wire bus on GPIO4
+one_wire:
+  - platform: gpio
+    id: one_wire_bus
+    pin: GPIO4

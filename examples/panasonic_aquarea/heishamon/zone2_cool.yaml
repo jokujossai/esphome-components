@@ -1,0 +1,23 @@
+number:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z2CoolRequestTemp
+    name: "035 Z2_Cool_Request_Temp"
+    min_value: ${z2_cool_request_temp_min}
+    max_value: ${z2_cool_request_temp_max}
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z2CoolCurveTargetHighTemp
+    name: "086 Z2_Cool_Curve_Target_High_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z2CoolCurveTargetLowTemp
+    name: "087 Z2_Cool_Curve_Target_Low_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z2CoolCurveOutsideHighTemp
+    name: "088 Z2_Cool_Curve_Outside_High_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z2CoolCurveOutsideLowTemp
+    name: "089 Z2_Cool_Curve_Outside_Low_Temp"

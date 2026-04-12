@@ -1,10 +1,10 @@
 esphome:
-  name: panasonic_aquarea
+  name: panasonic-aquarea
 
 external_components:
   - source:
       type: local
-      path: ../components
+      path: ../../components
     components:
       - panasonic_aquarea
 

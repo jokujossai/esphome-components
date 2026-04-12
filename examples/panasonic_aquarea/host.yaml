@@ -1,5 +1,5 @@
 esphome:
-  name: panasonic_aquarea
+  name: panasonic-aquarea-host
   on_boot:
     - then:
         - script.execute: timeout_script
@@ -20,7 +20,7 @@ globals:
 external_components:
   - source:
       type: local
-      path: ../components
+      path: ../../components
     components:
       - panasonic_aquarea
 
