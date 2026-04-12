@@ -101,11 +101,13 @@ void PanasonicAquareaZoneClimate::control(const climate::ClimateCall &call) {
 void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>& data) {
   ESP_LOGV(TAG, "Updating from packet for field %s", this->get_name().c_str());
   bool valid = false;
+  bool changed = false;
 
   // Read heating mode (0=Compensation Curve, 1=Direct — raw-1 via Uint8Field default offset)
   uint8_t new_heating_mode = fields::getField<fields::main::heatingMode>(data, valid);
   if (valid && this->heating_mode_ != new_heating_mode) {
     this->heating_mode_ = new_heating_mode;
+    changed = true;
     ESP_LOGD(TAG, "Zone %d heating mode changed to: %s", zone_,
       heating_mode_ == 0 ? "Compensation Curve" :
       heating_mode_ == 1 ? "Direct" : "Unknown");
@@ -114,20 +116,25 @@ void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>&
   // Read operating mode state (1=Heat, 2=Cool, 8=Auto(Heat), 9=Auto(Cool))
   uint8_t operating_mode = fields::getField<fields::main::operatingModeState>(data, valid);
   if (valid) {
+    uint8_t new_heating_mode_state;
     switch (operating_mode) {
       case 1:  // Heat
-        this->heating_mode_state_ = 2;
+        new_heating_mode_state = 2;
         break;
       case 2:  // Cool
-        this->heating_mode_state_ = 3;
+        new_heating_mode_state = 3;
         break;
       case 8:  // Auto(Heat)
       case 9:  // Auto(Cool)
-        this->heating_mode_state_ = 4;
+        new_heating_mode_state = 4;
         break;
       default:
-        this->heating_mode_state_ = 1; // Off/DHW
+        new_heating_mode_state = 1; // Off/DHW
         break;
+    }
+    if(this->heating_mode_state_ != new_heating_mode_state) {
+      this->heating_mode_state_ = new_heating_mode_state;
+      changed = true;
     }
   }
 
@@ -138,8 +145,9 @@ void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>&
   } else {
     current_temp = fields::getField<fields::main::z2WaterTemp>(data, valid);
   }
-  if (valid && !std::isnan(current_temp)) {
+  if (valid && !std::isnan(current_temp) && this->current_temperature != current_temp) {
     this->current_temperature = current_temp;
+    changed = true;
   }
 
   // Read target temperature (heat request temp for this zone)
@@ -149,8 +157,9 @@ void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>&
   } else {
     target_temp = fields::getField<fields::main::z2HeatRequestTemp>(data, valid);
   }
-  if (valid && !std::isnan(target_temp)) {
+  if (valid && !std::isnan(target_temp) && this->target_temperature != target_temp) {
     this->target_temperature = target_temp;
+    changed = true;
   }
 
   // Convert heating mode state to climate mode
@@ -169,9 +178,14 @@ void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>&
       new_mode = climate::CLIMATE_MODE_AUTO;
       break;
   }
-  this->mode = new_mode;
+  if(this->mode != new_mode) {
+    this->mode = new_mode;
+    changed = true;
+  }
 
-  this->publish_state();
+  if(changed) {
+    this->publish_state();
+  }
 }
 
 } // namespace panasonic_aquarea

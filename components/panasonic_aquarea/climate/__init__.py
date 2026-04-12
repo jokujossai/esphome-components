@@ -21,9 +21,8 @@ def validate_zone(value):
         raise cv.Invalid("Zone must be 1 or 2")
     return value
 
-CONFIG_SCHEMA = climate.CLIMATE_SCHEMA.extend(CHILD_SCHEMA_BASE).extend(
+CONFIG_SCHEMA = climate.climate_schema(PanasonicAquareaZoneClimate).extend(CHILD_SCHEMA_BASE).extend(
     {
-        cv.GenerateID(): cv.declare_id(PanasonicAquareaZoneClimate),
         cv.Required(CONF_ZONE): validate_zone,
     }
 )
@@ -31,6 +30,7 @@ CONFIG_SCHEMA = climate.CLIMATE_SCHEMA.extend(CHILD_SCHEMA_BASE).extend(
 
 async def to_code(config):
     var = await climate.new_climate(config)
+    await cg.register_component(var, config)
 
     cg.add(var.set_zone(config[CONF_ZONE]))
 
