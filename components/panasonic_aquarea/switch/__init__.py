@@ -8,7 +8,7 @@ from .. import (
   CONF_PANASONIC_AQUAREA_ID,
   get_protocol,
 )
-from ..fields import get_field, validate_field
+from ..fields import get_field, lookup_field
 
 CONF_FIELD = "field"
 
@@ -16,19 +16,11 @@ PanasonicAquareaSwitch = panasonic_aquarea_ns.class_("PanasonicAquareaSwitch", s
 
 def validate_switch_field(value):
   """Validate field is suitable for switch."""
-  if CONF_FIELD not in value:
-    raise cv.Invalid(f"Field {CONF_FIELD} is required")
-
-  field_name = value[CONF_FIELD]
-  field = get_field(field_name)
+  field, value = lookup_field(value)
 
   # Ensure field type is compatible with switch
   if field["type"] not in ["switch", "binary_sensor"]:
-    raise cv.Invalid(f"Field {field_name} type {field['type']} is not compatible with switch")
-
-  # Set default name if not provided
-  if "name" not in value and "id" not in value:
-    value["name"] = field["name"]
+    raise cv.Invalid(f"Field {value['field']} type {field['type']} is not compatible with switch")
 
   return value
 

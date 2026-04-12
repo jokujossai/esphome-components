@@ -7,7 +7,7 @@ from .. import (
     CONF_PANASONIC_AQUAREA_ID,
     get_protocol,
 )
-from ..fields import get_field
+from ..fields import get_field, lookup_field
 
 CONF_FIELD = "field"
 
@@ -17,19 +17,11 @@ PanasonicAquareaBinarySensor = panasonic_aquarea_ns.class_(
 
 def validate_binary_sensor_field(value):
     """Validate field is suitable for binary_sensor."""
-    if CONF_FIELD not in value:
-        raise cv.Invalid(f"Field {CONF_FIELD} is required")
-
-    field_name = value[CONF_FIELD]
-    field = get_field(field_name)
+    field, value = lookup_field(value)
 
     # Binary sensor only supports boolean fields (switch and binary_sensor types)
     if field["type"] not in ["binary_sensor", "switch"]:
-        raise cv.Invalid(f"Field {field_name} type {field['type']} is not compatible with binary_sensor (only boolean fields supported)")
-
-    # Set default name if not provided
-    if "name" not in value and "id" not in value:
-        value["name"] = field["name"]
+        raise cv.Invalid(f"Field {value['field']} type {field['type']} is not compatible with binary_sensor (only boolean fields supported)")
 
     return value
 

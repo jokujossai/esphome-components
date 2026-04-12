@@ -13,7 +13,7 @@ from .. import (
     CONF_PANASONIC_AQUAREA_ID,
     get_protocol,
 )
-from ..fields import get_field
+from ..fields import get_field, lookup_field
 
 CONF_FIELD = "field"
 
@@ -24,20 +24,12 @@ PanasonicAquareaNumber = panasonic_aquarea_ns.class_(
 
 def validate_number_field(value):
     """Validate field is suitable for number and apply registry defaults."""
-    if CONF_FIELD not in value:
-        raise cv.Invalid(f"Field {CONF_FIELD} is required")
-
-    field_name = value[CONF_FIELD]
-    field = get_field(field_name)
+    field, value = lookup_field(value)
 
     if field["type"] != "number":
         raise cv.Invalid(
-            f"Field {field_name} type {field['type']} is not compatible with number"
+            f"Field {value['field']} type {field['type']} is not compatible with number"
         )
-
-    # Set default name if not provided
-    if "name" not in value and "id" not in value:
-        value["name"] = field["name"]
 
     # Apply defaults from field registry for attributes the user hasn't set.
     for k, v in field.items():

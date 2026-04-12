@@ -1642,11 +1642,16 @@ def get_field(field_name):
     return FIELD_REGISTRY[field_name]
 
 
-def validate_field(field_name, expected_type=None):
-    """Validate that a field exists and optionally check its type."""
-    field = get_field(field_name)
-    if expected_type and field["type"] != expected_type:
-        raise ValueError(
-            f"Field {field_name} is of type {field['type']}, expected {expected_type}"
-        )
-    return field
+def lookup_field(value):
+    """Look up field from config value and set default name. Returns (field, value)."""
+    import esphome.config_validation as cv
+
+    if "field" not in value:
+        raise cv.Invalid("'field' is required")
+
+    field = get_field(value["field"])
+
+    if "name" not in value and "id" not in value:
+        value["name"] = field["name"]
+
+    return field, value
