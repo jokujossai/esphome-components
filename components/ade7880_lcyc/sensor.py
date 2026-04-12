@@ -42,10 +42,10 @@ from esphome.const import (
 
 DEPENDENCIES = ["i2c"]
 
-ade7880_ns = cg.esphome_ns.namespace("ade7880")
-ADE7880 = ade7880_ns.class_("ADE7880", cg.PollingComponent, i2c.I2CDevice)
-NeutralChannel = ade7880_ns.struct("NeutralChannel")
-PowerChannel = ade7880_ns.struct("PowerChannel")
+ade7880_lcyc_ns = cg.esphome_ns.namespace("ade7880_lcyc")
+ADE7880 = ade7880_lcyc_ns.class_("ADE7880", cg.PollingComponent, i2c.I2CDevice)
+NeutralChannel = ade7880_lcyc_ns.struct("NeutralChannel")
+PowerChannel = ade7880_lcyc_ns.struct("PowerChannel")
 
 CONF_CURRENT_GAIN = "current_gain"
 CONF_IRQ0_PIN = "irq0_pin"

@@ -6,7 +6,7 @@
 #include "esphome/components/sensor/sensor.h"
 
 namespace esphome {
-namespace ade7880 {
+namespace ade7880_lcyc {
 
 struct NeutralChannel {
     void set_current(sensor::Sensor *current) { this->current = current; }
@@ -130,5 +130,5 @@ class ADE7880 : public i2c::I2CDevice, public PollingComponent {
   void reset_watchdog_();
 };
 
-} // namespace ade7880
+} // namespace ade7880_lcyc
 } // namespace esphome

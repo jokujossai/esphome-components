@@ -1,9 +1,9 @@
-#include "ade7880.h"
+#include "ade7880_lcyc.h"
 
-#include "ade7880_reg.h"
+#include "ade7880_lcyc_reg.h"
 
 namespace esphome {
-namespace ade7880 {
+namespace ade7880_lcyc {
 
 i2c::ErrorCode ADE7880::ade_write_(uint16_t reg, uint32_t value) {
   uint8_t size = this->ade_reg_size_(reg);
@@ -42,7 +42,7 @@ i2c::ErrorCode ADE7880::ade_write_verify_(uint16_t reg, uint32_t value) {
 i2c::ErrorCode ADE7880::ade_read_(uint16_t reg, uint32_t *value) {
   uint8_t size = this->ade_reg_size_(reg);
   if(!size || size > 4) {
-    ESP_LOGE("ade7880", "Invalid reg size [reg=0x%04X, size=%d]", reg, size);
+    ESP_LOGE("ade7880_lcyc", "Invalid reg size [reg=0x%04X, size=%d]", reg, size);
     return i2c::ERROR_TOO_LARGE;
   }
   uint8_t reg_data[2];
@@ -106,5 +106,5 @@ uint8_t ADE7880::ade_reg_size_(uint16_t reg) const {
   return size;
 }
 
-} // namespace ade7880
+} // namespace ade7880_lcyc
 } // namespace esphome

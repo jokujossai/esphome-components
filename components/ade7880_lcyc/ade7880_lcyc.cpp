@@ -1,14 +1,14 @@
-#include "ade7880.h"
+#include "ade7880_lcyc.h"
 
-#include "ade7880_reg.h"
+#include "ade7880_lcyc_reg.h"
 
 #include "esphome/core/hal.h"
 #include "esphome/core/log.h"
 
 namespace esphome {
-namespace ade7880 {
+namespace ade7880_lcyc {
 
-static const char *const TAG = "ade7880";
+static const char *const TAG = "ade7880_lcyc";
 
 void IRAM_ATTR HOT ADE7880Store::irq0_int(ADE7880Store *store) {
   ++store->irq0_state;
@@ -549,5 +549,5 @@ void ADE7880::reset_watchdog_() {
 }
 
 
-} // namespace ade7880
+} // namespace ade7880_lcyc
 } // namespace esphome

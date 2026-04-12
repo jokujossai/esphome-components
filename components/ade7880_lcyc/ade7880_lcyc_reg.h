@@ -1,7 +1,7 @@
 #pragma once
 
 namespace esphome {
-namespace ade7880 {
+namespace ade7880_lcyc {
 
 // Page 87-88 Table 30. Registers Located in DSP Data Memory RAM
 enum DspRegisters {
@@ -360,5 +360,5 @@ enum Config2Register {
   CONFIG2_I2C_LOCK = 1 << 1,       // Bit 1  When this bit is 0, the SS/HSA pin can be toggled three times to activate the SPI port. If I2 C is the active serial port, this bit must be set to 1 to lock it in. From this moment on, toggling of the SS/HSA pin and an eventual switch into using the SPI port is no longer possible. If SPI is the active serial port, any write to CONFIG2 register locks the port. From this moment on, a switch into using I2 C port is no longer possible. Once locked, the serial port choice is maintained when the ADE7880 changes PSMx power modes.
 };
 
-} // namespace ade7880
+} // namespace ade7880_lcyc
 } // namespace esphome
