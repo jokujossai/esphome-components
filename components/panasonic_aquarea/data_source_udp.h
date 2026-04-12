@@ -5,6 +5,7 @@
 #include "data_source.h"
 #include "esphome/components/udp/udp_component.h"
 #include "esphome/core/log.h"
+#include <span>
 
 namespace esphome {
 namespace panasonic_aquarea {
@@ -22,7 +23,7 @@ public:
     }
 
     // Register listener for incoming UDP packets
-    this->udp_->add_listener([this](std::vector<uint8_t> &data) {
+    this->udp_->add_listener([this](std::span<const uint8_t> data) {
       this->handle_udp_packet(data);
     });
 
@@ -50,7 +51,7 @@ public:
 private:
   udp::UDPComponent *udp_{nullptr};
 
-  void handle_udp_packet(std::vector<uint8_t> &data) {
+  void handle_udp_packet(std::span<const uint8_t> data) {
     if (data.size() > 255) {
       ESP_LOGW(TAG_UDP, "UDP packet too large: %zu bytes", data.size());
       return;

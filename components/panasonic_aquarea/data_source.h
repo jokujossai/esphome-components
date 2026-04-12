@@ -1,6 +1,7 @@
 #pragma once
 
 #include "esphome/core/component.h"
+#include <span>
 #include <vector>
 
 namespace esphome {
@@ -21,7 +22,7 @@ public:
   virtual void write_array(const std::vector<uint8_t>& data) = 0;
 
   // Set the callback for when a complete packet is received
-  void set_packet_received_callback(std::function<void(const std::vector<uint8_t>&)> callback) {
+  void set_packet_received_callback(std::function<void(std::span<const uint8_t>)> callback) {
     packet_received_callback_ = callback;
   }
 
@@ -31,11 +32,11 @@ public:
   }
 
 protected:
-  std::function<void(const std::vector<uint8_t>&)> packet_received_callback_{nullptr};
+  std::function<void(std::span<const uint8_t>)> packet_received_callback_{nullptr};
   std::function<void(const std::vector<uint8_t>&)> packet_sent_callback_{nullptr};
 
   // Helper to invoke the packet received callback
-  void call_packet_received_callback(const std::vector<uint8_t>& data) {
+  void call_packet_received_callback(std::span<const uint8_t> data) {
     if (packet_received_callback_ != nullptr) {
       packet_received_callback_(data);
     }

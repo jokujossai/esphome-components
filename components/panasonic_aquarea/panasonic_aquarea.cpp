@@ -1,5 +1,6 @@
 #include "panasonic_aquarea.h"
 #include "esphome/core/log.h"
+#include <span>
 
 namespace esphome {
 namespace panasonic_aquarea {
@@ -12,7 +13,7 @@ void PanasonicAquareaComponent::setup() {
     return;
   }
 
-  this->data_source_->set_packet_received_callback([this](const std::vector<uint8_t> &data) {
+  this->data_source_->set_packet_received_callback([this](std::span<const uint8_t> data) {
     this->handle_packet(data);
   });
   this->data_source_->set_packet_sent_callback([this](const std::vector<uint8_t>& data) {
@@ -40,7 +41,7 @@ void PanasonicAquareaComponent::loop() {
   }
 }
 
-void PanasonicAquareaComponent::handle_packet(const std::vector<uint8_t> &data) {
+void PanasonicAquareaComponent::handle_packet(std::span<const uint8_t> data) {
   if (data.empty()) {
     return;
   }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -29,7 +30,7 @@ public:
   virtual bool supports(uint8_t header0, uint8_t datasize, uint8_t header3) const = 0;
 
   // Read operations — no-ops for write-only protocols
-  virtual void decode(const std::vector<uint8_t> &data) {}
+  virtual void decode(std::span<const uint8_t> data) {}
 
   // Write operations — safe defaults for read-only protocols
   virtual bool should_send() const { return false; }
@@ -44,7 +45,7 @@ public:
     child_idx_ = children_.size();
   }
 
-  static bool check_crc(const std::vector<uint8_t> &data) {
+  static bool check_crc(std::span<const uint8_t> data) {
     uint8_t crc = 0;
     for (size_t i = 0; i < data.size(); i++) {
       crc += data[i];
@@ -76,7 +77,7 @@ class ProtocolReadMixin {
   const Derived *self() const { return static_cast<const Derived*>(this); }
 
 public:
-  void do_decode(const std::vector<uint8_t> &data) {
+  void do_decode(std::span<const uint8_t> data) {
     if (self()->supports(data[0], data[1], data[3])) {
       self()->data_.assign(data.begin(), data.end());
       self()->child_idx_ = 0;
@@ -138,7 +139,7 @@ public:
     return header0 == RH0 && datasize == RDS && header3 == RH3;
   }
 
-  void decode(const std::vector<uint8_t> &data) override { this->do_decode(data); }
+  void decode(std::span<const uint8_t> data) override { this->do_decode(data); }
   void loop() override { this->do_loop(); }
 
 protected:
@@ -198,7 +199,7 @@ public:
   }
 
   // Read side
-  void decode(const std::vector<uint8_t> &data) override { this->do_decode(data); }
+  void decode(std::span<const uint8_t> data) override { this->do_decode(data); }
   void loop() override { this->do_loop(); }
 
   // Write side

@@ -4,6 +4,7 @@
 #include "esphome/core/automation.h"
 #include "protocol.h"
 #include "data_source.h"
+#include <span>
 #include <vector>
 
 namespace esphome {
@@ -25,7 +26,7 @@ public:
   void write_array(const std::vector<uint8_t> &data);
 
   // Public method to handle packet from external sources (actions, lambdas)
-  void handle_packet(const std::vector<uint8_t> &data);
+  void handle_packet(std::span<const uint8_t> data);
 
   // Callback for on_packet_send trigger
   void add_on_packet_send_callback(std::function<void(const std::vector<uint8_t>&)> callback) {

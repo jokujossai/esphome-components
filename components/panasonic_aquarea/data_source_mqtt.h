@@ -5,6 +5,7 @@
 #include "data_source.h"
 #include "esphome/components/mqtt/mqtt_client.h"
 #include "esphome/core/log.h"
+#include <span>
 
 namespace esphome {
 namespace panasonic_aquarea {
@@ -70,7 +71,7 @@ private:
     }
 
     ESP_LOGD(TAG_MQTT, "Received %zu bytes from MQTT", payload.length());
-    std::vector<uint8_t> data(payload.begin(), payload.end());
+    std::span<const uint8_t> data(reinterpret_cast<const uint8_t*>(payload.data()), payload.size());
     this->call_packet_received_callback(data);
   }
 };
