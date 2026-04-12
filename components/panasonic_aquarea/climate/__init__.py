@@ -12,7 +12,7 @@ from .. import (
 CONF_ZONE = "zone"
 
 PanasonicAquareaZoneClimate = panasonic_aquarea_ns.class_(
-    "PanasonicAquareaZoneClimate", climate.Climate
+    "PanasonicAquareaZoneClimate", climate.Climate, cg.Component
 )
 
 def validate_zone(value):

@@ -8,7 +8,7 @@
 namespace esphome {
 namespace panasonic_aquarea {
 
-class PanasonicAquareaZoneClimate : public climate::Climate, public PanasonicAquareaChildBase {
+class PanasonicAquareaZoneClimate : public climate::Climate, public Component, public PanasonicAquareaChildBase {
  public:
   void setup() override;
   void dump_config() override;

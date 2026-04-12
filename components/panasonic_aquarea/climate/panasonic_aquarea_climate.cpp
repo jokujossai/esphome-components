@@ -48,20 +48,17 @@ climate::ClimateTraits PanasonicAquareaZoneClimate::traits() {
   }
 
   // Set supported modes based on heating mode state
-  auto modes = std::set<climate::ClimateMode>{};
-  modes.insert(climate::CLIMATE_MODE_OFF);
+  traits.add_supported_mode(climate::CLIMATE_MODE_OFF);
 
   if (heating_mode_state_ >= 2) { // Heat, Cool, or Auto available
-    modes.insert(climate::CLIMATE_MODE_HEAT);
+    traits.add_supported_mode(climate::CLIMATE_MODE_HEAT);
   }
   if (heating_mode_state_ >= 3) { // Cool or Auto available
-    modes.insert(climate::CLIMATE_MODE_COOL);
+    traits.add_supported_mode(climate::CLIMATE_MODE_COOL);
   }
   if (heating_mode_state_ >= 4) { // Auto available
-    modes.insert(climate::CLIMATE_MODE_AUTO);
+    traits.add_supported_mode(climate::CLIMATE_MODE_AUTO);
   }
-
-  traits.set_supported_modes(modes);
 
   return traits;
 }
@@ -151,7 +148,7 @@ void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>&
   } else {
     current_temp = fields::getField<fields::main::z2WaterTemp>(data, valid);
   }
-  if (valid && !isnan(current_temp)) {
+  if (valid && !std::isnan(current_temp)) {
     this->current_temperature = current_temp;
   }
 
@@ -162,7 +159,7 @@ void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>&
   } else {
     target_temp = fields::getField<fields::main::z2HeatRequestTemp>(data, valid);
   }
-  if (valid && !isnan(target_temp)) {
+  if (valid && !std::isnan(target_temp)) {
     this->target_temperature = target_temp;
   }
 
