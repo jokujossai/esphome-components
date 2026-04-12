@@ -447,15 +447,11 @@ __attribute__((always_inline)) inline constexpr float getField(const std::vector
   return getFieldForce<def>(data, valid);
 }
 
-// setField template functions for writing field values to packets
-
-template<const Uint8Field& def>
-__attribute__((always_inline)) inline constexpr bool setFieldForce(std::vector<uint8_t>& data, uint8_t value) {
-  static_assert(def.bit_width <= 8, "setField does not support multi-byte Uint8Field (bit_width > 8)");
+// Write a raw byte value into a bit field within a data buffer.
+// Shared by Uint8Field, Int8Field, and FloatField (8-bit path) setters.
+template<const auto& def>
+__attribute__((always_inline)) inline constexpr bool write_byte_bit_field(std::vector<uint8_t>& data, uint8_t raw_value) {
   if (def.byte_offset >= data.size()) return false;
-
-  // Apply offset to convert logical value to raw value
-  uint8_t raw_value = value - def.offset;
 
   if constexpr (def.bit_width == 8) {
     // Full byte width - direct write without masking
@@ -481,6 +477,16 @@ __attribute__((always_inline)) inline constexpr bool setFieldForce(std::vector<u
   }
 
   return true;
+}
+
+// setField template functions for writing field values to packets
+
+template<const Uint8Field& def>
+__attribute__((always_inline)) inline constexpr bool setFieldForce(std::vector<uint8_t>& data, uint8_t value) {
+  static_assert(def.bit_width <= 8, "setField does not support multi-byte Uint8Field (bit_width > 8)");
+
+  // Apply offset to convert logical value to raw value
+  return write_byte_bit_field<def>(data, value - def.offset);
 }
 
 template<const Uint8Field& def>
@@ -551,35 +557,8 @@ __attribute__((always_inline)) inline constexpr bool setField(std::vector<uint8_
 
 template<const Int8Field& def>
 __attribute__((always_inline)) inline constexpr bool setFieldForce(std::vector<uint8_t>& data, int8_t value) {
-  if (def.byte_offset >= data.size()) return false;
-
   // Convert signed value to unsigned raw value with offset
-  uint8_t raw_value = value - def.offset;
-
-  if constexpr (def.bit_width == 8) {
-    // Full byte width - direct write without masking
-    data[def.byte_offset] = raw_value;
-  } else {
-    // Validate raw value fits in bit field
-    constexpr uint8_t max_value = (1 << def.bit_width) - 1;
-    if (raw_value > max_value) return false;
-
-    // Read current byte value and apply bit field mask
-    uint8_t byte_value = data[def.byte_offset];
-    constexpr uint8_t field_mask = ((1 << def.bit_width) - 1) << def.bit_offset;
-    byte_value &= ~field_mask;
-
-    // Apply shift optimization using constexpr
-    if constexpr (def.bit_offset == 0) {
-      byte_value |= raw_value;
-    } else {
-      byte_value |= (raw_value << def.bit_offset);
-    }
-
-    data[def.byte_offset] = byte_value;
-  }
-
-  return true;
+  return write_byte_bit_field<def>(data, (uint8_t)(value - def.offset));
 }
 
 template<const Int8Field& def>
@@ -593,8 +572,6 @@ __attribute__((always_inline)) inline constexpr bool setField(std::vector<uint8_
 template<const FloatField& def>
 __attribute__((always_inline)) inline constexpr bool setFieldForce(std::vector<uint8_t>& data, float value) {
   if constexpr (def.bit_width <= 8) {
-    if (def.byte_offset >= data.size()) return false;
-
     // Apply divider, multiplier, and offset to convert float to raw value
     float adjusted_value = value;
 
@@ -615,26 +592,7 @@ __attribute__((always_inline)) inline constexpr bool setFieldForce(std::vector<u
 
     uint8_t raw_value = (uint8_t)(adjusted_value + 0.5f); // Round to nearest
 
-    if constexpr (def.bit_width == 8) {
-      // Full byte width - direct write without masking
-      data[def.byte_offset] = raw_value;
-    } else {
-      // Read current byte value and apply bit field mask
-      uint8_t byte_value = data[def.byte_offset];
-      constexpr uint8_t field_mask = ((1 << def.bit_width) - 1) << def.bit_offset;
-      byte_value &= ~field_mask;
-
-      // Apply shift optimization using constexpr
-      if constexpr (def.bit_offset == 0) {
-        byte_value |= raw_value;
-      } else {
-        byte_value |= (raw_value << def.bit_offset);
-      }
-
-      data[def.byte_offset] = byte_value;
-    }
-
-    return true;
+    return write_byte_bit_field<def>(data, raw_value);
   } else {
     // 16-bit field support
     static_assert(def.bit_width == 16, "Only 8-bit and 16-bit widths supported for float fields");
