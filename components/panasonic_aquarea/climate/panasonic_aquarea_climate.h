@@ -33,8 +33,6 @@ class PanasonicAquareaZoneClimate : public climate::Climate, public Component, p
 
   // Current heating mode state (0=invalid, 1=Off/DHW, 2=Heat, 3=Cool, 4=Auto)
   uint8_t heating_mode_state_{0};
-
-  void update_traits_();
 };
 
 } // namespace panasonic_aquarea

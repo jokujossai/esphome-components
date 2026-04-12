@@ -10,8 +10,6 @@ namespace panasonic_aquarea {
 static const char *const TAG = "panasonic_aquarea.climate";
 
 void PanasonicAquareaZoneClimate::setup() {
-  // Set initial traits
-  this->update_traits_();
 }
 
 void PanasonicAquareaZoneClimate::dump_config() {
@@ -103,13 +101,11 @@ void PanasonicAquareaZoneClimate::control(const climate::ClimateCall &call) {
 void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>& data) {
   ESP_LOGV(TAG, "Updating from packet for field %s", this->get_name().c_str());
   bool valid = false;
-  bool traits_changed = false;
 
   // Read heating mode (0=Compensation Curve, 1=Direct — raw-1 via Uint8Field default offset)
   uint8_t new_heating_mode = fields::getField<fields::main::heatingMode>(data, valid);
   if (valid && this->heating_mode_ != new_heating_mode) {
     this->heating_mode_ = new_heating_mode;
-    traits_changed = true;
     ESP_LOGD(TAG, "Zone %d heating mode changed to: %s", zone_,
       heating_mode_ == 0 ? "Compensation Curve" :
       heating_mode_ == 1 ? "Direct" : "Unknown");
@@ -118,26 +114,20 @@ void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>&
   // Read operating mode state (1=Heat, 2=Cool, 8=Auto(Heat), 9=Auto(Cool))
   uint8_t operating_mode = fields::getField<fields::main::operatingModeState>(data, valid);
   if (valid) {
-    uint8_t new_heating_mode_state = 0;
     switch (operating_mode) {
       case 1:  // Heat
-        new_heating_mode_state = 2;
+        this->heating_mode_state_ = 2;
         break;
       case 2:  // Cool
-        new_heating_mode_state = 3;
+        this->heating_mode_state_ = 3;
         break;
       case 8:  // Auto(Heat)
       case 9:  // Auto(Cool)
-        new_heating_mode_state = 4;
+        this->heating_mode_state_ = 4;
         break;
       default:
-        new_heating_mode_state = 1; // Off/DHW
+        this->heating_mode_state_ = 1; // Off/DHW
         break;
-    }
-
-    if (this->heating_mode_state_ != new_heating_mode_state) {
-      this->heating_mode_state_ = new_heating_mode_state;
-      traits_changed = true;
     }
   }
 
@@ -163,11 +153,6 @@ void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>&
     this->target_temperature = target_temp;
   }
 
-  // Update traits if mode changed
-  if (traits_changed) {
-    this->update_traits_();
-  }
-
   // Convert heating mode state to climate mode
   climate::ClimateMode new_mode = climate::CLIMATE_MODE_OFF;
   switch (heating_mode_state_) {
@@ -187,12 +172,6 @@ void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>&
   this->mode = new_mode;
 
   this->publish_state();
-}
-
-void PanasonicAquareaZoneClimate::update_traits_() {
-  // Force traits update by getting new traits
-  auto new_traits = this->traits();
-  // Note: ESPHome will automatically handle the traits update
 }
 
 } // namespace panasonic_aquarea
