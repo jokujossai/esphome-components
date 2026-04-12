@@ -17,6 +17,14 @@ switch:
     name: "013 Main_Schedule_State"
   - platform: panasonic_aquarea
     panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: dhwHeaterState
+    name: "058 DHW_Heater_State"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: roomHeaterState
+    name: "059 Room_Heater_State"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
     field: altExternalSensor
     name: "108 Alt_External_Sensor"
   - platform: panasonic_aquarea
@@ -51,8 +59,28 @@ select:
     name: "081 Cooling_Mode"
   - platform: panasonic_aquarea
     panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: pumpFlowrateMode
+    name: "106 Pump_Flowrate_Mode"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
     field: externalPadHeater
     name: "114 External_Pad_Heater"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: heatingControl
+    name: "139 Heating_Control"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: smartDhw
+    name: "140 Smart_DHW"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: quietModePriority
+    name: "141 Quiet_Mode_Priority"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: dhwSensorSelection
+    name: "143 DHW_Sensor_Selection"
 
 number:
   - platform: panasonic_aquarea
@@ -311,6 +339,10 @@ sensor:
     panasonic_aquarea_id: ${panasonic_aquarea_id}
     field: z1ValvePid
     name: "127 Z1_Valve_PID"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: expansionValve
+    name: "142 Expansion_Valve"
 
 
 binary_sensor:
@@ -322,14 +354,6 @@ binary_sensor:
     panasonic_aquarea_id: ${panasonic_aquarea_id}
     field: defrostingState
     name: "026 Defrosting_State"
-  - platform: panasonic_aquarea
-    panasonic_aquarea_id: ${panasonic_aquarea_id}
-    field: dhwHeaterState
-    name: "058 DHW_Heater_State"
-  - platform: panasonic_aquarea
-    panasonic_aquarea_id: ${panasonic_aquarea_id}
-    field: roomHeaterState
-    name: "059 Room_Heater_State"
   - platform: panasonic_aquarea
     panasonic_aquarea_id: ${panasonic_aquarea_id}
     field: internalHeaterState
@@ -380,10 +404,6 @@ text_sensor:
     panasonic_aquarea_id: ${panasonic_aquarea_id}
     field: zonesState
     name: "094 Zones_State"
-  - platform: panasonic_aquarea
-    panasonic_aquarea_id: ${panasonic_aquarea_id}
-    field: pumpFlowrateMode
-    name: "106 Pump_Flowrate_Mode"
   - platform: panasonic_aquarea
     panasonic_aquarea_id: ${panasonic_aquarea_id}
     field: twoWayValveState

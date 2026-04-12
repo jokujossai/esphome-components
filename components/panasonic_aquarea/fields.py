@@ -107,12 +107,35 @@ FIELD_REGISTRY = {
     "dhwHeaterState": {
         "protocol": "main",
         "name": "DHW Heater",
-        "type": "binary_sensor",
+        "type": "switch",
+        "entity_category": "config",
     },
     "roomHeaterState": {
         "protocol": "main",
         "name": "Room Heater",
-        "type": "binary_sensor",
+        "type": "switch",
+        "entity_category": "config",
+    },
+    # Byte 11
+    "quietModePriority": {
+        "protocol": "main",
+        "name": "Quiet Mode Priority",
+        "type": "select",
+        "entity_category": "config",
+        "options": {
+            0: "Sound",
+            1: "Capacity",
+        },
+    },
+    "dhwSensorSelection": {
+        "protocol": "main",
+        "name": "DHW Sensor Selection",
+        "type": "select",
+        "entity_category": "config",
+        "options": {
+            0: "Top",
+            1: "Center",
+        },
     },
     # Byte 20
     "liquidType": {
@@ -208,6 +231,16 @@ FIELD_REGISTRY = {
             2: "Solar DHW",       # 0b11 - 1
         },
     },
+    "smartDhw": {
+        "protocol": "main",
+        "name": "Smart DHW",
+        "type": "select",
+        "entity_category": "config",
+        "options": {
+            0: "Variable",
+            1: "Standard",
+        },
+    },
     # Byte 25
     "externalPadHeater": {
         "protocol": "main",
@@ -277,6 +310,17 @@ FIELD_REGISTRY = {
         "options": {
             0: "Delta T",         # 0b01 - 1
             1: "Max flow",        # 0b10 - 1
+        },
+    },
+    # Byte 30
+    "heatingControl": {
+        "protocol": "main",
+        "name": "Heating Control",
+        "type": "select",
+        "entity_category": "config",
+        "options": {
+            0: "Comfort",
+            1: "Efficiency",
         },
     },
     # Byte 38-44
@@ -1368,6 +1412,14 @@ FIELD_REGISTRY = {
         "name": "Fan 2 Motor Speed",
         "type": "sensor",
         "unit_of_measurement": "rpm",
+        "state_class": "measurement",
+        "accuracy_decimals": 0,
+    },
+    "expansionValve": {
+        "protocol": "main",
+        "name": "Expansion Valve",
+        "type": "sensor",
+        "unit_of_measurement": "steps",
         "state_class": "measurement",
         "accuracy_decimals": 0,
     },

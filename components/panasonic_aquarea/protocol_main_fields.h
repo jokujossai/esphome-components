@@ -33,9 +33,13 @@ constexpr Uint8Field quietModeLevel(RW, 7, 3, 3);    // TOP18: bits 5-3, Quiet m
 constexpr BooleanField forceDefrostCommand(RW, 8, 1, 0);        // bit 1: Force defrost (0=off, 1=on → 0x00/0x02)
 constexpr BooleanField forceSterilizationCommand(RW, 8, 2, 0);  // bit 2: Force sterilization (0=off, 1=on → 0x00/0x04)
 
-// Byte 9 - DHW and heater states (TOP58, TOP59)
-constexpr BooleanField dhwHeaterState(9, 2);          // TOP58: bits 3-2, DHW heater state (BlockedFree)
-constexpr BooleanField roomHeaterState(9, 0);         // TOP59: bits 1-0, Room heater state (BlockedFree)
+// Byte 9 - DHW and heater states (TOP58, TOP59) - RW: SetDHWHeaterState, SetRoomHeaterState
+constexpr BooleanField dhwHeaterState(RW, 9, 2);      // TOP58: bits 3-2, DHW heater state (BlockedFree) - RW: SetDHWHeaterState
+constexpr BooleanField roomHeaterState(RW, 9, 0);     // TOP59: bits 1-0, Room heater state (BlockedFree) - RW: SetRoomHeaterState
+
+// Byte 11 - Quiet mode priority and DHW sensor selection (TOP141, TOP143)
+constexpr Uint8Field quietModePriority(RW, 11, 4, 2);  // TOP141: bits 5-4, Quiet mode priority (Sound/Capacity) - RW: SetQuietModePriority
+constexpr Uint8Field dhwSensorSelection(RW, 11, 0, 2); // TOP143: bits 1-0, DHW sensor selection (Top/Center) - RW: SetDHWSensorSelection
 
 // Byte 20 - System configuration (TOP107, TOP108, TOP109, TOP110) - Alt external sensor writable
 constexpr Uint8Field liquidType(20, 7, 1, 0);         // TOP107: bit 7, Liquid type (Water/Glycol) - 1 bit, no offset
@@ -53,10 +57,11 @@ constexpr BooleanField externalHeatCoolControl(RW, 23, 2);   // TOP120: bits 3-2
 constexpr BooleanField externalErrorSignal(RW, 23, 4);       // TOP121: bits 5-4, External error signal (DisabledEnabled) - RW: SetExternalError
 constexpr BooleanField externalCompressorControl(RW, 23, 6); // TOP122: bits 7-6, External compressor control (DisabledEnabled) - RW: SetExternalCompressorControl
 
-// Byte 24 - Buffer and solar settings (TOP99, TOP100, TOP101) - Buffer writable
+// Byte 24 - Buffer, solar, and smart DHW settings (TOP99, TOP100, TOP101, TOP140) - Buffer writable
 constexpr BooleanField bufferInstalled(RW, 24, 2);    // TOP99: bits 3-2, Buffer installed (DisabledEnabled) - RW: buffer command
 constexpr BooleanField dhwInstalled(24, 0);           // TOP100: bits 1-0, DHW installed (DisabledEnabled)
 constexpr Uint8Field solarMode(24, 4, 2);             // TOP101: bits 5-4, Solar mode (3 states: Disabled, Buffer, DHW)
+constexpr Uint8Field smartDhw(RW, 24, 6, 2);            // TOP140: bits 7-6, Smart DHW (Variable/Standard) - RW: SetSmartDHW
 
 // Byte 25 - External pad heater (TOP114) - Pad heater writable
 constexpr Uint8Field externalPadHeater(RW, 25, 4, 2); // TOP114: bits 5-4, External pad heater type (3 states: Disabled, Type-A, Type-B) - RW: pad heater command
@@ -71,8 +76,11 @@ constexpr BooleanField bivalentAdvancedDhw(26, 6);    // TOP133: bits 7-6, Bival
 constexpr Uint8Field heatingMode(RW, 28, 0, 2);      // TOP76: bits 1-0, Heating mode (2 states: Comp. Curve, Direct) - RW: mode command
 constexpr Uint8Field coolingMode(RW, 28, 2, 2);      // TOP81: bits 3-2, Cooling mode (2 states: Comp. Curve, Direct) - RW: mode command
 
-// Byte 29 - Pump flowrate control (TOP106)
-constexpr Uint8Field pumpFlowrateMode(29, 4, 2);     // TOP106: bits 5-4, Pump flowrate mode (2 states: DeltaT, Max flow)
+// Byte 29 - Pump flowrate control (TOP106) - RW: SetPumpFlowrateMode
+constexpr Uint8Field pumpFlowrateMode(RW, 29, 4, 2); // TOP106: bits 5-4, Pump flowrate mode (2 states: DeltaT, Max flow) - RW: SetPumpFlowrateMode
+
+// Byte 30 - Heating control (TOP139)
+constexpr Uint8Field heatingControl(RW, 30, 2, 2);     // TOP139: bits 3-2, Heating control (Comfort/Efficiency) - RW: SetHeatingControl
 
 // Byte 38-44 - Temperature setpoints (Int8Field - getIntMinus128: value-128=°C) - RW: command setpoints
 constexpr Int8Field z1HeatRequestTemp(RW, 38);     // TOP27: Zone 1 heat request temp
@@ -206,6 +214,7 @@ constexpr FloatField pumpSpeed(171, 0, 8, -1, 50, 1);      // TOP65: Pump speed 
 constexpr Uint8Field pumpDuty(172);                        // TOP93: Pump duty (value-1)
 constexpr FloatField fan1MotorSpeed(173, 0, 8, -1, 10, 1); // TOP62: Fan1 motor speed (value-1)*10
 constexpr FloatField fan2MotorSpeed(174, 0, 8, -1, 10, 1); // TOP63: Fan2 motor speed (value-1)*10
+constexpr Uint8Field expansionValve(175);                    // TOP142: Expansion valve (value-1, Steps)
 constexpr FloatField z1ValvePid(177, 0, 8, -1, 1, 2);      // TOP127: Z1 valve PID (value-1)/2
 constexpr FloatField z2ValvePid(178, 0, 8, -1, 1, 2);      // TOP128: Z2 valve PID (value-1)/2
 
