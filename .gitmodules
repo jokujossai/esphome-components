@@ -1,0 +1,6 @@
+[submodule "includes/esphome"]
+	path = includes/esphome
+	url = https://github.com/esphome/esphome.git
+[submodule "includes/ArduinoJson"]
+	path = includes/ArduinoJson
+	url = https://github.com/bblanchon/ArduinoJson.git
