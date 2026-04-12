@@ -73,7 +73,7 @@ private:
   std::vector<uint8_t> rx_buffer_;
 
   void handle_packet() {
-    ESP_LOGD(TAG_UART, "Received %zu bytes, packet length: %d", this->rx_buffer_.size(), this->rx_buffer_[1]);
+    ESP_LOGD(TAG_UART, "Received %zu bytes, packet length: %d", this->rx_buffer_.size(), this->rx_buffer_.size() > 1 ? this->rx_buffer_[1] : -1);
 
     // Call the packet callback
     this->call_packet_received_callback(this->rx_buffer_);
