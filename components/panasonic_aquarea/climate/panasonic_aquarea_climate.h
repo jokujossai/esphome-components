@@ -30,9 +30,6 @@ class PanasonicAquareaZoneClimate : public climate::Climate, public Component, p
   // Current heating mode (0=Compensation Curve, 1=Direct, 0xFF=unknown until first valid packet)
   // Matches getField<heatingMode> which returns raw-1: raw 0b01 -> 0, raw 0b10 -> 1.
   uint8_t heating_mode_{0xFF};
-
-  // Current heating mode state (0=invalid, 1=Off/DHW, 2=Heat, 3=Cool, 4=Auto)
-  uint8_t heating_mode_state_{0};
 };
 
 } // namespace panasonic_aquarea

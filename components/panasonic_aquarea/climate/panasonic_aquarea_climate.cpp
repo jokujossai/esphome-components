@@ -17,11 +17,10 @@ void PanasonicAquareaZoneClimate::dump_config() {
   ESP_LOGCONFIG(TAG, "  Heating Mode: %s",
     heating_mode_ == 0 ? "Compensation Curve" :
     heating_mode_ == 1 ? "Direct" : "Unknown");
-  ESP_LOGCONFIG(TAG, "  Heating Mode State: %s",
-    heating_mode_state_ == 1 ? "Off/DHW" :
-    heating_mode_state_ == 2 ? "Heat" :
-    heating_mode_state_ == 3 ? "Cool" :
-    heating_mode_state_ == 4 ? "Auto" : "Unknown");
+  ESP_LOGCONFIG(TAG, "  Climate Mode: %s",
+    this->mode == climate::CLIMATE_MODE_HEAT ? "Heat" :
+    this->mode == climate::CLIMATE_MODE_COOL ? "Cool" :
+    this->mode == climate::CLIMATE_MODE_AUTO ? "Auto" : "Off");
 }
 
 climate::ClimateTraits PanasonicAquareaZoneClimate::traits() {
@@ -45,17 +44,22 @@ climate::ClimateTraits PanasonicAquareaZoneClimate::traits() {
     traits.set_visual_temperature_step(0.5f);
   }
 
-  // Set supported modes based on heating mode state
+  // Set supported modes based on current climate mode.
+  // If the system reports Cool, it also supports Heat; if Auto, it supports all.
   traits.add_supported_mode(climate::CLIMATE_MODE_OFF);
 
-  if (heating_mode_state_ >= 2) { // Heat, Cool, or Auto available
-    traits.add_supported_mode(climate::CLIMATE_MODE_HEAT);
-  }
-  if (heating_mode_state_ >= 3) { // Cool or Auto available
-    traits.add_supported_mode(climate::CLIMATE_MODE_COOL);
-  }
-  if (heating_mode_state_ >= 4) { // Auto available
-    traits.add_supported_mode(climate::CLIMATE_MODE_AUTO);
+  switch (this->mode) {
+    case climate::CLIMATE_MODE_AUTO:
+      traits.add_supported_mode(climate::CLIMATE_MODE_AUTO);
+      // fallthrough
+    case climate::CLIMATE_MODE_COOL:
+      traits.add_supported_mode(climate::CLIMATE_MODE_COOL);
+      // fallthrough
+    case climate::CLIMATE_MODE_HEAT:
+      traits.add_supported_mode(climate::CLIMATE_MODE_HEAT);
+      break;
+    default:
+      break;
   }
 
   return traits;
@@ -116,24 +120,24 @@ void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>&
   // Read operating mode state (1=Heat, 2=Cool, 8=Auto(Heat), 9=Auto(Cool))
   uint8_t operating_mode = fields::getField<fields::main::operatingModeState>(data, valid);
   if (valid) {
-    uint8_t new_heating_mode_state;
+    climate::ClimateMode new_mode;
     switch (operating_mode) {
-      case 1:  // Heat
-        new_heating_mode_state = 2;
+      case 1:
+        new_mode = climate::CLIMATE_MODE_HEAT;
         break;
-      case 2:  // Cool
-        new_heating_mode_state = 3;
+      case 2:
+        new_mode = climate::CLIMATE_MODE_COOL;
         break;
       case 8:  // Auto(Heat)
       case 9:  // Auto(Cool)
-        new_heating_mode_state = 4;
+        new_mode = climate::CLIMATE_MODE_AUTO;
         break;
       default:
-        new_heating_mode_state = 1; // Off/DHW
+        new_mode = climate::CLIMATE_MODE_OFF;
         break;
     }
-    if(this->heating_mode_state_ != new_heating_mode_state) {
-      this->heating_mode_state_ = new_heating_mode_state;
+    if (this->mode != new_mode) {
+      this->mode = new_mode;
       changed = true;
     }
   }
@@ -162,28 +166,7 @@ void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>&
     changed = true;
   }
 
-  // Convert heating mode state to climate mode
-  climate::ClimateMode new_mode = climate::CLIMATE_MODE_OFF;
-  switch (heating_mode_state_) {
-    case 1: // Off/DHW
-      new_mode = climate::CLIMATE_MODE_OFF;
-      break;
-    case 2: // Heat
-      new_mode = climate::CLIMATE_MODE_HEAT;
-      break;
-    case 3: // Cool
-      new_mode = climate::CLIMATE_MODE_COOL;
-      break;
-    case 4: // Auto
-      new_mode = climate::CLIMATE_MODE_AUTO;
-      break;
-  }
-  if(this->mode != new_mode) {
-    this->mode = new_mode;
-    changed = true;
-  }
-
-  if(changed) {
+  if (changed) {
     this->publish_state();
   }
 }
