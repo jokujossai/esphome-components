@@ -1,6 +1,7 @@
 #pragma once
 
-#include "../base.h"
+#include "../child.h"
+#include "../protocol.h"
 
 #include "esphome/components/number/number.h"
 #include "esphome/core/log.h"

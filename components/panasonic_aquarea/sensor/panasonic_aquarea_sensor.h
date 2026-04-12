@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../base.h"
+#include "../child.h"
 
 #include "esphome/components/sensor/sensor.h"
 #include "esphome/core/helpers.h"

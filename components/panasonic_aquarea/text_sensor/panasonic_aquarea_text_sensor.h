@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../base.h"
+#include "../child.h"
 #include "esphome/components/text_sensor/text_sensor.h"
 #include "esphome/core/helpers.h"
 #include <vector>

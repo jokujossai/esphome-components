@@ -2,6 +2,7 @@
 
 #include "esphome/core/component.h"
 #include "esphome/components/climate/climate.h"
+#include "../protocol.h"
 #include "../child.h"
 
 namespace esphome {
