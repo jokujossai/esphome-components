@@ -16,6 +16,8 @@ from esphome import automation
 from esphome.core import coroutine
 from esphome.util import Registry
 
+from .fields import get_field
+
 CONF_LISTEN_ONLY = "listen_only"
 CONF_PROTOCOLS = "protocols"
 CONF_PANASONIC_AQUAREA_ID = "panasonic_aquarea_id"
@@ -27,6 +29,7 @@ CONF_UDP_ID = "udp_id"
 CONF_ON_PACKET_SEND = "on_packet_send"
 CONF_PACKET = "packet"
 CONF_QUERY_INTERVAL = "query_interval"
+CONF_FIELD = "field"
 
 DEPENDENCIES = []
 
@@ -204,6 +207,28 @@ CHILD_SCHEMA_BASE = (
     cv.GenerateID(CONF_PANASONIC_AQUAREA_ID): cv.use_id(PanasonicAquareaComponent),
   })
 )
+
+
+async def create_and_register_child(config):
+  """Create a field entity variable and wire up parent/protocol/child. Returns var."""
+  field_name = config[CONF_FIELD]
+  field = get_field(field_name)
+  protocol = field["protocol"]
+
+  field_ns = panasonic_aquarea_ns.namespace("fields")
+  protocol_ns = field_ns.namespace(protocol)
+
+  template_args = cg.TemplateArguments(getattr(protocol_ns, field_name))
+  var = cg.new_Pvariable(config[cv.CONF_ID], template_args)
+
+  parent = await cg.get_variable(config[CONF_PANASONIC_AQUAREA_ID])
+  cg.add(var.set_parent(parent))
+
+  protocol_var = get_protocol(config[CONF_PANASONIC_AQUAREA_ID], protocol)
+  cg.add(var.set_protocol(protocol_var))
+  cg.add(protocol_var.add_child(var))
+
+  return var
 
 async def to_code(config):
   var = cg.new_Pvariable(config[CONF_ID])
