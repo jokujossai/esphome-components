@@ -34,12 +34,12 @@ constexpr BooleanField forceDefrostCommand(RW, 8, 1, 0);        // bit 1: Force 
 constexpr BooleanField forceSterilizationCommand(RW, 8, 2, 0);  // bit 2: Force sterilization (0=off, 1=on → 0x00/0x04)
 
 // Byte 9 - DHW and heater states (TOP58, TOP59) - RW: SetDHWHeaterState, SetRoomHeaterState
-constexpr BooleanField dhwHeaterState(RW, 9, 2);      // TOP58: bits 3-2, DHW heater state (BlockedFree) - RW: SetDHWHeaterState
-constexpr BooleanField roomHeaterState(RW, 9, 0);     // TOP59: bits 1-0, Room heater state (BlockedFree) - RW: SetRoomHeaterState
+constexpr BooleanField dhwHeaterState(RW, 9, 2);   // TOP58: bits 3-2, DHW heater state (BlockedFree) - RW: SetDHWHeaterState
+constexpr BooleanField roomHeaterState(RW, 9, 0);  // TOP59: bits 1-0, Room heater state (BlockedFree) - RW: SetRoomHeaterState
 
 // Byte 11 - Quiet mode priority and DHW sensor selection (TOP141, TOP143)
-constexpr Uint8Field quietModePriority(RW, 11, 4, 2);  // TOP141: bits 5-4, Quiet mode priority (Sound/Capacity) - RW: SetQuietModePriority
-constexpr Uint8Field dhwSensorSelection(RW, 11, 0, 2); // TOP143: bits 1-0, DHW sensor selection (Top/Center) - RW: SetDHWSensorSelection
+constexpr Uint8Field quietModePriority(RW, 11, 4, 2);   // TOP141: bits 5-4, Quiet mode priority (Sound/Capacity) - RW: SetQuietModePriority
+constexpr Uint8Field dhwSensorSelection(RW, 11, 0, 2);  // TOP143: bits 1-0, DHW sensor selection (Top/Center) - RW: SetDHWSensorSelection
 
 // Byte 20 - System configuration (TOP107, TOP108, TOP109, TOP110) - Alt external sensor writable
 constexpr Uint8Field liquidType(20, 7, 1, 0);         // TOP107: bit 7, Liquid type (Water/Glycol) - 1 bit, no offset
@@ -48,51 +48,51 @@ constexpr BooleanField antiFreeze(20, 2);             // TOP109: bits 3-2, Anti 
 constexpr BooleanField optionalPcb(20, 0);            // TOP110: bits 1-0, Optional PCB (DisabledEnabled)
 
 // Byte 22 - Zone sensor settings (TOP111, TOP112)
-constexpr Uint8Field z1SensorSettings(22, 0, 4);     // TOP111: bits 3-0, Z1 sensor settings (4 types)
-constexpr Uint8Field z2SensorSettings(22, 4, 4);     // TOP112: bits 7-4, Z2 sensor settings (4 types)
+constexpr Uint8Field z1SensorSettings(22, 0, 4);  // TOP111: bits 3-0, Z1 sensor settings (4 types)
+constexpr Uint8Field z2SensorSettings(22, 4, 4);  // TOP112: bits 7-4, Z2 sensor settings (4 types)
 
 // Byte 23 - External control settings (TOP119, TOP120, TOP121, TOP122)
-constexpr BooleanField externalControl(RW, 23, 0);           // TOP119: bits 1-0, External control (DisabledEnabled) - RW: SetExternalControl
-constexpr BooleanField externalHeatCoolControl(RW, 23, 2);   // TOP120: bits 3-2, External heat/cool control (DisabledEnabled) - RW: SetExternalHeatCoolControl
-constexpr BooleanField externalErrorSignal(RW, 23, 4);       // TOP121: bits 5-4, External error signal (DisabledEnabled) - RW: SetExternalError
-constexpr BooleanField externalCompressorControl(RW, 23, 6); // TOP122: bits 7-6, External compressor control (DisabledEnabled) - RW: SetExternalCompressorControl
+constexpr BooleanField externalControl(RW, 23, 0);            // TOP119: bits 1-0, External control (DisabledEnabled) - RW: SetExternalControl
+constexpr BooleanField externalHeatCoolControl(RW, 23, 2);    // TOP120: bits 3-2, External heat/cool control (DisabledEnabled) - RW: SetExternalHeatCoolControl
+constexpr BooleanField externalErrorSignal(RW, 23, 4);        // TOP121: bits 5-4, External error signal (DisabledEnabled) - RW: SetExternalError
+constexpr BooleanField externalCompressorControl(RW, 23, 6);  // TOP122: bits 7-6, External compressor control (DisabledEnabled) - RW: SetExternalCompressorControl
 
 // Byte 24 - Buffer, solar, and smart DHW settings (TOP99, TOP100, TOP101, TOP140) - Buffer writable
-constexpr BooleanField bufferInstalled(RW, 24, 2);    // TOP99: bits 3-2, Buffer installed (DisabledEnabled) - RW: buffer command
-constexpr BooleanField dhwInstalled(24, 0);           // TOP100: bits 1-0, DHW installed (DisabledEnabled)
-constexpr Uint8Field solarMode(24, 4, 2);             // TOP101: bits 5-4, Solar mode (3 states: Disabled, Buffer, DHW)
-constexpr Uint8Field smartDhw(RW, 24, 6, 2);            // TOP140: bits 7-6, Smart DHW (Variable/Standard) - RW: SetSmartDHW
+constexpr BooleanField bufferInstalled(RW, 24, 2);  // TOP99: bits 3-2, Buffer installed (DisabledEnabled) - RW: buffer command
+constexpr BooleanField dhwInstalled(24, 0);         // TOP100: bits 1-0, DHW installed (DisabledEnabled)
+constexpr Uint8Field solarMode(24, 4, 2);           // TOP101: bits 5-4, Solar mode (3 states: Disabled, Buffer, DHW)
+constexpr Uint8Field smartDhw(RW, 24, 6, 2);        // TOP140: bits 7-6, Smart DHW (Variable/Standard) - RW: SetSmartDHW
 
 // Byte 25 - External pad heater (TOP114) - Pad heater writable
-constexpr Uint8Field externalPadHeater(RW, 25, 4, 2); // TOP114: bits 5-4, External pad heater type (3 states: Disabled, Type-A, Type-B) - RW: pad heater command
+constexpr Uint8Field externalPadHeater(RW, 25, 4, 2);  // TOP114: bits 5-4, External pad heater type (3 states: Disabled, Type-A, Type-B) - RW: pad heater command
 
 // Byte 26 - Bivalent settings (TOP129, TOP130, TOP132, TOP133) - Bivalent control writable
-constexpr BooleanField bivalentControl(RW, 26, 0);    // TOP129: bits 1-0, Bivalent control (DisabledEnabled) - RW: backup control command
-constexpr Uint8Field bivalentMode(RW, 26, 2, 2);      // TOP130: bits 3-2, Bivalent mode (3 states: Alternative, Parallel, Advanced) - RW: backup mode command
-constexpr BooleanField bivalentAdvancedHeat(26, 4);   // TOP132: bits 5-4, Bivalent advanced heat (DisabledEnabled)
-constexpr BooleanField bivalentAdvancedDhw(26, 6);    // TOP133: bits 7-6, Bivalent advanced DHW (DisabledEnabled)
+constexpr BooleanField bivalentControl(RW, 26, 0);   // TOP129: bits 1-0, Bivalent control (DisabledEnabled) - RW: backup control command
+constexpr Uint8Field bivalentMode(RW, 26, 2, 2);     // TOP130: bits 3-2, Bivalent mode (3 states: Alternative, Parallel, Advanced) - RW: backup mode command
+constexpr BooleanField bivalentAdvancedHeat(26, 4);  // TOP132: bits 5-4, Bivalent advanced heat (DisabledEnabled)
+constexpr BooleanField bivalentAdvancedDhw(26, 6);   // TOP133: bits 7-6, Bivalent advanced DHW (DisabledEnabled)
 
 // Byte 28 - Heating and cooling mode (TOP76, TOP81)
-constexpr Uint8Field heatingMode(RW, 28, 0, 2);      // TOP76: bits 1-0, Heating mode (2 states: Comp. Curve, Direct) - RW: mode command
-constexpr Uint8Field coolingMode(RW, 28, 2, 2);      // TOP81: bits 3-2, Cooling mode (2 states: Comp. Curve, Direct) - RW: mode command
+constexpr Uint8Field heatingMode(RW, 28, 0, 2);  // TOP76: bits 1-0, Heating mode (2 states: Comp. Curve, Direct) - RW: mode command
+constexpr Uint8Field coolingMode(RW, 28, 2, 2);  // TOP81: bits 3-2, Cooling mode (2 states: Comp. Curve, Direct) - RW: mode command
 
 // Byte 29 - Pump flowrate control (TOP106) - RW: SetPumpFlowrateMode
-constexpr Uint8Field pumpFlowrateMode(RW, 29, 4, 2); // TOP106: bits 5-4, Pump flowrate mode (2 states: DeltaT, Max flow) - RW: SetPumpFlowrateMode
+constexpr Uint8Field pumpFlowrateMode(RW, 29, 4, 2);  // TOP106: bits 5-4, Pump flowrate mode (2 states: DeltaT, Max flow) - RW: SetPumpFlowrateMode
 
 // Byte 30 - Heating control (TOP139)
-constexpr Uint8Field heatingControl(RW, 30, 2, 2);     // TOP139: bits 3-2, Heating control (Comfort/Efficiency) - RW: SetHeatingControl
+constexpr Uint8Field heatingControl(RW, 30, 2, 2);  // TOP139: bits 3-2, Heating control (Comfort/Efficiency) - RW: SetHeatingControl
 
 // Byte 38-44 - Temperature setpoints (Int8Field - getIntMinus128: value-128=°C) - RW: command setpoints
-constexpr Int8Field z1HeatRequestTemp(RW, 38);     // TOP27: Zone 1 heat request temp
-constexpr Int8Field z1CoolRequestTemp(RW, 39);     // TOP28: Zone 1 cool request temp
-constexpr Int8Field z2HeatRequestTemp(RW, 40);     // TOP34: Zone 2 heat request temp
-constexpr Int8Field z2CoolRequestTemp(RW, 41);     // TOP35: Zone 2 cool request temp
-constexpr Int8Field dhwTargetTemp(RW, 42);         // TOP9: DHW target temp
-constexpr Int8Field roomHolidayShiftTemp(43);      // TOP45: Room holiday shift temp (Kelvin)
-constexpr Int8Field dhwHolidayShiftTemp(44);       // TOP25: DHW holiday shift temp (Kelvin)
+constexpr Int8Field z1HeatRequestTemp(RW, 38);  // TOP27: Zone 1 heat request temp
+constexpr Int8Field z1CoolRequestTemp(RW, 39);  // TOP28: Zone 1 cool request temp
+constexpr Int8Field z2HeatRequestTemp(RW, 40);  // TOP34: Zone 2 heat request temp
+constexpr Int8Field z2CoolRequestTemp(RW, 41);  // TOP35: Zone 2 cool request temp
+constexpr Int8Field dhwTargetTemp(RW, 42);      // TOP9: DHW target temp
+constexpr Int8Field roomHolidayShiftTemp(43);   // TOP45: Room holiday shift temp (Kelvin)
+constexpr Int8Field dhwHolidayShiftTemp(44);    // TOP25: DHW holiday shift temp (Kelvin)
 
 // Byte 45 - Settings
-constexpr Uint8Field maxPumpDuty(RW, 45);           // TOP95: Max pump duty (value-1) - RW: SetMaxPumpDuty
+constexpr Uint8Field maxPumpDuty(RW, 45);  // TOP95: Max pump duty (value-1) - RW: SetMaxPumpDuty
 
 // Byte 58-70 - Additional temperature settings (Int8Field - getIntMinus128: value-128=°K)
 constexpr Int8Field bufferTankDelta(RW, 59);            // TOP113: Buffer tank delta T (value-128=°K) - RW: SetBufferDelta
@@ -138,29 +138,29 @@ constexpr Int8Field heaterStartDelta(RW, 105);           // TOP97: Heater start 
 constexpr Int8Field heaterStopDelta(RW, 106);            // TOP98: Heater stop delta (value-128=°K) - RW: SetHeaterStopDelta
 
 // Byte 110 - Actual states (read-only status, not published by HeishaMon)
-constexpr Uint8Field quietModeActual(110, 0, 2);         // bits 1-0: Actual quiet mode state
-constexpr Uint8Field powerfulModeActual(110, 2, 2);      // bits 3-2: Actual powerful mode state
-constexpr Uint8Field heatCoolSwitchActual(110, 4, 2);    // bits 5-4: Actual heat/cool switch (0b10 = cool)
-constexpr Uint8Field externalSwitchActual(110, 6, 2);    // bits 7-6: Actual external switch state (0b10 = open)
+constexpr Uint8Field quietModeActual(110, 0, 2);       // bits 1-0: Actual quiet mode state
+constexpr Uint8Field powerfulModeActual(110, 2, 2);    // bits 3-2: Actual powerful mode state
+constexpr Uint8Field heatCoolSwitchActual(110, 4, 2);  // bits 5-4: Actual heat/cool switch (0b10 = cool)
+constexpr Uint8Field externalSwitchActual(110, 6, 2);  // bits 7-6: Actual external switch state (0b10 = open)
 
 // Byte 111 - 3-way valve and defrost (TOP20, TOP26)
-constexpr Uint8Field threeWayValveState(111, 0, 2); // TOP20: bits 1-0, 3-way valve state (Room/DHW)
-constexpr BooleanField defrostingState(111, 2);     // TOP26: bits 3-2, Defrosting state (DisabledEnabled)
+constexpr Uint8Field threeWayValveState(111, 0, 2);  // TOP20: bits 1-0, 3-way valve state (Room/DHW)
+constexpr BooleanField defrostingState(111, 2);      // TOP26: bits 3-2, Defrosting state (DisabledEnabled)
 
 // Byte 112 - Heater states (TOP60, TOP61)
-constexpr BooleanField internalHeaterState(112, 0); // TOP60: bits 1-0, Internal heater state (InactiveActive)
-constexpr BooleanField externalHeaterState(112, 2); // TOP61: bits 3-2, External heater state (InactiveActive)
+constexpr BooleanField internalHeaterState(112, 0);  // TOP60: bits 1-0, Internal heater state (InactiveActive)
+constexpr BooleanField externalHeaterState(112, 2);  // TOP61: bits 3-2, External heater state (InactiveActive)
 
 // Byte 113-114 - Error codes (TOP44)
-constexpr Uint8Field errorCodeType(113, 0, 8, 0);     // TOP44: Error code type (raw value, no offset)
-constexpr Uint8Field errorCodeNumber(114, 0, 8, -17); // TOP44: Error code number (value - 17)
-constexpr Uint16Field errorCode(113, 0);              // TOP44: Error code (Raw value)
+constexpr Uint8Field errorCodeType(113, 0, 8, 0);      // TOP44: Error code type (raw value, no offset)
+constexpr Uint8Field errorCodeNumber(114, 0, 8, -17);  // TOP44: Error code number (value - 17)
+constexpr Uint16Field errorCode(113, 0);               // TOP44: Error code (Raw value)
 
 // Byte 116 - Pump and valve status (TOP123, TOP124, TOP125, TOP126)
-constexpr BooleanField z2PumpState(116, 6);          // TOP123: bits 7-6, Z2 pump state (OffOn)
-constexpr BooleanField z1PumpState(116, 4);          // TOP124: bits 5-4, Z1 pump state (OffOn)
-constexpr Uint8Field twoWayValveState(116, 2, 2);    // TOP125: bits 3-2, 2-way valve state (Cool/Heat)
-constexpr Uint8Field threeWayValveState2(116, 0, 2); // TOP126: bits 1-0, 3-way valve state (Room/DHW)
+constexpr BooleanField z2PumpState(116, 6);           // TOP123: bits 7-6, Z2 pump state (OffOn)
+constexpr BooleanField z1PumpState(116, 4);           // TOP124: bits 5-4, Z1 pump state (OffOn)
+constexpr Uint8Field twoWayValveState(116, 2, 2);     // TOP125: bits 3-2, 2-way valve state (Cool/Heat)
+constexpr Uint8Field threeWayValveState2(116, 0, 2);  // TOP126: bits 1-0, 3-way valve state (Room/DHW)
 
 // Byte 117 - Sterilization and zone status (TOP69)
 constexpr BooleanField sterilizationState(117, 2);  // TOP69: bits 3-2, Sterilization state (InactiveActive)
@@ -172,63 +172,63 @@ constexpr Int8Field economizerOutletTemp(127);             // TOP117: Economizer
 constexpr Int8Field secondRoomThermostatTemp(128);         // TOP118: Second room thermostat temp (value-128=°C)
 
 // Byte 129-138 - Heat pump model (TOP92)
-constexpr Uint8Field heatPumpModel(129, 0, 80);     // TOP92: Heat pump model (10 bytes)
+constexpr Uint8Field heatPumpModel(129, 0, 80);  // TOP92: Heat pump model (10 bytes)
 
 // Byte 139-162 - Temperature readings (Int8Field - getIntMinus128: value-128=°C)
-constexpr Int8Field z1Temp(139);                    // TOP56: Zone 1 temp
-constexpr Int8Field z2Temp(140);                    // TOP57: Zone 2 temp
-constexpr Int8Field dhwTemp(141);                   // TOP10: DHW temp
-constexpr Int8Field outsideTemp(142);               // TOP14: Outside temp
-constexpr TempWithFracField mainInletTemp(143, 0);  // TOP5: Main inlet temp with fractional (byte 118 bits 0-2)
-constexpr TempWithFracField mainOutletTemp(144, 3); // TOP6: Main outlet temp with fractional (byte 118 bits 3-5)
-constexpr Int8Field z1WaterTemp(145);               // TOP36: Zone 1 water temp
-constexpr Int8Field z2WaterTemp(146);               // TOP37: Zone 2 water temp
-constexpr Int8Field z1WaterTargetTemp(147);         // TOP42: Zone 1 water target temp
-constexpr Int8Field z2WaterTargetTemp(148);         // TOP43: Zone 2 water target temp
-constexpr Int8Field bufferTemp(149);                // TOP46: Buffer temp
-constexpr Int8Field solarTemp(150);                 // TOP47: Solar temp
-constexpr Int8Field poolTemp(151);                  // TOP48: Pool temp
-constexpr Int8Field mainTemperatureSet(152);        // Water shift set or direct mode value Temperature For Heat Mode
-constexpr Int8Field mainTargetTemp(153);            // TOP7: Main target temp
-constexpr Int8Field mainHexOutletTemp(154);         // TOP49: Main hex outlet temp
-constexpr Int8Field dischargeTemp(155);             // TOP50: Discharge temp
-constexpr Int8Field roomThermostatTemp(156);        // TOP33: Room thermostat temp
-constexpr Int8Field insidePipeTemp(157);            // TOP51: Inside pipe temp
-constexpr Int8Field outsidePipeTemp(158);           // TOP21: Outside pipe temp
-constexpr Int8Field defrostTemp(159);               // TOP52: Defrost temp
-constexpr Int8Field evaOutletTemp(160);             // TOP53: Eva outlet temp
-constexpr Int8Field bypassOutletTemp(161);          // TOP54: Bypass outlet temp
-constexpr Int8Field ipmTemp(162);                   // TOP55: IPM temp
+constexpr Int8Field z1Temp(139);                     // TOP56: Zone 1 temp
+constexpr Int8Field z2Temp(140);                     // TOP57: Zone 2 temp
+constexpr Int8Field dhwTemp(141);                    // TOP10: DHW temp
+constexpr Int8Field outsideTemp(142);                // TOP14: Outside temp
+constexpr TempWithFracField mainInletTemp(143, 0);   // TOP5: Main inlet temp with fractional (byte 118 bits 0-2)
+constexpr TempWithFracField mainOutletTemp(144, 3);  // TOP6: Main outlet temp with fractional (byte 118 bits 3-5)
+constexpr Int8Field z1WaterTemp(145);                // TOP36: Zone 1 water temp
+constexpr Int8Field z2WaterTemp(146);                // TOP37: Zone 2 water temp
+constexpr Int8Field z1WaterTargetTemp(147);          // TOP42: Zone 1 water target temp
+constexpr Int8Field z2WaterTargetTemp(148);          // TOP43: Zone 2 water target temp
+constexpr Int8Field bufferTemp(149);                 // TOP46: Buffer temp
+constexpr Int8Field solarTemp(150);                  // TOP47: Solar temp
+constexpr Int8Field poolTemp(151);                   // TOP48: Pool temp
+constexpr Int8Field mainTemperatureSet(152);         // Water shift set or direct mode value Temperature For Heat Mode
+constexpr Int8Field mainTargetTemp(153);             // TOP7: Main target temp
+constexpr Int8Field mainHexOutletTemp(154);          // TOP49: Main hex outlet temp
+constexpr Int8Field dischargeTemp(155);              // TOP50: Discharge temp
+constexpr Int8Field roomThermostatTemp(156);         // TOP33: Room thermostat temp
+constexpr Int8Field insidePipeTemp(157);             // TOP51: Inside pipe temp
+constexpr Int8Field outsidePipeTemp(158);            // TOP21: Outside pipe temp
+constexpr Int8Field defrostTemp(159);                // TOP52: Defrost temp
+constexpr Int8Field evaOutletTemp(160);              // TOP53: Eva outlet temp
+constexpr Int8Field bypassOutletTemp(161);           // TOP54: Bypass outlet temp
+constexpr Int8Field ipmTemp(162);                    // TOP55: IPM temp
 
 // Byte 163-166 - Pressure and compressor
-constexpr FloatField highPressure(163, 0, 8, -1, 1, 5);        // TOP64: High pressure (value-1)/5 kgf/cm²
-constexpr FloatField lowPressure(164, 0, 8, -1, 50, 1);        // TOP66: Low pressure (value-1)*50 kgf/cm²
-constexpr FloatField compressorCurrent(165, 0, 8, -1, 1, 5);   // TOP67: Compressor current (value-1)/5 Ampere
-constexpr Uint8Field compressorFreq(166);                      // TOP8: Compressor frequency (value-1)
+constexpr FloatField highPressure(163, 0, 8, -1, 1, 5);       // TOP64: High pressure (value-1)/5 kgf/cm²
+constexpr FloatField lowPressure(164, 0, 8, -1, 50, 1);       // TOP66: Low pressure (value-1)*50 kgf/cm²
+constexpr FloatField compressorCurrent(165, 0, 8, -1, 1, 5);  // TOP67: Compressor current (value-1)/5 Ampere
+constexpr Uint8Field compressorFreq(166);                     // TOP8: Compressor frequency (value-1)
 
 // Byte 169-170 - Pump flow (special 2-byte field)
-constexpr FloatField pumpFlow(169, 0, 16, -1, 1, 256);   // TOP1: Pump flow rate L/min (fractional byte 169, integer byte 170)
+constexpr FloatField pumpFlow(169, 0, 16, -1, 1, 256);  // TOP1: Pump flow rate L/min (fractional byte 169, integer byte 170)
 
 // Byte 171-178 - Motor and pump data
-constexpr FloatField pumpSpeed(171, 0, 8, -1, 50, 1);      // TOP65: Pump speed (value-1)*50 RPM
-constexpr Uint8Field pumpDuty(172);                        // TOP93: Pump duty (value-1)
-constexpr FloatField fan1MotorSpeed(173, 0, 8, -1, 10, 1); // TOP62: Fan1 motor speed (value-1)*10
-constexpr FloatField fan2MotorSpeed(174, 0, 8, -1, 10, 1); // TOP63: Fan2 motor speed (value-1)*10
-constexpr Uint8Field expansionValve(175);                    // TOP142: Expansion valve (value-1, Steps)
-constexpr FloatField z1ValvePid(177, 0, 8, -1, 1, 2);      // TOP127: Z1 valve PID (value-1)/2
-constexpr FloatField z2ValvePid(178, 0, 8, -1, 1, 2);      // TOP128: Z2 valve PID (value-1)/2
+constexpr FloatField pumpSpeed(171, 0, 8, -1, 50, 1);       // TOP65: Pump speed (value-1)*50 RPM
+constexpr Uint8Field pumpDuty(172);                         // TOP93: Pump duty (value-1)
+constexpr FloatField fan1MotorSpeed(173, 0, 8, -1, 10, 1);  // TOP62: Fan1 motor speed (value-1)*10
+constexpr FloatField fan2MotorSpeed(174, 0, 8, -1, 10, 1);  // TOP63: Fan2 motor speed (value-1)*10
+constexpr Uint8Field expansionValve(175);                   // TOP142: Expansion valve (value-1, Steps)
+constexpr FloatField z1ValvePid(177, 0, 8, -1, 1, 2);       // TOP127: Z1 valve PID (value-1)/2
+constexpr FloatField z2ValvePid(178, 0, 8, -1, 1, 2);       // TOP128: Z2 valve PID (value-1)/2
 
 // Byte 179-198 - Operations and power data
-constexpr Uint16Field operationsCounter(179);                   // TOP12: Operations counter (little-endian, value-1)
-constexpr Uint16Field operationsHours(182);                     // TOP11: Operations hours (little-endian, value-1)
-constexpr Uint16Field roomHeaterOperationsHours(185);           // TOP90: Room heater hours (little-endian, value-1)
-constexpr Uint16Field dhwHeaterOperationsHours(188);            // TOP91: DHW heater hours (little-endian, value-1)
-constexpr FloatField heatPowerConsumption(193, 0, 8, -1, 1, 5); // TOP16: Heat power consumption (value-1)/5 kW
-constexpr FloatField heatPowerProduction(194, 0, 8, -1, 1, 5);  // TOP15: Heat power production (value-1)/5 kW
-constexpr FloatField coolPowerConsumption(195, 0, 8, -1, 1, 5); // TOP38: Cool power consumption (value-1)/5 kW
-constexpr FloatField coolPowerProduction(196, 0, 8, -1, 1, 5);  // TOP39: Cool power production (value-1)/5 kW
-constexpr FloatField dhwPowerConsumption(197, 0, 8, -1, 1, 5);  // TOP40: DHW power consumption (value-1)/5 kW
-constexpr FloatField dhwPowerProduction(198, 0, 8, -1, 1, 5);   // TOP41: DHW power production (value-1)/5 kW
+constexpr Uint16Field operationsCounter(179);                    // TOP12: Operations counter (little-endian, value-1)
+constexpr Uint16Field operationsHours(182);                      // TOP11: Operations hours (little-endian, value-1)
+constexpr Uint16Field roomHeaterOperationsHours(185);            // TOP90: Room heater hours (little-endian, value-1)
+constexpr Uint16Field dhwHeaterOperationsHours(188);             // TOP91: DHW heater hours (little-endian, value-1)
+constexpr FloatField heatPowerConsumption(193, 0, 8, -1, 1, 5);  // TOP16: Heat power consumption (value-1)/5 kW
+constexpr FloatField heatPowerProduction(194, 0, 8, -1, 1, 5);   // TOP15: Heat power production (value-1)/5 kW
+constexpr FloatField coolPowerConsumption(195, 0, 8, -1, 1, 5);  // TOP38: Cool power consumption (value-1)/5 kW
+constexpr FloatField coolPowerProduction(196, 0, 8, -1, 1, 5);   // TOP39: Cool power production (value-1)/5 kW
+constexpr FloatField dhwPowerConsumption(197, 0, 8, -1, 1, 5);   // TOP40: DHW power consumption (value-1)/5 kW
+constexpr FloatField dhwPowerProduction(198, 0, 8, -1, 1, 5);    // TOP41: DHW power production (value-1)/5 kW
 
 } // namespace main
 } // namespace fields
