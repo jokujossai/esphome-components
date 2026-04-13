@@ -8,7 +8,7 @@ from .. import (
     CONF_FIELD,
     create_and_register_child,
 )
-from ..fields import get_field, lookup_field
+from ..fields import get_field_options, lookup_field
 
 PanasonicAquareaTextSensor = panasonic_aquarea_ns.class_(
     "PanasonicAquareaTextSensor", text_sensor.TextSensor
@@ -38,11 +38,8 @@ CONFIG_SCHEMA = cv.All(
 async def to_code(config):
     var = await create_and_register_child(config)
 
-    field = get_field(config[CONF_FIELD])
-    options_dict = field["options"]
-    options_list = [options_dict[k] for k in options_dict.keys()]
-    options_values = [k for k in options_dict.keys()]
+    options_labels, options_values = get_field_options(config)
 
     await text_sensor.register_text_sensor(var, config)
-    cg.add(var.set_options(options_list))
+    cg.add(var.set_options(options_labels))
     cg.add(var.set_options_values(options_values))

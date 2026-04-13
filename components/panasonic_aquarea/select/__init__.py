@@ -8,7 +8,7 @@ from .. import (
     CONF_FIELD,
     create_and_register_child,
 )
-from ..fields import get_field, lookup_field
+from ..fields import get_field_options, lookup_field
 
 PanasonicAquareaSelect = panasonic_aquarea_ns.class_(
     "PanasonicAquareaSelect", select.Select
@@ -38,10 +38,7 @@ CONFIG_SCHEMA = cv.All(
 async def to_code(config):
     var = await create_and_register_child(config)
 
-    field = get_field(config[CONF_FIELD])
-    options_dict = field["options"]
-    options_list = [options_dict[k] for k in options_dict.keys()]
-    options_values = [k for k in options_dict.keys()]
+    options_labels, options_values = get_field_options(config)
 
-    await select.register_select(var, config, options=options_list)
+    await select.register_select(var, config, options=options_labels)
     cg.add(var.set_options_values(options_values))

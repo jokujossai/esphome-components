@@ -1,3 +1,34 @@
+import esphome.config_validation as cv
+
+
+def get_field(field_name):
+    """Get field metadata by name."""
+    if field_name not in FIELD_REGISTRY:
+        raise ValueError(f"Unknown field: {field_name}")
+    return FIELD_REGISTRY[field_name]
+
+
+def lookup_field(value):
+    """Look up field from config value and set default name. Returns (field, value)."""
+    if "field" not in value:
+        raise cv.Invalid("'field' is required")
+
+    field = get_field(value["field"])
+
+    if "name" not in value and "id" not in value:
+        value["name"] = field["name"]
+
+    return field, value
+
+
+def get_field_options(config):
+    """Get options labels and values from a field config. Returns (labels, values)."""
+    options_dict = get_field(config["field"])["options"]
+    labels = list(options_dict.values())
+    values = list(options_dict.keys())
+    return labels, values
+
+
 # Field definitions for Panasonic Aquarea
 # Maps field names to their protocol and default display name
 
@@ -1633,25 +1664,3 @@ FIELD_REGISTRY = {
         "accuracy_decimals": 0,
     },
 }
-
-
-def get_field(field_name):
-    """Get field metadata by name."""
-    if field_name not in FIELD_REGISTRY:
-        raise ValueError(f"Unknown field: {field_name}")
-    return FIELD_REGISTRY[field_name]
-
-
-def lookup_field(value):
-    """Look up field from config value and set default name. Returns (field, value)."""
-    import esphome.config_validation as cv
-
-    if "field" not in value:
-        raise cv.Invalid("'field' is required")
-
-    field = get_field(value["field"])
-
-    if "name" not in value and "id" not in value:
-        value["name"] = field["name"]
-
-    return field, value
