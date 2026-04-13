@@ -31,11 +31,14 @@ void PanasonicAquareaComponent::loop() {
   this->data_source_->loop();
 
   // Send protocol data if not in listen-only mode
-  if (!this->listen_only_) {
+  // Only one protocol can send per loop — 1s minimum gap between outgoing packets
+  if (!this->listen_only_ && millis() >= this->can_send_after_) {
     for (auto protocol : this->protocols_) {
       if (protocol->should_send()) {
         ESP_LOGD(TAG, "Sending protocol: %s", protocol->get_topic().c_str());
         protocol->send(this->data_source_);
+        this->can_send_after_ = millis() + MIN_SEND_INTERVAL;
+        break;
       }
     }
   }

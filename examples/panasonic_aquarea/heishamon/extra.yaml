@@ -1,0 +1,30 @@
+# Extra data block sensors (K/L series and newer models)
+panasonic_aquarea:
+  - id: !extend ${panasonic_aquarea_id}
+    protocols: [main, main_request, extra]
+
+sensor:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: extraHeatPowerConsumption
+    name: "XTOP0 Heat_Power_Consumption_Extra"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: extraCoolPowerConsumption
+    name: "XTOP1 Cool_Power_Consumption_Extra"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: extraDhwPowerConsumption
+    name: "XTOP2 DHW_Power_Consumption_Extra"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: extraHeatPowerProduction
+    name: "XTOP3 Heat_Power_Production_Extra"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: extraCoolPowerProduction
+    name: "XTOP4 Cool_Power_Production_Extra"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: extraDhwPowerProduction
+    name: "XTOP5 DHW_Power_Production_Extra"

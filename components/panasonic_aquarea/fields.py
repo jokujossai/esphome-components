@@ -1572,6 +1572,71 @@ FIELD_REGISTRY = {
         "device_class": "power",
         "accuracy_decimals": 1,
     },
+    # Byte 199 - Extra data block support
+    "extraDataBlockSupport": {
+        "protocol": "main",
+        "name": "Extra Data Block Support",
+        "type": "sensor",
+        "state_class": "measurement",
+        "accuracy_decimals": 0,
+    },
+
+    # Extra protocol fields (0x21 data block, K/L series and newer)
+    # All values are in Watts (uint16_t little-endian)
+    "extraHeatPowerConsumption": {
+        "protocol": "extra",
+        "name": "Heat Power Consumption (Extra)",
+        "type": "sensor",
+        "unit_of_measurement": "W",
+        "state_class": "measurement",
+        "device_class": "power",
+        "accuracy_decimals": 0,
+    },
+    "extraCoolPowerConsumption": {
+        "protocol": "extra",
+        "name": "Cool Power Consumption (Extra)",
+        "type": "sensor",
+        "unit_of_measurement": "W",
+        "state_class": "measurement",
+        "device_class": "power",
+        "accuracy_decimals": 0,
+    },
+    "extraDhwPowerConsumption": {
+        "protocol": "extra",
+        "name": "DHW Power Consumption (Extra)",
+        "type": "sensor",
+        "unit_of_measurement": "W",
+        "state_class": "measurement",
+        "device_class": "power",
+        "accuracy_decimals": 0,
+    },
+    "extraHeatPowerProduction": {
+        "protocol": "extra",
+        "name": "Heat Power Production (Extra)",
+        "type": "sensor",
+        "unit_of_measurement": "W",
+        "state_class": "measurement",
+        "device_class": "power",
+        "accuracy_decimals": 0,
+    },
+    "extraCoolPowerProduction": {
+        "protocol": "extra",
+        "name": "Cool Power Production (Extra)",
+        "type": "sensor",
+        "unit_of_measurement": "W",
+        "state_class": "measurement",
+        "device_class": "power",
+        "accuracy_decimals": 0,
+    },
+    "extraDhwPowerProduction": {
+        "protocol": "extra",
+        "name": "DHW Power Production (Extra)",
+        "type": "sensor",
+        "unit_of_measurement": "W",
+        "state_class": "measurement",
+        "device_class": "power",
+        "accuracy_decimals": 0,
+    },
 
     # Optional PCB protocol fields
     # Read-only status fields (response packet 0x71/0x11/0x50)

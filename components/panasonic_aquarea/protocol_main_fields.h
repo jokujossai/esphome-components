@@ -230,6 +230,9 @@ constexpr FloatField coolPowerProduction(196, 0, 8, -1, 1, 5);   // TOP39: Cool 
 constexpr FloatField dhwPowerConsumption(197, 0, 8, -1, 1, 5);   // TOP40: DHW power consumption (value-1)/5 kW
 constexpr FloatField dhwPowerProduction(198, 0, 8, -1, 1, 5);    // TOP41: DHW power production (value-1)/5 kW
 
+// Byte 199 - Extra data block support indicator
+constexpr Uint8Field extraDataBlockSupport(199);  // >= 3 means extra query (0x21) is supported (K/L series)
+
 } // namespace main
 } // namespace fields
 } // namespace panasonic_aquarea

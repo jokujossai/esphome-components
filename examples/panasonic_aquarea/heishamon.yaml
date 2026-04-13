@@ -28,6 +28,8 @@ packages:
   optional_solar: !include heishamon/optional_solar.yaml
   optional_buffer: !include heishamon/optional_buffer.yaml
   optional_external: !include heishamon/optional_external.yaml
+  # (Optional) Enable extra protocol fields (K/L series and newer models)
+  #extra: !include heishamon/extra.yaml
   # (Optional) Enable 1-Wire bus
   #one_wire: !include heishamon/one_wire.yaml
   # (Optional) Add 1-Wire sensor/sensors

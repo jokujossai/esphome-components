@@ -12,23 +12,12 @@ namespace extra {
 // Based on HeishaMon xtopicBytes[] array and ProtocolByteDecrypt-extra.md
 
 // All fields are little-endian uint16_t values in Watts
-// XTOP0 - Byte 14-15 - Heat power consumption
-constexpr Uint16Field heatPowerConsumption(14);
-
-// XTOP1 - Byte 16-17 - Cool power consumption
-constexpr Uint16Field coolPowerConsumption(16);
-
-// XTOP2 - Byte 18-19 - DHW power consumption
-constexpr Uint16Field dhwPowerConsumption(18);
-
-// XTOP3 - Byte 20-21 - Heat power production
-constexpr Uint16Field heatPowerProduction(20);
-
-// XTOP4 - Byte 22-23 - Cool power production
-constexpr Uint16Field coolPowerProduction(22);
-
-// XTOP5 - Byte 24-25 - DHW power production
-constexpr Uint16Field dhwPowerProduction(24);
+constexpr Uint16Field extraHeatPowerConsumption(14);  // XTOP0 - Byte 14-15
+constexpr Uint16Field extraCoolPowerConsumption(16);  // XTOP1 - Byte 16-17
+constexpr Uint16Field extraDhwPowerConsumption(18);   // XTOP2 - Byte 18-19
+constexpr Uint16Field extraHeatPowerProduction(20);   // XTOP3 - Byte 20-21
+constexpr Uint16Field extraCoolPowerProduction(22);   // XTOP4 - Byte 22-23
+constexpr Uint16Field extraDhwPowerProduction(24);    // XTOP5 - Byte 24-25
 
 } // namespace extra
 } // namespace fields

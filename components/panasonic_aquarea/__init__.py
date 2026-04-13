@@ -72,6 +72,9 @@ PanasonicAquareaProtocolOptional = panasonic_aquarea_ns.class_(
 PanasonicAquareaProtocolMainRequest = panasonic_aquarea_ns.class_(
   "PanasonicAquareaProtocolMainRequest", PanasonicAquareaProtocol
 )
+PanasonicAquareaProtocolExtra = panasonic_aquarea_ns.class_(
+  "PanasonicAquareaProtocolExtra", PanasonicAquareaProtocol
+)
 
 PROTOCOL_REGISTRY = Registry()
 validate_protocols = cv.validate_registry("protocol", PROTOCOL_REGISTRY)
@@ -108,6 +111,14 @@ async def optional_protocol_to_code(config, protocol_id):
   cv.Optional(CONF_QUERY_INTERVAL, default="5s"): cv.positive_time_period_milliseconds,
 })
 async def main_request_protocol_to_code(config, protocol_id):
+  var = cg.new_Pvariable(protocol_id)
+  cg.add(var.set_query_interval(config[CONF_QUERY_INTERVAL]))
+  return var
+
+@PROTOCOL_REGISTRY.register("extra", PanasonicAquareaProtocolExtra, {
+  cv.Optional(CONF_QUERY_INTERVAL, default="5s"): cv.positive_time_period_milliseconds,
+})
+async def extra_protocol_to_code(config, protocol_id):
   var = cg.new_Pvariable(protocol_id)
   cg.add(var.set_query_interval(config[CONF_QUERY_INTERVAL]))
   return var
