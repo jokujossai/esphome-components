@@ -23,8 +23,24 @@ public:
     "PanasonicAquareaSelect only supports Uint8Field and Uint16Field"
   );
 
-  void set_options(const std::vector<std::string> &options) { options_ = options; }
-  void set_options_values(const std::vector<value_type> &options_values) { options_values_ = options_values; }
+  void set_options(const std::vector<std::string> &options) {
+    if constexpr (std::is_same_v<field_type, fields::Uint8Field>) {
+      static_assert(
+        field.bit_width <= 8,
+        "Options is not supported for multibyte text sensor"
+      );
+    }
+    options_ = options;
+  }
+  void set_options_values(const std::vector<value_type> &options_values) {
+    if constexpr (std::is_same_v<field_type, fields::Uint8Field>) {
+      static_assert(
+        field.bit_width <= 8,
+        "Options is not supported for multibyte text sensor"
+      );
+    }
+    options_values_ = options_values;
+  }
 
   void update_from_packet(const std::vector<uint8_t>& data) override {
     ESP_LOGV("panasonic_aquarea.text_sensor", "Updating from packet for field %s", this->get_name().c_str());
@@ -33,6 +49,36 @@ public:
     if (!valid) {
       ESP_LOGE("panasonic_aquarea.text_sensor", "Invalid value for field %s: (uninitialized)", this->get_name().c_str());
       return;
+    }
+
+    using value_type = decltype(fields::getField<field>(std::declval<const std::vector<uint8_t>&>(), std::declval<bool&>()));
+
+    if constexpr (std::is_same_v<field_type, fields::Uint8Field>) {
+      if constexpr (field.bit_width > 8) {
+        this->update_from_packet_hex(value);
+      }
+      else {
+        this->update_from_packet_options<value_type>(value);
+      }
+    }
+    else {
+      this->update_from_packet_options<value_type>(value);
+    }
+  }
+
+protected:
+  Deduplicator<value_type> dedup_;
+  std::vector<std::string> options_;
+  std::vector<value_type> options_values_;
+
+private:
+  template<typename T>
+  __attribute__((always_inline)) inline void update_from_packet_options(T value) {
+    if constexpr (std::is_same_v<field_type, fields::Uint8Field>) {
+      static_assert(
+        field.bit_width <= 8,
+        "Options is not supported for multibyte text sensor"
+      );
     }
 
     // Resolve option string from value
@@ -77,10 +123,39 @@ public:
     }
   }
 
-protected:
-  Deduplicator<value_type> dedup_;
-  std::vector<std::string> options_;
-  std::vector<value_type> options_values_;
+  __attribute__((always_inline)) inline void update_from_packet_hex(const std::vector<uint8_t>& value) {
+    static_assert(
+      std::is_same_v<field_type, fields::Uint8Field>,
+      "Multi-byte field should be Uint8Field"
+    );
+    if constexpr (std::is_same_v<field_type, fields::Uint8Field>) {
+      static_assert(
+        field.bit_width > 8,
+        "Multi-byte field should be multiple bytes"
+      );
+      static_assert(
+        field.bit_width % 8 == 0,
+        "Multi-byte field can't have partial bytes"
+      );
+    }
+
+    // Format as "XX XX XX ..."
+    std::string hex;
+    hex.reserve(value.size() * 3);
+    for (size_t i = 0; i < value.size(); i++) {
+      if (i > 0) hex += ' ';
+      char buf[3];
+      snprintf(buf, sizeof(buf), "%02X", value[i]);
+      hex += buf;
+    }
+
+    if(this->state != hex || this->publish_interval_expired()) {
+      ESP_LOGV("panasonic_aquarea.text_sensor", "Publishing state for field %s: %s", this->get_name().c_str(), hex.c_str());
+
+      this->publish_state(hex);
+      this->mark_published();
+    }
+  }
 };
 
 } // namespace panasonic_aquarea

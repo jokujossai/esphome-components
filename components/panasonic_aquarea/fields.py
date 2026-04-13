@@ -23,7 +23,15 @@ def lookup_field(value):
 
 def get_field_options(config):
     """Get options labels and values from a field config. Returns (labels, values)."""
-    options_dict = get_field(config["field"])["options"]
+    if "field" not in config:
+        raise cv.Invalid("'field' is required")
+
+    field = get_field(config["field"])
+
+    if "options" not in field:
+        raise cv.Invalid("'options' is required")
+
+    options_dict = field["options"]
     labels = list(options_dict.values())
     values = list(options_dict.keys())
     return labels, values
@@ -1148,7 +1156,12 @@ FIELD_REGISTRY = {
         "device_class": "temperature",
         "accuracy_decimals": 0,
     },
-    # Byte 129-138 TODO: heatPumpModel
+    # Byte 129-138 - Heat pump model (TOP92)
+    "heatPumpModel": {
+        "protocol": "main",
+        "name": "Heat Pump Model",
+        "type": "text_sensor",
+    },
     # Byte 139-162
     "z1Temp": {
         "protocol": "main",

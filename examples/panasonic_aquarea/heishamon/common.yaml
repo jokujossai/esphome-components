@@ -402,6 +402,10 @@ text_sensor:
     name: "044 Error"
   - platform: panasonic_aquarea
     panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: heatPumpModel
+    name: "092 Heat_Pump_Model"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
     field: zonesState
     name: "094 Zones_State"
   - platform: panasonic_aquarea
