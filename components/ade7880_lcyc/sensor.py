@@ -56,6 +56,60 @@ CONF_FAILURE_THRESHOLD = "failure_threshold"
 
 CONF_NEUTRAL = "neutral"
 
+# Default sensor name suffixes, keyed by CONF_* constant.
+# When a sensor is listed without a name (e.g. `voltage:` with no value),
+# the phase display name is prepended automatically, e.g. "Phase A Voltage".
+_POWER_SENSOR_DEFAULTS = {
+    CONF_VOLTAGE: "Voltage",
+    CONF_CURRENT: "Current",
+    CONF_ACTIVE_POWER: "Active Power",
+    CONF_APPARENT_POWER: "Apparent Power",
+    CONF_REACTIVE_POWER: "Reactive Power",
+    CONF_POWER_FACTOR: "Power Factor",
+    CONF_FREQUENCY: "Frequency",
+    CONF_FORWARD_ACTIVE_ENERGY: "Forward Energy",
+    CONF_REVERSE_ACTIVE_ENERGY: "Reverse Energy",
+}
+
+_PHASE_DISPLAY_NAMES = {
+    CONF_PHASE_A: "Phase A",
+    CONF_PHASE_B: "Phase B",
+    CONF_PHASE_C: "Phase C",
+}
+
+
+def _fill_default_names(config):
+    """Pre-process the raw config dict to fill in default sensor names before
+    sensor schemas run their entity-uniqueness check.
+
+    A sensor entry left as null (e.g. ``voltage:`` with no value) or as a dict
+    without a ``name`` key gets a name generated from the phase display name and
+    the sensor type, e.g. "Phase A Voltage".
+    """
+    for phase_key, phase_display in _PHASE_DISPLAY_NAMES.items():
+        phase = config.get(phase_key)
+        if not isinstance(phase, dict):
+            continue
+        for sensor_key, sensor_suffix in _POWER_SENSOR_DEFAULTS.items():
+            if sensor_key not in phase:
+                continue
+            sensor_val = phase[sensor_key]
+            if sensor_val is None:
+                phase[sensor_key] = {CONF_NAME: f"{phase_display} {sensor_suffix}"}
+            elif isinstance(sensor_val, dict) and CONF_NAME not in sensor_val:
+                sensor_val[CONF_NAME] = f"{phase_display} {sensor_suffix}"
+
+    neutral = config.get(CONF_NEUTRAL)
+    if isinstance(neutral, dict):
+        current_val = neutral.get(CONF_CURRENT)
+        if current_val is None:
+            neutral[CONF_CURRENT] = {CONF_NAME: "Neutral Current"}
+        elif isinstance(current_val, dict) and CONF_NAME not in current_val:
+            current_val[CONF_NAME] = "Neutral Current"
+
+    return config
+
+
 NEUTRAL_CHANNEL_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(NeutralChannel),
@@ -143,7 +197,6 @@ POWER_CHANNEL_SCHEMA = cv.Schema(
             ),
             key=CONF_NAME,
         ),
-
         cv.Optional(CONF_FORWARD_ACTIVE_ENERGY): cv.maybe_simple_value(
             sensor.sensor_schema(
                 unit_of_measurement=UNIT_WATT_HOURS,
@@ -162,7 +215,6 @@ POWER_CHANNEL_SCHEMA = cv.Schema(
             ),
             key=CONF_NAME,
         ),
-
         cv.Required(CONF_CALIBRATION): cv.Schema(
             {
                 cv.Required(CONF_VOLTAGE_GAIN): cv.int_,
@@ -175,7 +227,8 @@ POWER_CHANNEL_SCHEMA = cv.Schema(
     }
 )
 
-CONFIG_SCHEMA = (
+CONFIG_SCHEMA = cv.All(
+    _fill_default_names,
     cv.Schema(
         {
             cv.GenerateID(): cv.declare_id(ADE7880),
@@ -194,8 +247,49 @@ CONFIG_SCHEMA = (
         }
     )
     .extend(cv.polling_component_schema("60s"))
-    .extend(i2c.i2c_device_schema(0x38))
+    .extend(i2c.i2c_device_schema(0x38)),
 )
+
+
+def final_validate(config):
+    for channel in (CONF_PHASE_A, CONF_PHASE_B, CONF_PHASE_C):
+        if channel := config.get(channel):
+            channel_name = channel.get(CONF_NAME)
+            if not channel_name:
+                continue
+
+            for sensor_type in (
+                CONF_CURRENT,
+                CONF_VOLTAGE,
+                CONF_ACTIVE_POWER,
+                CONF_APPARENT_POWER,
+                CONF_REACTIVE_POWER,
+                CONF_POWER_FACTOR,
+                CONF_FREQUENCY,
+                CONF_FORWARD_ACTIVE_ENERGY,
+                CONF_REVERSE_ACTIVE_ENERGY,
+            ):
+                if conf := channel.get(sensor_type):
+                    sensor_name = conf.get(CONF_NAME)
+                    if (
+                        sensor_name
+                        and not sensor_name.startswith(channel_name)
+                    ):
+                        conf[CONF_NAME] = f"{channel_name} {sensor_name}"
+
+    if channel := config.get(CONF_NEUTRAL):
+        channel_name = channel.get(CONF_NAME)
+        if conf := channel.get(CONF_CURRENT):
+            sensor_name = conf.get(CONF_NAME)
+            if (
+                sensor_name
+                and channel_name
+                and not sensor_name.startswith(channel_name)
+            ):
+                conf[CONF_NAME] = f"{channel_name} {sensor_name}"
+
+
+FINAL_VALIDATE_SCHEMA = final_validate
 
 
 async def neutral_channel(config):
@@ -246,47 +340,6 @@ async def power_channel(config):
     return var
 
 
-def final_validate(config):
-    for channel in (CONF_PHASE_A, CONF_PHASE_B, CONF_PHASE_C):
-        if channel := config.get(channel):
-            channel_name = channel.get(CONF_NAME)
-            if not channel_name:
-                continue
-
-            for sensor_type in (
-                CONF_CURRENT,
-                CONF_VOLTAGE,
-                CONF_ACTIVE_POWER,
-                CONF_APPARENT_POWER,
-                CONF_REACTIVE_POWER,
-                CONF_POWER_FACTOR,
-                CONF_FREQUENCY,
-                CONF_FORWARD_ACTIVE_ENERGY,
-                CONF_REVERSE_ACTIVE_ENERGY,
-            ):
-                if conf := channel.get(sensor_type):
-                    sensor_name = conf.get(CONF_NAME)
-                    if (
-                        sensor_name
-                        and not sensor_name.startswith(channel_name)
-                    ):
-                        conf[CONF_NAME] = f"{channel_name} {sensor_name}"
-
-    if channel := config.get(CONF_NEUTRAL):
-        channel_name = channel.get(CONF_NAME)
-        if conf := channel.get(CONF_CURRENT):
-            sensor_name = conf.get(CONF_NAME)
-            if (
-                sensor_name
-                and channel_name
-                and not sensor_name.startswith(channel_name)
-            ):
-                conf[CONF_NAME] = f"{channel_name} {sensor_name}"
-
-
-FINAL_VALIDATE_SCHEMA = final_validate
-
-
 async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
@@ -311,7 +364,7 @@ async def to_code(config):
     for channel_name in (CONF_PHASE_A, CONF_PHASE_B, CONF_PHASE_C):
         if channel := config.get(channel_name):
             channel_var = await power_channel(channel)
-            cg.add(getattr(var, f"set_{channel_name.replace("phase_", "channel_")}")(channel_var))
+            cg.add(getattr(var, f"set_{channel_name.replace('phase_', 'channel_')}")(channel_var))
 
     if channel := config.get(CONF_NEUTRAL):
         channel_var = await neutral_channel(channel)

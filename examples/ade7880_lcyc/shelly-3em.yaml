@@ -1,0 +1,154 @@
+## Calibration data extraction
+##
+## Before flashing ESPHome, read the factory calibration from the stock firmware:
+##
+##   curl http://<shelly-ip>/calib.dat
+##
+## The response is a JSON object. Map its fields to the substitutions below:
+##
+##   rms.ua  → phase_a_voltage_gain      rms.ub  → phase_b_voltage_gain      rms.uc  → phase_c_voltage_gain
+##   rms.ia  → phase_a_current_gain      rms.ib  → phase_b_current_gain      rms.ic  → phase_c_current_gain
+##   rms.in  → neutral_current_gain
+##
+##   totactive.pa → phase_a_power_gain   totactive.pb → phase_b_power_gain   totactive.pc → phase_c_power_gain
+##
+##   angles.phaseA → phase_a_phase_angle
+##   angles.phaseB → phase_b_phase_angle
+##   angles.phaseC → phase_c_phase_angle
+##
+## total_power_gain is not present in calib.dat; leave it at 0.
+##
+## Example calib.dat response:
+##   {"rms":{"ia":3150937,"ib":3150937,"ic":3150937,"in":3112609,
+##            "ua":1233931,"ub":1233931,"uc":1233931},
+##    "angles":{"phaseA":0,"phaseB":0,"phaseC":0},
+##    "totactive":{"pa":3736089,"pb":3736089,"pc":3736089}}
+
+substitutions:
+  device_name: shelly-3em
+  friendly_name: Shelly 3EM
+
+  # Phase A calibration (calib.dat: rms.ua, rms.ia, totactive.pa, angles.phaseA)
+  phase_a_voltage_gain: "0"
+  phase_a_current_gain: "0"
+  phase_a_power_gain: "0"
+  phase_a_phase_angle: "0"
+  phase_a_total_power_gain: "0"
+
+  # Phase B calibration (calib.dat: rms.ub, rms.ib, totactive.pb, angles.phaseB)
+  phase_b_voltage_gain: "0"
+  phase_b_current_gain: "0"
+  phase_b_power_gain: "0"
+  phase_b_phase_angle: "0"
+  phase_b_total_power_gain: "0"
+
+  # Phase C calibration (calib.dat: rms.uc, rms.ic, totactive.pc, angles.phaseC)
+  phase_c_voltage_gain: "0"
+  phase_c_current_gain: "0"
+  phase_c_power_gain: "0"
+  phase_c_phase_angle: "0"
+  phase_c_total_power_gain: "0"
+
+  # Neutral calibration (calib.dat: rms.in)
+  neutral_current_gain: "0"
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+
+esp8266:
+  board: esp01_1m
+
+external_components:
+  - source:
+      type: local
+      path: ../../components
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: ${device_name}
+    password: !secret ap_password
+
+captive_portal:
+
+api:
+  encryption:
+    key: !secret api_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+logger:
+
+i2c:
+  sda: GPIO12
+  scl: GPIO14
+  frequency: 200kHz
+
+ade7880_lcyc:
+  id: energy_meter
+  frequency: 50Hz
+  irq0_pin: GPIO13
+  irq1_pin: GPIO5
+  reset_pin: GPIO16
+  watchdog_threshold: 5s
+  failure_threshold: 5
+
+  phase_a:
+    voltage:
+    current:
+    active_power:
+    apparent_power:
+    reactive_power:
+    power_factor:
+    frequency:
+    forward_active_energy:
+    reverse_active_energy:
+    calibration:
+      voltage_gain: ${phase_a_voltage_gain}
+      current_gain: ${phase_a_current_gain}
+      power_gain: ${phase_a_power_gain}
+      phase_angle: ${phase_a_phase_angle}
+      total_power_gain: ${phase_a_total_power_gain}
+
+  phase_b:
+    voltage:
+    current:
+    active_power:
+    apparent_power:
+    reactive_power:
+    power_factor:
+    frequency:
+    forward_active_energy:
+    reverse_active_energy:
+    calibration:
+      voltage_gain: ${phase_b_voltage_gain}
+      current_gain: ${phase_b_current_gain}
+      power_gain: ${phase_b_power_gain}
+      phase_angle: ${phase_b_phase_angle}
+      total_power_gain: ${phase_b_total_power_gain}
+
+  phase_c:
+    voltage:
+    current:
+    active_power:
+    apparent_power:
+    reactive_power:
+    power_factor:
+    frequency:
+    forward_active_energy:
+    reverse_active_energy:
+    calibration:
+      voltage_gain: ${phase_c_voltage_gain}
+      current_gain: ${phase_c_current_gain}
+      power_gain: ${phase_c_power_gain}
+      phase_angle: ${phase_c_phase_angle}
+      total_power_gain: ${phase_c_total_power_gain}
+
+  neutral:
+    current:
+    calibration:
+      current_gain: ${neutral_current_gain}
