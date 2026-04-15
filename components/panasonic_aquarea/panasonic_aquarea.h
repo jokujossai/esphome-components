@@ -37,7 +37,7 @@ private:
   bool listen_only_{false};
   PanasonicAquareaDataSource *data_source_{nullptr};
   std::vector<PanasonicProtocolInterface*> protocols_;
-  uint32_t can_send_after_{0};
+  uint32_t last_send_{0};
   static constexpr uint32_t MIN_SEND_INTERVAL{1000};
 
   CallbackManager<void(const std::vector<uint8_t>&)> on_packet_send_callback_;

@@ -107,7 +107,7 @@ protected:
 
   std::vector<uint8_t> write_data_;
   bool should_send_{false};
-  uint32_t next_send_{0};
+  uint32_t last_send_{0};
   uint32_t send_interval_{3000};
   bool reset_buffer_after_send_{true};
 };
@@ -121,7 +121,7 @@ class ProtocolWriteMixin {
 
 public:
   bool do_should_send() const {
-    return self()->should_send_ && millis() >= self()->next_send_;
+    return self()->should_send_ && millis() - self()->last_send_ >= self()->send_interval_;
   }
 
   bool do_modify(const ProtocolModifyFn &fn) {
@@ -137,7 +137,7 @@ public:
     self()->compute_crc(self()->write_data_);
     data_source->write_array(self()->write_data_);
     self()->should_send_ = false;
-    self()->next_send_ = millis() + self()->send_interval_;
+    self()->last_send_ = millis();
     if (self()->reset_buffer_after_send_) {
       self()->init_write_buffer_();
     }

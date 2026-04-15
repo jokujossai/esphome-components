@@ -21,17 +21,17 @@ public:
 
 protected:
   bool publish_interval_expired() const {
-    return millis() >= next_publish_;
+    return millis() - last_publish_ >= publish_interval_;
   }
 
   void mark_published() {
-    next_publish_ = millis() + publish_interval_;
+    last_publish_ = millis();
   }
 
   PanasonicAquareaComponent *parent_{nullptr};
   PanasonicProtocolInterface *protocol_{nullptr};
   uint32_t publish_interval_{DEFAULT_PUBLISH_INTERVAL};
-  uint32_t next_publish_{0};
+  uint32_t last_publish_{0};
 };
 
 
