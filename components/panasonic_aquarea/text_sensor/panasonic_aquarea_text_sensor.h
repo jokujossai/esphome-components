@@ -91,7 +91,7 @@ private:
       if (index < options_.size()) {
         resolved = &options_[index];
       } else {
-        ESP_LOGE("panasonic_aquarea.text_sensor", "Invalid index for field %s: %d", this->get_name().c_str(), index);
+        ESP_LOGE("panasonic_aquarea.text_sensor", "Invalid index for field %s: %td", this->get_name().c_str(), index);
         return;
       }
     }
