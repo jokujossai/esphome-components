@@ -15,8 +15,8 @@ void PanasonicAquareaZoneClimate::setup() {
 void PanasonicAquareaZoneClimate::dump_config() {
   ESP_LOGCONFIG(TAG, "Panasonic Aquarea Zone %d Climate:", this->zone_);
   ESP_LOGCONFIG(TAG, "  Heating Mode: %s",
-    heating_mode_ == 0 ? "Compensation Curve" :
-    heating_mode_ == 1 ? "Direct" : "Unknown");
+    heating_mode_ == HEATING_MODE_CURVE ? "Compensation Curve" :
+    heating_mode_ == HEATING_MODE_DIRECT ? "Direct" : "Unknown");
   ESP_LOGCONFIG(TAG, "  Climate Mode: %s",
     this->mode == climate::CLIMATE_MODE_HEAT ? "Heat" :
     this->mode == climate::CLIMATE_MODE_COOL ? "Cool" :
@@ -33,11 +33,11 @@ climate::ClimateTraits PanasonicAquareaZoneClimate::traits() {
   // Direct mode limits depend on model (WH-UD: 20-55, WH-UH: 25-65 or 35-65,
   // WH-UX/UQ: 20-60). Using outer bounds 20-65 to cover all models.
   // Compensation curve mode is always -5 to +5.
-  if (heating_mode_ == 1) { // Direct mode
+  if (heating_mode_ == HEATING_MODE_DIRECT) { // Direct mode
     traits.set_visual_min_temperature(20.0f);
     traits.set_visual_max_temperature(65.0f);
     traits.set_visual_temperature_step(1.0f);
-  } else if (heating_mode_ == 0) { // Compensation curve mode
+  } else if (heating_mode_ == HEATING_MODE_CURVE) { // Compensation curve mode
     traits.set_visual_min_temperature(-5.0f);
     traits.set_visual_max_temperature(5.0f);
     traits.set_visual_temperature_step(1.0f);
@@ -74,9 +74,9 @@ void PanasonicAquareaZoneClimate::control(const climate::ClimateCall &call) {
 
     // Clamp target temperature to valid range based on heating mode.
     // Outer bounds per mode — actual limits vary by model.
-    if (heating_mode_ == 1) { // Direct mode
+    if (heating_mode_ == HEATING_MODE_DIRECT) { // Direct mode
       target = clamp(target, 20.0f, 65.0f);
-    } else if (heating_mode_ == 0) { // Compensation curve mode
+    } else if (heating_mode_ == HEATING_MODE_CURVE) { // Compensation curve mode
       target = clamp(target, -5.0f, 5.0f);
     }
 
@@ -117,8 +117,8 @@ void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>&
     this->heating_mode_ = new_heating_mode;
     changed = true;
     ESP_LOGD(TAG, "Zone %d heating mode changed to: %s", zone_,
-      heating_mode_ == 0 ? "Compensation Curve" :
-      heating_mode_ == 1 ? "Direct" : "Unknown");
+      heating_mode_ == HEATING_MODE_CURVE ? "Compensation Curve" :
+      heating_mode_ == HEATING_MODE_DIRECT ? "Direct" : "Unknown");
   }
 
   // Read operating mode state (1=Heat, 2=Cool, 8=Auto(Heat), 9=Auto(Cool))

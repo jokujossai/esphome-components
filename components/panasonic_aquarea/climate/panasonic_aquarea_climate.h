@@ -27,9 +27,12 @@ class PanasonicAquareaZoneClimate : public climate::Climate, public Component, p
  protected:
   uint8_t zone_{1};  // Zone number (1 or 2)
 
-  // Current heating mode (0=Compensation Curve, 1=Direct, 0xFF=unknown until first valid packet)
-  // Matches getField<heatingMode> which returns raw-1: raw 0b01 -> 0, raw 0b10 -> 1.
-  uint8_t heating_mode_{0xFF};
+  // Heating mode values from getField<heatingMode> (raw-1: raw 0b01 -> 0, raw 0b10 -> 1)
+  static constexpr uint8_t HEATING_MODE_CURVE = 0;    // Compensation curve
+  static constexpr uint8_t HEATING_MODE_DIRECT = 1;   // Direct temperature
+  static constexpr uint8_t HEATING_MODE_UNKNOWN = 0xFF;
+
+  uint8_t heating_mode_{HEATING_MODE_UNKNOWN};
 };
 
 } // namespace panasonic_aquarea
