@@ -54,10 +54,10 @@ climate::ClimateTraits PanasonicAquareaZoneClimate::traits() {
   switch (this->mode) {
     case climate::CLIMATE_MODE_AUTO:
       traits.add_supported_mode(climate::CLIMATE_MODE_AUTO);
-      // fallthrough
+      [[fallthrough]];
     case climate::CLIMATE_MODE_COOL:
       traits.add_supported_mode(climate::CLIMATE_MODE_COOL);
-      // fallthrough
+      [[fallthrough]];
     case climate::CLIMATE_MODE_HEAT:
       traits.add_supported_mode(climate::CLIMATE_MODE_HEAT);
       break;
