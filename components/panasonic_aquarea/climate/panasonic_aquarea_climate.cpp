@@ -29,19 +29,22 @@ climate::ClimateTraits PanasonicAquareaZoneClimate::traits() {
   // Always support these modes
   traits.add_feature_flags(climate::CLIMATE_SUPPORTS_CURRENT_TEMPERATURE);
 
-  // Set temperature ranges based on heating mode
+  // Set temperature ranges based on heating mode.
+  // Direct mode limits depend on model (WH-UD: 20-55, WH-UH: 25-65 or 35-65,
+  // WH-UX/UQ: 20-60). Using outer bounds 20-65 to cover all models.
+  // Compensation curve mode is always -5 to +5.
   if (heating_mode_ == 1) { // Direct mode
-    traits.set_visual_min_temperature(15.0f);
-    traits.set_visual_max_temperature(55.0f);
-    traits.set_visual_temperature_step(0.5f);
+    traits.set_visual_min_temperature(20.0f);
+    traits.set_visual_max_temperature(65.0f);
+    traits.set_visual_temperature_step(1.0f);
   } else if (heating_mode_ == 0) { // Compensation curve mode
     traits.set_visual_min_temperature(-5.0f);
     traits.set_visual_max_temperature(5.0f);
-    traits.set_visual_temperature_step(0.5f);
-  } else { // Unknown mode - use safe defaults
+    traits.set_visual_temperature_step(1.0f);
+  } else { // Unknown mode - use outer bounds of both modes
     traits.set_visual_min_temperature(-5.0f);
-    traits.set_visual_max_temperature(55.0f);
-    traits.set_visual_temperature_step(0.5f);
+    traits.set_visual_max_temperature(65.0f);
+    traits.set_visual_temperature_step(1.0f);
   }
 
   // Set supported modes based on current climate mode.
@@ -69,9 +72,10 @@ void PanasonicAquareaZoneClimate::control(const climate::ClimateCall &call) {
   if (call.get_target_temperature().has_value()) {
     float target = *call.get_target_temperature();
 
-    // Clamp target temperature to valid range based on heating mode
+    // Clamp target temperature to valid range based on heating mode.
+    // Outer bounds per mode — actual limits vary by model.
     if (heating_mode_ == 1) { // Direct mode
-      target = clamp(target, 15.0f, 55.0f);
+      target = clamp(target, 20.0f, 65.0f);
     } else if (heating_mode_ == 0) { // Compensation curve mode
       target = clamp(target, -5.0f, 5.0f);
     }
