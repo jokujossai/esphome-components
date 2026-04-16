@@ -146,7 +146,10 @@ void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>&
     }
   }
 
-  // Read current temperature (water temp for this zone)
+  // Read current temperature (water temp for this zone).
+  // Direct float != comparison is safe here: temperature fields decode from
+  // int8_t bytes via fixed integer formulas (e.g. value-128), producing
+  // bit-identical floats for identical raw bytes — no FP rounding variance.
   float current_temp;
   if (zone_ == 1) {
     current_temp = fields::getField<fields::main::z1WaterTemp>(data, valid);
@@ -158,7 +161,8 @@ void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>&
     changed = true;
   }
 
-  // Read target temperature (heat request temp for this zone)
+  // Read target temperature (heat request temp for this zone).
+  // Same reasoning as above: deterministic int8_t → float conversion.
   float target_temp;
   if (zone_ == 1) {
     target_temp = fields::getField<fields::main::z1HeatRequestTemp>(data, valid);
