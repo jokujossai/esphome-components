@@ -9,7 +9,7 @@
 namespace esphome {
 namespace panasonic_aquarea {
 
-static const char *const TAG_UART = "panasonic_aquarea.uart";
+inline constexpr const char *TAG_UART = "panasonic_aquarea.uart";
 
 class PanasonicAquareaUARTDataSource : public PanasonicAquareaDataSource, public uart::UARTDevice {
 public:

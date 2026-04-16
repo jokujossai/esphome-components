@@ -10,7 +10,7 @@
 namespace esphome {
 namespace panasonic_aquarea {
 
-static const char *const TAG_MQTT = "panasonic_aquarea.mqtt";
+inline constexpr const char *TAG_MQTT = "panasonic_aquarea.mqtt";
 
 class PanasonicAquareaMQTTDataSource : public PanasonicAquareaDataSource {
 public:

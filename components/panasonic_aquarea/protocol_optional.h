@@ -5,7 +5,7 @@
 namespace esphome {
 namespace panasonic_aquarea {
 
-static const std::string OPTIONAL_PROTOCOL_NAME = "optional";
+inline constexpr const char *OPTIONAL_PROTOCOL_NAME = "optional";
 
 // Reads 0x71/0x11/0x50 response packets, sends 0xF1/0x11/0x50 command packets
 // Optional PCB must send continuously (~1s) to prevent H74 error after ~40s silence
@@ -17,7 +17,7 @@ public:
     reset_buffer_after_send_ = false;
   }
 
-  const std::string &get_topic() const override { return OPTIONAL_PROTOCOL_NAME; }
+  const char *get_topic() const override { return OPTIONAL_PROTOCOL_NAME; }
 
   void send(PanasonicAquareaDataSource *data_source) override {
     this->do_send(data_source);

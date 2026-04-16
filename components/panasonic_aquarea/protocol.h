@@ -2,7 +2,6 @@
 
 #include <functional>
 #include <span>
-#include <string>
 #include <vector>
 
 #include "esphome/core/component.h"
@@ -26,7 +25,7 @@ using ProtocolModifyFn = std::function<bool(ProtocolBuffer &)>;
 // --- Slim abstract interface ---
 class PanasonicProtocolInterface : public Component {
 public:
-  virtual const std::string &get_topic() const = 0;
+  virtual const char *get_topic() const = 0;
   virtual bool supports(uint8_t header0, uint8_t datasize, uint8_t header3) const = 0;
 
   // Read operations — no-ops for write-only protocols

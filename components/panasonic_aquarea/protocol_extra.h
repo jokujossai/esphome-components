@@ -5,7 +5,7 @@
 namespace esphome {
 namespace panasonic_aquarea {
 
-static const std::string EXTRA_PROTOCOL_NAME = "extra";
+inline constexpr const char *EXTRA_PROTOCOL_NAME = "extra";
 
 // Reads 0x71/0xC8/0x21 response packets, sends 0x71/0x6C/0x21 query packets
 // Supported on K/L series and newer models (main protocol byte 199 >= 3)
@@ -21,7 +21,7 @@ public:
     send_interval_ = std::max(interval_ms, (uint32_t)5000);
   }
 
-  const std::string &get_topic() const override { return EXTRA_PROTOCOL_NAME; }
+  const char *get_topic() const override { return EXTRA_PROTOCOL_NAME; }
 
   void send(PanasonicAquareaDataSource *data_source) override {
     this->do_send(data_source);

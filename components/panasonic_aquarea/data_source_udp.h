@@ -10,7 +10,7 @@
 namespace esphome {
 namespace panasonic_aquarea {
 
-static const char *const TAG_UDP = "panasonic_aquarea.udp";
+inline constexpr const char *TAG_UDP = "panasonic_aquarea.udp";
 
 class PanasonicAquareaUDPDataSource : public PanasonicAquareaDataSource {
 public:

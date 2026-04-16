@@ -35,7 +35,7 @@ void PanasonicAquareaComponent::loop() {
   if (!this->listen_only_ && millis() - this->last_send_ >= MIN_SEND_INTERVAL) {
     for (auto protocol : this->protocols_) {
       if (protocol->should_send()) {
-        ESP_LOGD(TAG, "Sending protocol: %s", protocol->get_topic().c_str());
+        ESP_LOGD(TAG, "Sending protocol: %s", protocol->get_topic());
         protocol->send(this->data_source_);
         this->last_send_ = millis();
         break;
