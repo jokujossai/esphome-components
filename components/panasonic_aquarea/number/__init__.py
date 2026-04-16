@@ -49,6 +49,10 @@ CONFIG_SCHEMA = cv.All(
                     panasonic_aquarea_ns.class_("PanasonicAquareaComponent")
                 ),
                 cv.Required(CONF_FIELD): cv.string,
+                # Required here, but validate_number_field (first in cv.All)
+                # fills these from the field registry when available. User
+                # must supply them explicitly only if the field has no
+                # registry defaults.
                 cv.Required(CONF_MIN_VALUE): cv.float_,
                 cv.Required(CONF_MAX_VALUE): cv.float_,
                 cv.Required(CONF_STEP): cv.positive_float,
