@@ -77,6 +77,7 @@ class ProtocolReadMixin {
 
 public:
   void do_decode(std::span<const uint8_t> data) {
+    if (data.size() < 4) return;
     if (self()->supports(data[0], data[1], data[3])) {
       self()->data_.assign(data.begin(), data.end());
       self()->child_idx_ = 0;
