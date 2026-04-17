@@ -48,7 +48,11 @@ def apply_field_defaults(field, value, entity_type):
             continue
         if k in _NUMBER_ONLY_KEYS and entity_type != "number":
             continue
-        if k == "entity_category" and v == "config" and entity_type in _NO_CONFIG_CATEGORY:
+        if (
+            k == "entity_category"
+            and v == "config"
+            and entity_type in _NO_CONFIG_CATEGORY
+        ):
             continue
         if k not in value:
             value[k] = v
@@ -118,11 +122,11 @@ FIELD_REGISTRY = {
         "name": "Operating Mode",
         "type": "select",
         "options": {
-            0: "Off",        # 0b0001 - 1
-            1: "Heat",       # 0b0010 - 1
-            2: "Cool",       # 0b0011 - 1
-            8: "Auto(Heat)", # 0b1001 - 1
-            9: "Auto(Cool)", # 0b1010 - 1
+            0: "Off",  # 0b0001 - 1
+            1: "Heat",  # 0b0010 - 1
+            2: "Cool",  # 0b0011 - 1
+            8: "Auto(Heat)",  # 0b1001 - 1
+            9: "Auto(Cool)",  # 0b1010 - 1
         },
     },
     "zonesState": {
@@ -131,9 +135,9 @@ FIELD_REGISTRY = {
         "type": "select",
         "entity_category": "config",
         "options": {
-            0: "Zone1",           # 0b01 - 1
-            1: "Zone2",           # 0b10 - 1
-            2: "Zone1+Zone2",     # 0b11 - 1
+            0: "Zone1",  # 0b01 - 1
+            1: "Zone2",  # 0b10 - 1
+            2: "Zone1+Zone2",  # 0b11 - 1
         },
     },
     # Byte 7
@@ -298,9 +302,9 @@ FIELD_REGISTRY = {
         "type": "select",
         "entity_category": "config",
         "options": {
-            0: "No solar",        # 0b01 - 1
-            1: "Solar buffer",    # 0b10 - 1
-            2: "Solar DHW",       # 0b11 - 1
+            0: "No solar",  # 0b01 - 1
+            1: "Solar buffer",  # 0b10 - 1
+            2: "Solar DHW",  # 0b11 - 1
         },
     },
     "smartDhw": {
@@ -320,9 +324,9 @@ FIELD_REGISTRY = {
         "type": "select",
         "entity_category": "config",
         "options": {
-            0: "No pad heater",   # 0b01 - 1
-            1: "Type A",          # 0b10 - 1
-            2: "Type B",          # 0b11 - 1
+            0: "No pad heater",  # 0b01 - 1
+            1: "Type A",  # 0b10 - 1
+            2: "Type B",  # 0b11 - 1
         },
     },
     # Byte 26
@@ -360,7 +364,7 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "options": {
             0: "Compensation Curve",  # 0b01 - 1
-            1: "Direct",              # 0b10 - 1
+            1: "Direct",  # 0b10 - 1
         },
     },
     "coolingMode": {
@@ -370,7 +374,7 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "options": {
             0: "Compensation Curve",  # 0b01 - 1
-            1: "Direct",              # 0b10 - 1
+            1: "Direct",  # 0b10 - 1
         },
     },
     # Byte 29
@@ -380,8 +384,8 @@ FIELD_REGISTRY = {
         "type": "select",
         "entity_category": "config",
         "options": {
-            0: "Delta T",         # 0b01 - 1
-            1: "Max flow",        # 0b10 - 1
+            0: "Delta T",  # 0b01 - 1
+            1: "Max flow",  # 0b10 - 1
         },
     },
     # Byte 30
@@ -404,8 +408,8 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "mode": "box",
         "device_class": "temperature",
-        "min_value": -5, # Dynamic, compensation curve -5, direct 20-35 (depends on model)
-        "max_value": 75, # Dynamic, compensation curve 5, direct 55-65 (depends on model)
+        "min_value": -5,  # Dynamic, compensation curve -5, direct 20-35 (depends on model)
+        "max_value": 75,  # Dynamic, compensation curve 5, direct 55-65 (depends on model)
         "step": 1,
     },
     "z1CoolRequestTemp": {
@@ -416,8 +420,8 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "mode": "box",
         "device_class": "temperature",
-        "min_value":-5, # Dynamic, compensation curve -5, direct 5
-        "max_value":20, # Dynamic, compensation curve 5, direct 20
+        "min_value": -5,  # Dynamic, compensation curve -5, direct 5
+        "max_value": 20,  # Dynamic, compensation curve 5, direct 20
         "step": 1,
     },
     "z2HeatRequestTemp": {
@@ -428,8 +432,8 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "mode": "box",
         "device_class": "temperature",
-        "min_value":-5, # Dynamic, compensation curve -5, direct 20
-        "max_value":75, # Dynamic, compensation curve 5, direct 75?
+        "min_value": -5,  # Dynamic, compensation curve -5, direct 20
+        "max_value": 75,  # Dynamic, compensation curve 5, direct 75?
         "step": 1,
     },
     "z2CoolRequestTemp": {
@@ -440,8 +444,8 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "mode": "box",
         "device_class": "temperature",
-        "min_value":-5, # Dynamic, compensation curve -5, direct 5
-        "max_value":20, # Dynamic, compensation curve 5, direct 20
+        "min_value": -5,  # Dynamic, compensation curve -5, direct 5
+        "max_value": 20,  # Dynamic, compensation curve 5, direct 20
         "step": 1,
     },
     "dhwTargetTemp": {
@@ -452,8 +456,8 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "mode": "box",
         "device_class": "temperature",
-        "min_value":40,
-        "max_value":75,
+        "min_value": 40,
+        "max_value": 75,
         "step": 1,
     },
     "roomHolidayShiftTemp": {
@@ -464,8 +468,8 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "mode": "box",
         "device_class": "temperature",
-        "min_value":-15,
-        "max_value":15,
+        "min_value": -15,
+        "max_value": 15,
         "step": 1,
     },
     "dhwHolidayShiftTemp": {
@@ -476,8 +480,8 @@ FIELD_REGISTRY = {
         "unit_of_measurement": "°C",
         "mode": "box",
         "device_class": "temperature",
-        "min_value":-15,
-        "max_value":15,
+        "min_value": -15,
+        "max_value": 15,
         "step": 1,
     },
     # Byte 45
@@ -487,8 +491,8 @@ FIELD_REGISTRY = {
         "type": "number",
         "entity_category": "config",
         "mode": "box",
-        "min_value":64,
-        "max_value":254,
+        "min_value": 64,
+        "max_value": 254,
         "step": 1,
     },
     # Byte 58-70
@@ -499,8 +503,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "K",
         "mode": "box",
-        "min_value":0,
-        "max_value":10,
+        "min_value": 0,
+        "max_value": 10,
         "step": 1,
     },
     "solarOnDelta": {
@@ -510,8 +514,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°K",
         "mode": "box",
-        "min_value":6,
-        "max_value":15,
+        "min_value": 6,
+        "max_value": 15,
         "step": 1,
     },
     "solarOffDelta": {
@@ -521,8 +525,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°K",
         "mode": "box",
-        "min_value":2,
-        "max_value":9,
+        "min_value": 2,
+        "max_value": 9,
         "step": 1,
     },
     "solarFrostProtection": {
@@ -532,8 +536,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":-20,
-        "max_value":10,
+        "min_value": -20,
+        "max_value": 10,
         "step": 1,
     },
     "solarHighLimit": {
@@ -543,8 +547,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":70,
-        "max_value":90,
+        "min_value": 70,
+        "max_value": 90,
         "step": 1,
     },
     "bivalentStartTemp": {
@@ -554,8 +558,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":-15,
-        "max_value":35,
+        "min_value": -15,
+        "max_value": 35,
         "step": 1,
     },
     "bivalentAdvancedStartTemp": {
@@ -565,8 +569,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":-10,
-        "max_value":0,
+        "min_value": -10,
+        "max_value": 0,
         "step": 1,
     },
     "bivalentStartDelay": {
@@ -576,8 +580,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "mode": "box",
         "unit_of_measurement": "min",
-        "min_value":0,
-        "max_value":90,
+        "min_value": 0,
+        "max_value": 90,
         "step": 5,
     },
     "bivalentAdvancedStopTemp": {
@@ -587,8 +591,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":-10,
-        "max_value":0,
+        "min_value": -10,
+        "max_value": 0,
         "step": 1,
     },
     "bivalentStopDelay": {
@@ -598,8 +602,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "min",
         "mode": "box",
-        "min_value":0,
-        "max_value":90,
+        "min_value": 0,
+        "max_value": 90,
         "step": 5,
     },
     "bivalentAdvancedDhwDelay": {
@@ -609,8 +613,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "mode": "box",
         "unit_of_measurement": "min",
-        "min_value":30,
-        "max_value":90,
+        "min_value": 30,
+        "max_value": 90,
         "step": 5,
     },
     # Byte 75-98
@@ -621,8 +625,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":20, # Depends on model
-        "max_value":65, # Depends on model
+        "min_value": 20,  # Depends on model
+        "max_value": 65,  # Depends on model
         "step": 1,
     },
     "z1HeatCurveTargetLowTemp": {
@@ -632,8 +636,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":20, # Depends on model
-        "max_value":65, # Depends on model
+        "min_value": 20,  # Depends on model
+        "max_value": 65,  # Depends on model
         "step": 1,
     },
     "z1HeatCurveOutsideLowTemp": {
@@ -643,8 +647,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":-15,
-        "max_value":15,
+        "min_value": -15,
+        "max_value": 15,
         "step": 1,
     },
     "z1HeatCurveOutsideHighTemp": {
@@ -654,8 +658,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":-15,
-        "max_value":15,
+        "min_value": -15,
+        "max_value": 15,
         "step": 1,
     },
     "z2HeatCurveTargetHighTemp": {
@@ -665,8 +669,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":20, # Depends on model
-        "max_value":65, # Depends on model
+        "min_value": 20,  # Depends on model
+        "max_value": 65,  # Depends on model
         "step": 1,
     },
     "z2HeatCurveTargetLowTemp": {
@@ -676,8 +680,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":20, # Depends on model
-        "max_value":65, # Depends on model
+        "min_value": 20,  # Depends on model
+        "max_value": 65,  # Depends on model
         "step": 1,
     },
     "z2HeatCurveOutsideLowTemp": {
@@ -687,8 +691,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":-15,
-        "max_value":15,
+        "min_value": -15,
+        "max_value": 15,
         "step": 1,
     },
     "z2HeatCurveOutsideHighTemp": {
@@ -698,8 +702,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":-15,
-        "max_value":15,
+        "min_value": -15,
+        "max_value": 15,
         "step": 1,
     },
     "heatingOffOutdoorTemp": {
@@ -709,8 +713,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":-5,
-        "max_value":35,
+        "min_value": -5,
+        "max_value": 35,
         "step": 1,
     },
     "heatDelta": {
@@ -720,8 +724,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "K",
         "mode": "box",
-        "min_value":1,
-        "max_value":15,
+        "min_value": 1,
+        "max_value": 15,
         "step": 1,
     },
     "heaterOnOutdoorTemp": {
@@ -731,8 +735,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":-15,
-        "max_value":20,
+        "min_value": -15,
+        "max_value": 20,
         "step": 1,
     },
     "z1CoolCurveTargetHighTemp": {
@@ -742,8 +746,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":5,
-        "max_value":20,
+        "min_value": 5,
+        "max_value": 20,
         "step": 1,
     },
     "z1CoolCurveTargetLowTemp": {
@@ -753,8 +757,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":5,
-        "max_value":20,
+        "min_value": 5,
+        "max_value": 20,
         "step": 1,
     },
     "z1CoolCurveOutsideLowTemp": {
@@ -764,8 +768,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":15,
-        "max_value":30,
+        "min_value": 15,
+        "max_value": 30,
         "step": 1,
     },
     "z1CoolCurveOutsideHighTemp": {
@@ -775,8 +779,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":15,
-        "max_value":30,
+        "min_value": 15,
+        "max_value": 30,
         "step": 1,
     },
     "z2CoolCurveTargetHighTemp": {
@@ -786,8 +790,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":5,
-        "max_value":20,
+        "min_value": 5,
+        "max_value": 20,
         "step": 1,
     },
     "z2CoolCurveTargetLowTemp": {
@@ -797,8 +801,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":5,
-        "max_value":20,
+        "min_value": 5,
+        "max_value": 20,
         "step": 1,
     },
     "z2CoolCurveOutsideLowTemp": {
@@ -808,8 +812,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":15,
-        "max_value":30,
+        "min_value": 15,
+        "max_value": 30,
         "step": 1,
     },
     "z2CoolCurveOutsideHighTemp": {
@@ -819,8 +823,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":15,
-        "max_value":30,
+        "min_value": 15,
+        "max_value": 30,
         "step": 1,
     },
     "coolDelta": {
@@ -830,8 +834,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "K",
         "mode": "box",
-        "min_value":1,
-        "max_value":15,
+        "min_value": 1,
+        "max_value": 15,
         "step": 1,
     },
     "heatToCoolTemp": {
@@ -841,8 +845,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":11,
-        "max_value":25,
+        "min_value": 11,
+        "max_value": 25,
         "step": 1,
     },
     "coolToHeatTemp": {
@@ -852,8 +856,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":5,
-        "max_value":14,
+        "min_value": 5,
+        "max_value": 14,
         "step": 1,
     },
     "dhwHeatDelta": {
@@ -863,8 +867,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "K",
         "mode": "box",
-        "min_value":-12,
-        "max_value":-2,
+        "min_value": -12,
+        "max_value": -2,
         "step": 1,
     },
     "sterilizationTemp": {
@@ -874,8 +878,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "°C",
         "mode": "box",
-        "min_value":55,
-        "max_value":65,
+        "min_value": 55,
+        "max_value": 65,
         "step": 1,
     },
     "sterilizationMaxTime": {
@@ -885,8 +889,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "min",
         "mode": "box",
-        "min_value":5,
-        "max_value":60,
+        "min_value": 5,
+        "max_value": 60,
         "step": 5,
     },
     "heaterDelayTime": {
@@ -896,8 +900,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "min",
         "mode": "box",
-        "min_value":1,
-        "max_value":120,
+        "min_value": 1,
+        "max_value": 120,
         "step": 1,
     },
     "heaterStartDelta": {
@@ -907,8 +911,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "K",
         "mode": "box",
-        "min_value":-128,
-        "max_value":127,
+        "min_value": -128,
+        "max_value": 127,
         "step": 1,
     },
     "heaterStopDelta": {
@@ -918,8 +922,8 @@ FIELD_REGISTRY = {
         "entity_category": "config",
         "unit_of_measurement": "K",
         "mode": "box",
-        "min_value":-128,
-        "max_value":127,
+        "min_value": -128,
+        "max_value": 127,
         "step": 1,
     },
     # Byte 110
@@ -940,7 +944,7 @@ FIELD_REGISTRY = {
         "options": {
             0: "Heat",
             1: "Cool",
-        }
+        },
     },
     "externalSwitchActual": {
         "protocol": "main",
@@ -950,7 +954,7 @@ FIELD_REGISTRY = {
         "options": {
             0: "Closed",
             1: "Open",
-        }
+        },
     },
     # Byte 111
     "threeWayValveState": {
@@ -960,7 +964,7 @@ FIELD_REGISTRY = {
         "options": {
             0: "Room",
             1: "DHW",
-        }
+        },
     },
     "defrostingState": {
         "protocol": "main",
@@ -986,8 +990,8 @@ FIELD_REGISTRY = {
         "options": {
             0x21: "No error (H)",
             0x31: "No error (F)",
-            0xa1: "H",
-            0xb1: "F",
+            0xA1: "H",
+            0xB1: "F",
         },
     },
     # TODO: Should be text_sensor
@@ -1012,110 +1016,109 @@ FIELD_REGISTRY = {
             0x21: "No error (after H-error)",
             0x31: "No error (after F-error)",
             # H12
-            0x1da1: "H12 Capacity mismatch",
+            0x1DA1: "H12 Capacity mismatch",
             # H15
-            0x1fa1: "H15 Compressor sensor error",
+            0x1FA1: "H15 Compressor sensor error",
             # H20
-            0x25a1: "H20 Pump error",
+            0x25A1: "H20 Pump error",
             # H23
-            0x28a1: "H23 Refrigerant sensor error",
+            0x28A1: "H23 Refrigerant sensor error",
             # H27
-            0x2ca1: "H27 Service valve error",
+            0x2CA1: "H27 Service valve error",
             # H28
-            0x2da1: "H28 Solar sensor error",
+            0x2DA1: "H28 Solar sensor error",
             # H31
-            0x30a1: "H31 Pool sensor error",
+            0x30A1: "H31 Pool sensor error",
             # H36
-            0x35a1: "H36 Buffer tank sensor error",
+            0x35A1: "H36 Buffer tank sensor error",
             # H38
-            0x37a1: "H38 Brand mismatch error",
+            0x37A1: "H38 Brand mismatch error",
             # H42
-            0x3ba1: "H42 Low pressure protection",
+            0x3BA1: "H42 Low pressure protection",
             # H43
-            0x3ca1: "H43 Zone 1 sensor error",
+            0x3CA1: "H43 Zone 1 sensor error",
             # H44
-            0x3da1: "H44 Zone 2 sensor error",
+            0x3DA1: "H44 Zone 2 sensor error",
             # H62
-            0x4fa1: "H62 Water flow error",
+            0x4FA1: "H62 Water flow error",
             # H63
-            0x50a1: "H63 Low pressure sensor error",
+            0x50A1: "H63 Low pressure sensor error",
             # H64
-            0x51a1: "H64 High pressure sensor error",
+            0x51A1: "H64 High pressure sensor error",
             # H65
-            0x52a1: "H65 Device water circulation error",
+            0x52A1: "H65 Device water circulation error",
             # H67
-            0x54a1: "H67 External thermistor 1 error",
+            0x54A1: "H67 External thermistor 1 error",
             # H68
-            0x55a1: "H68 External thermistor 2 error",
+            0x55A1: "H68 External thermistor 2 error",
             # H70
-            0x57a1: "H70 Back-up heater OLP error",
+            0x57A1: "H70 Back-up heater OLP error",
             # H72
-            0x59a1: "H72 Tank sensor error",
+            0x59A1: "H72 Tank sensor error",
             # H74
-            0x5ba1: "H74 OCB communication error",
+            0x5BA1: "H74 OCB communication error",
             # H75
-            0x5ca1: "H75 Low water temp protection",
+            0x5CA1: "H75 Low water temp protection",
             # H76
-            0x5da1: "H76 RC-Indoor communication error",
+            0x5DA1: "H76 RC-Indoor communication error",
             # H90
-            0x6ba1: "H90 Indoor-Outdoor communication error",
+            0x6BA1: "H90 Indoor-Outdoor communication error",
             # H91
-            0x6ca1: "H91 Tank heater OLP error",
+            0x6CA1: "H91 Tank heater OLP error",
             # H95
-            0x70a1: "H95 Voltage connaction error",
+            0x70A1: "H95 Voltage connaction error",
             # H98
-            0x73a1: "H98 High pressure protection",
+            0x73A1: "H98 High pressure protection",
             # H99
-            0x74a1: "H99 Indoor freeze prevention",
+            0x74A1: "H99 Indoor freeze prevention",
             # F12
-            0x1db1: "F12 Pressure switch activated",
+            0x1DB1: "F12 Pressure switch activated",
             # F14
-            0x1fb1: "F14 Poor compressor rotation",
+            0x1FB1: "F14 Poor compressor rotation",
             # F15
-            0x20b1: "F15 Fan motor lock error",
+            0x20B1: "F15 Fan motor lock error",
             # F16
-            0x21b1: "F16 Current protection",
+            0x21B1: "F16 Current protection",
             # F20
-            0x25b1: "F20 Compressor overload protection",
+            0x25B1: "F20 Compressor overload protection",
             # F22
-            0x27b1: "F22 Transistor module overload protection",
+            0x27B1: "F22 Transistor module overload protection",
             # F23
-            0x28b1: "F23 DC peak",
+            0x28B1: "F23 DC peak",
             # F24
-            0x29b1: "F24 Refrigerant cycle error",
+            0x29B1: "F24 Refrigerant cycle error",
             # F25
-            0x2ab1: "F25 Cool / heat cycle error",
+            0x2AB1: "F25 Cool / heat cycle error",
             # F27
-            0x2cb1: "F27 Pressure switch error",
+            0x2CB1: "F27 Pressure switch error",
             # F29
-            0x2eb1: "F29 Low discharge super heat",
+            0x2EB1: "F29 Low discharge super heat",
             # F30
-            0x2fb1: "F30 Water outlet sensor 2 error",
+            0x2FB1: "F30 Water outlet sensor 2 error",
             # F32
-            0x31b1: "F32 Internal thermostat error",
+            0x31B1: "F32 Internal thermostat error",
             # F36
-            0x35b1: "F36 Outdoor ambient sensor error",
+            0x35B1: "F36 Outdoor ambient sensor error",
             # F40
-            0x39b1: "F40 Outdoor discharge sensor error",
+            0x39B1: "F40 Outdoor discharge sensor error",
             # F41
-            0x3ab1: "F41 Power factor correction error",
+            0x3AB1: "F41 Power factor correction error",
             # F42
-            0x3bb1: "F42 Outdoor heat exchanger sensor error",
+            0x3BB1: "F42 Outdoor heat exchanger sensor error",
             # F43
-            0x3cb1: "F43 Outdoor defrost sensor error",
+            0x3CB1: "F43 Outdoor defrost sensor error",
             # F45
-            0x3eb1: "F45 Water outlet sensor error",
+            0x3EB1: "F45 Water outlet sensor error",
             # F46
-            0x3fb1: "F46 Current transformer disconnection",
+            0x3FB1: "F46 Current transformer disconnection",
             # F48
-            0x41b1: "F48 Evaporator outlet sensor error",
+            0x41B1: "F48 Evaporator outlet sensor error",
             # F49
-            0x42b1: "F49 Bypass outlet sensor error",
+            0x42B1: "F49 Bypass outlet sensor error",
             # F95
-            0x70b1: "F95 Cooling high pressure error",
+            0x70B1: "F95 Cooling high pressure error",
         },
     },
-
     # Byte 116
     "z2PumpState": {
         "protocol": "main",
@@ -1612,7 +1615,6 @@ FIELD_REGISTRY = {
         "state_class": "measurement",
         "accuracy_decimals": 0,
     },
-
     # Extra protocol fields (0x21 data block, K/L series and newer)
     # All values are in Watts (uint16_t little-endian)
     "extraHeatPowerConsumption": {
@@ -1669,7 +1671,6 @@ FIELD_REGISTRY = {
         "device_class": "power",
         "accuracy_decimals": 0,
     },
-
     # Optional PCB protocol fields
     # Read-only status fields (response packet 0x71/0x11/0x50)
     # Byte 4 - Water pumps and mixing valves

@@ -1,0 +1,6 @@
+{
+  "recommendations": [
+    "charliermarsh.ruff",
+    "llvm-vs-code-extensions.vscode-clangd"
+  ]
+}

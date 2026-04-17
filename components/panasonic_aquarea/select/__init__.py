@@ -14,24 +14,32 @@ PanasonicAquareaSelect = panasonic_aquarea_ns.class_(
     "PanasonicAquareaSelect", select.Select
 )
 
+
 def validate_select_field(value):
     """Validate field is suitable for select."""
     field, value = lookup_field(value)
 
     # Ensure field has options defined
     if "options" not in field:
-        raise cv.Invalid(f"Field {value['field']} does not have options defined (not a select field)")
+        raise cv.Invalid(
+            f"Field {value['field']} does not have options defined (not a select field)"
+        )
 
     apply_field_defaults(field, value, "select")
     return value
 
+
 CONFIG_SCHEMA = cv.All(
     validate_select_field,
     select.select_schema(PanasonicAquareaSelect).extend(
-        cv.Schema({
-            cv.GenerateID(CONF_PANASONIC_AQUAREA_ID): cv.use_id(panasonic_aquarea_ns.class_("PanasonicAquareaComponent")),
-            cv.Required(CONF_FIELD): cv.string,
-        })
+        cv.Schema(
+            {
+                cv.GenerateID(CONF_PANASONIC_AQUAREA_ID): cv.use_id(
+                    panasonic_aquarea_ns.class_("PanasonicAquareaComponent")
+                ),
+                cv.Required(CONF_FIELD): cv.string,
+            }
+        )
     ),
 )
 

@@ -17,21 +17,27 @@ PanasonicAquareaZoneClimate = panasonic_aquarea_ns.class_(
     "PanasonicAquareaZoneClimate", climate.Climate, cg.Component
 )
 
+
 def validate_zone(value):
     value = cv.int_(value)
     if value not in [1, 2]:
         raise cv.Invalid("Zone must be 1 or 2")
     return value
 
-CONFIG_SCHEMA = climate.climate_schema(PanasonicAquareaZoneClimate).extend(CHILD_SCHEMA_BASE).extend(
-    {
-        cv.Required(CONF_ZONE): validate_zone,
-        # Direct mode temperature limits — depend on heat pump model.
-        # WH-UD: 20-55, WH-UH: 25-65 or 35-65, WH-UX/UQ: 20-60.
-        # Defaults cover outer bounds of all models.
-        cv.Optional(CONF_DIRECT_MIN_VALUE, default=20.0): cv.float_,
-        cv.Optional(CONF_DIRECT_MAX_VALUE, default=65.0): cv.float_,
-    }
+
+CONFIG_SCHEMA = (
+    climate.climate_schema(PanasonicAquareaZoneClimate)
+    .extend(CHILD_SCHEMA_BASE)
+    .extend(
+        {
+            cv.Required(CONF_ZONE): validate_zone,
+            # Direct mode temperature limits — depend on heat pump model.
+            # WH-UD: 20-55, WH-UH: 25-65 or 35-65, WH-UX/UQ: 20-60.
+            # Defaults cover outer bounds of all models.
+            cv.Optional(CONF_DIRECT_MIN_VALUE, default=20.0): cv.float_,
+            cv.Optional(CONF_DIRECT_MAX_VALUE, default=65.0): cv.float_,
+        }
+    )
 )
 
 

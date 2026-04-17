@@ -1,1 +1,2 @@
 -e includes/esphome
+ruff
