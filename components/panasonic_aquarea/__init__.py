@@ -12,11 +12,27 @@ from esphome.const import (
   CONF_PORT,
   CONF_TRIGGER_ID,
 )
+from dataclasses import dataclass, field
 from esphome import automation
-from esphome.core import coroutine
+from esphome.core import CORE, coroutine
 from esphome.util import Registry
 
 from .fields import get_field
+
+DOMAIN = "panasonic_aquarea"
+
+
+@dataclass
+class PanasonicAquareaData:
+  """Track component state during code generation."""
+  protocols: dict = field(default_factory=dict)
+
+
+def _get_data() -> PanasonicAquareaData:
+  if DOMAIN not in CORE.data:
+    CORE.data[DOMAIN] = PanasonicAquareaData()
+  return CORE.data[DOMAIN]
+
 
 CONF_LISTEN_ONLY = "listen_only"
 CONF_PROTOCOLS = "protocols"
@@ -81,22 +97,22 @@ validate_protocols = cv.validate_registry("protocol", PROTOCOL_REGISTRY)
 
 async def build_protocols(config, parent_id):
   protocols = []
+  data = _get_data()
   for conf in config:
     protocol = await cg.build_registry_entry(PROTOCOL_REGISTRY, conf)
     protocols.append(protocol)
     await cg.register_component(protocol, conf)
     # Store mapping: (parent_id, protocol_name) -> protocol_id
     protocol_name = list(conf.keys())[0]
-    protocol_conf = conf[protocol_name]
-    PROTOCOLS[(str(parent_id), protocol_name)] = protocol
+    data.protocols[(str(parent_id), protocol_name)] = protocol
   return protocols
 
-PROTOCOLS = {}
 
 def get_protocol(parent_id, name):
   key = (str(parent_id), name)
-  if key in PROTOCOLS:
-    return PROTOCOLS[key]
+  data = _get_data()
+  if key in data.protocols:
+    return data.protocols[key]
   raise cv.Invalid(f"Protocol '{name}' not found for component {parent_id}")
 
 @PROTOCOL_REGISTRY.register("main", PanasonicAquareaProtocolMain, {})
