@@ -54,10 +54,7 @@ public:
 
       // Check if we have received the complete packet
       size_t expected_length = this->rx_buffer_[1] + 3;
-      if (this->rx_buffer_.size() >= expected_length) {
-        if (this->rx_buffer_.size() > expected_length) {
-          ESP_LOGE(TAG_UART, "Got too many bytes before handling, skipping extra bytes");
-        }
+      if (this->rx_buffer_.size() == expected_length) {
         this->handle_packet();
         this->rx_buffer_.clear();
       }
