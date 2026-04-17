@@ -51,8 +51,6 @@ public:
       return;
     }
 
-    using value_type = decltype(fields::getField<field>(std::declval<const std::vector<uint8_t>&>(), std::declval<bool&>()));
-
     if constexpr (std::is_same_v<field_type, fields::Uint8Field>) {
       if constexpr (field.bit_width > 8) {
         this->update_from_packet_hex(value);
