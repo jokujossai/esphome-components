@@ -34,7 +34,7 @@ wifi:
   # Enable fallback hotspot (captive portal) in case Wi-Fi connection fails
   ap:
     ssid: panasonic_aquarea AP
-#    password: !secret ap_password
+    password: !secret ap_password
 
 captive_portal:
 
