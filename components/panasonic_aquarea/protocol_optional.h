@@ -12,17 +12,13 @@ inline constexpr const char *OPTIONAL_PROTOCOL_NAME = "optional";
 class PanasonicAquareaProtocolOptional : public PanasonicProtocolReadWrite<0x71, 0x11, 0x50, 0xF1, 0x11, 0x50> {
 public:
   PanasonicAquareaProtocolOptional() {
+    periodic_send_ = true;
     should_send_ = true;
     send_interval_ = 1000;
     reset_buffer_after_send_ = false;
   }
 
   const char *get_topic() const override { return OPTIONAL_PROTOCOL_NAME; }
-
-  void send(PanasonicAquareaDataSource *data_source) override {
-    this->do_send(data_source);
-    should_send_ = true;
-  }
 };
 
 } // namespace panasonic_aquarea

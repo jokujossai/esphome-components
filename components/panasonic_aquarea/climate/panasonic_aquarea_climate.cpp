@@ -223,8 +223,9 @@ void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>&
     changed = true;
   }
 
-  if (changed) {
+  if (changed || this->publish_interval_expired()) {
     this->publish_state();
+    this->mark_published();
   }
 }
 

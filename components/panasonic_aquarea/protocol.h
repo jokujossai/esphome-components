@@ -109,6 +109,7 @@ protected:
   uint32_t last_send_{0};
   uint32_t send_interval_{3000};
   bool reset_buffer_after_send_{true};
+  bool periodic_send_{false};
 };
 
 
@@ -135,7 +136,7 @@ public:
     if (!self()->should_send_) return;
     self()->compute_crc(self()->write_data_);
     data_source->write_array(self()->write_data_);
-    self()->should_send_ = false;
+    self()->should_send_ = self()->periodic_send_;
     self()->last_send_ = millis();
     if (self()->reset_buffer_after_send_) {
       self()->init_write_buffer_();

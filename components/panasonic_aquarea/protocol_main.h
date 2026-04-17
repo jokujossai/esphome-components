@@ -19,6 +19,7 @@ public:
 class PanasonicAquareaProtocolMainRequest : public PanasonicProtocolWriteOnly<0x71, 0x6c, 0x10> {
 public:
   PanasonicAquareaProtocolMainRequest() {
+    periodic_send_ = true;
     should_send_ = true;
     send_interval_ = 5000;
     reset_buffer_after_send_ = false;
@@ -29,11 +30,6 @@ public:
   }
 
   const char *get_topic() const override { return MAIN_PROTOCOL_REQUEST_NAME; }
-
-  void send(PanasonicAquareaDataSource *data_source) override {
-    this->do_send(data_source);
-    should_send_ = true;
-  }
 };
 
 } // namespace panasonic_aquarea

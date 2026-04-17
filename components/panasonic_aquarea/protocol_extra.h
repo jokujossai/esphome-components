@@ -12,6 +12,7 @@ inline constexpr const char *EXTRA_PROTOCOL_NAME = "extra";
 class PanasonicAquareaProtocolExtra : public PanasonicProtocolReadWrite<0x71, 0xC8, 0x21, 0x71, 0x6C, 0x21> {
 public:
   PanasonicAquareaProtocolExtra() {
+    periodic_send_ = true;
     should_send_ = true;
     send_interval_ = 5000;
     reset_buffer_after_send_ = false;
@@ -22,11 +23,6 @@ public:
   }
 
   const char *get_topic() const override { return EXTRA_PROTOCOL_NAME; }
-
-  void send(PanasonicAquareaDataSource *data_source) override {
-    this->do_send(data_source);
-    should_send_ = true;
-  }
 };
 
 } // namespace panasonic_aquarea
