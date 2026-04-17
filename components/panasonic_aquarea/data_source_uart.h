@@ -29,8 +29,7 @@ public:
 
       // State 0: Waiting for start byte
       if (this->rx_buffer_.empty()) {
-        // TODO: 0x31 and 0xF1 as well?
-        if (byte != 0x71) {
+        if (!this->is_accepted_header(byte)) {
           ESP_LOGD(TAG_UART, "Unexpected data byte: %02X", byte);
           continue;
         }

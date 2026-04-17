@@ -1,6 +1,7 @@
 #pragma once
 
 #include "esphome/core/component.h"
+#include <set>
 #include <span>
 #include <vector>
 
@@ -31,9 +32,20 @@ public:
     packet_sent_callback_ = callback;
   }
 
+  // Register a header byte that this data source should accept
+  void add_accepted_header(uint8_t header) {
+    accepted_headers_.insert(header);
+  }
+
+  // Check if a byte is an accepted header
+  bool is_accepted_header(uint8_t byte) const {
+    return accepted_headers_.count(byte) > 0;
+  }
+
 protected:
   std::function<void(std::span<const uint8_t>)> packet_received_callback_{nullptr};
   std::function<void(const std::vector<uint8_t>&)> packet_sent_callback_{nullptr};
+  std::set<uint8_t> accepted_headers_;
 
   // Helper to invoke the packet received callback
   void call_packet_received_callback(std::span<const uint8_t> data) {

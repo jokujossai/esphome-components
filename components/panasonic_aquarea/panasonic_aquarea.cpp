@@ -19,6 +19,11 @@ void PanasonicAquareaComponent::setup() {
   this->data_source_->set_packet_sent_callback([this](const std::vector<uint8_t>& data) {
     this->on_packet_send_callback_.call(data);
   });
+  for (auto protocol : this->protocols_) {
+    uint8_t rh = protocol->get_read_header();
+    if (rh != 0)
+      this->data_source_->add_accepted_header(rh);
+  }
   this->data_source_->setup();
 }
 

@@ -27,6 +27,7 @@ class PanasonicProtocolInterface : public Component {
 public:
   virtual const char *get_topic() const = 0;
   virtual bool supports(uint8_t header0, uint8_t datasize, uint8_t header3) const = 0;
+  virtual uint8_t get_read_header() const { return 0; }
 
   // Read operations — no-ops for write-only protocols
   virtual void decode(std::span<const uint8_t> data) {}
@@ -159,6 +160,7 @@ public:
   bool supports(uint8_t header0, uint8_t datasize, uint8_t header3) const override {
     return header0 == RH0 && datasize == RDS && header3 == RH3;
   }
+  uint8_t get_read_header() const override { return RH0; }
 
   void decode(std::span<const uint8_t> data) override { this->do_decode(data); }
   void loop() override { this->do_loop(); }
@@ -206,6 +208,7 @@ public:
   bool supports(uint8_t header0, uint8_t datasize, uint8_t header3) const override {
     return header0 == RH0 && datasize == RDS && header3 == RH3;
   }
+  uint8_t get_read_header() const override { return RH0; }
 
   // Read side
   void decode(std::span<const uint8_t> data) override { this->do_decode(data); }
