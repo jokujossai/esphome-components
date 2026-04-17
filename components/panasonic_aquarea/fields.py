@@ -4,16 +4,21 @@ import esphome.config_validation as cv
 def get_field(field_name):
     """Get field metadata by name."""
     if field_name not in FIELD_REGISTRY:
-        raise ValueError(f"Unknown field: {field_name}")
+        raise cv.Invalid(f"Unknown field: {field_name}")
     return FIELD_REGISTRY[field_name]
 
 
 def lookup_field(value):
-    """Look up field from config value and set default name. Returns (field, value)."""
+    """Look up field from config value and set default name. Returns (field, value).
+
+    Returns a shallow copy of value to avoid mutating the caller's dict
+    (ESPHome may revalidate on reload).
+    """
     if "field" not in value:
         raise cv.Invalid("'field' is required")
 
     field = get_field(value["field"])
+    value = dict(value)
 
     if "name" not in value and "id" not in value:
         value["name"] = field["name"]

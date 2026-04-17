@@ -165,7 +165,7 @@ def validate_data_source(value):
   """Validate and normalize data_source configuration."""
   # Allow None/null for custom control mode
   if value is None:
-    value = {"null": {}}
+    return cv.validate_registry_entry("data_source", DATA_SOURCE_REGISTRY)({"null": {}})
 
   if isinstance(value, str):
     # Simple string format: "uart", "mqtt", or "udp"
@@ -173,8 +173,8 @@ def validate_data_source(value):
   elif isinstance(value, dict):
     # If value has 'type' key, convert to registry format: {type: {config}}
     if CONF_TYPE in value:
-      source_type = value.pop(CONF_TYPE)
-      value = {source_type: value}
+      source_type = value[CONF_TYPE]
+      value = {source_type: {k: v for k, v in value.items() if k != CONF_TYPE}}
 
   if not isinstance(value, dict):
     raise cv.Invalid("data_source must be a string, dictionary, or null")
