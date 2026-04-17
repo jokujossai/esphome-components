@@ -8,7 +8,7 @@ from .. import (
     CONF_FIELD,
     create_and_register_child,
 )
-from ..fields import lookup_field
+from ..fields import apply_field_defaults, lookup_field
 
 PanasonicAquareaBinarySensor = panasonic_aquarea_ns.class_(
     "PanasonicAquareaBinarySensor", binary_sensor.BinarySensor
@@ -22,6 +22,7 @@ def validate_binary_sensor_field(value):
     if field["type"] not in ["binary_sensor", "switch"]:
         raise cv.Invalid(f"Field {value['field']} type {field['type']} is not compatible with binary_sensor (only boolean fields supported)")
 
+    apply_field_defaults(field, value, "binary_sensor")
     return value
 
 CONFIG_SCHEMA = cv.All(

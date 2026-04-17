@@ -8,7 +8,7 @@ from .. import (
     CONF_FIELD,
     create_and_register_child,
 )
-from ..fields import get_field, get_field_options, lookup_field
+from ..fields import apply_field_defaults, get_field, get_field_options, lookup_field
 
 PanasonicAquareaTextSensor = panasonic_aquarea_ns.class_(
     "PanasonicAquareaTextSensor", text_sensor.TextSensor
@@ -22,6 +22,7 @@ def validate_text_sensor_field(value):
     if field["type"] != "text_sensor" and "options" not in field:
         raise cv.Invalid(f"Field {value['field']} is not compatible with text_sensor")
 
+    apply_field_defaults(field, value, "text_sensor")
     return value
 
 CONFIG_SCHEMA = cv.All(

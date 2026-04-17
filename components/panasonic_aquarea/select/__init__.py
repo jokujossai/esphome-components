@@ -8,7 +8,7 @@ from .. import (
     CONF_FIELD,
     create_and_register_child,
 )
-from ..fields import get_field_options, lookup_field
+from ..fields import apply_field_defaults, get_field_options, lookup_field
 
 PanasonicAquareaSelect = panasonic_aquarea_ns.class_(
     "PanasonicAquareaSelect", select.Select
@@ -22,6 +22,7 @@ def validate_select_field(value):
     if "options" not in field:
         raise cv.Invalid(f"Field {value['field']} does not have options defined (not a select field)")
 
+    apply_field_defaults(field, value, "select")
     return value
 
 CONFIG_SCHEMA = cv.All(

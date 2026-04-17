@@ -8,7 +8,7 @@ from .. import (
   CONF_FIELD,
   create_and_register_child,
 )
-from ..fields import lookup_field
+from ..fields import apply_field_defaults, lookup_field
 
 PanasonicAquareaSwitch = panasonic_aquarea_ns.class_("PanasonicAquareaSwitch", switch.Switch)
 
@@ -20,6 +20,7 @@ def validate_switch_field(value):
   if field["type"] not in ["switch", "binary_sensor"]:
     raise cv.Invalid(f"Field {value['field']} type {field['type']} is not compatible with switch")
 
+  apply_field_defaults(field, value, "switch")
   return value
 
 CONFIG_SCHEMA = cv.All(

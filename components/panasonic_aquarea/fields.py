@@ -26,6 +26,34 @@ def lookup_field(value):
     return field, value
 
 
+# Keys that are internal to the field registry — never copied to entity config.
+_REGISTRY_ONLY_KEYS = {"protocol", "name", "type", "options"}
+
+# Keys that only apply to number entities.
+_NUMBER_ONLY_KEYS = {"mode", "min_value", "max_value", "step"}
+
+# Entity types where entity_category "config" is not valid
+# (sensor and binary_sensor only support "" and "diagnostic").
+_NO_CONFIG_CATEGORY = {"sensor", "binary_sensor"}
+
+
+def apply_field_defaults(field, value, entity_type):
+    """Apply field registry defaults to config value for a given entity type.
+
+    Copies field attributes the user hasn't explicitly set, skipping keys
+    that are internal to the registry or not applicable to this entity type.
+    """
+    for k, v in field.items():
+        if k in _REGISTRY_ONLY_KEYS:
+            continue
+        if k in _NUMBER_ONLY_KEYS and entity_type != "number":
+            continue
+        if k == "entity_category" and v == "config" and entity_type in _NO_CONFIG_CATEGORY:
+            continue
+        if k not in value:
+            value[k] = v
+
+
 def get_field_options(config):
     """Get options labels and values from a field config. Returns (labels, values)."""
     if "field" not in config:

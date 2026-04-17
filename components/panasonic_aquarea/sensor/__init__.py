@@ -8,7 +8,7 @@ from .. import (
     CONF_FIELD,
     create_and_register_child,
 )
-from ..fields import lookup_field
+from ..fields import apply_field_defaults, lookup_field
 
 PanasonicAquareaSensor = panasonic_aquarea_ns.class_(
     "PanasonicAquareaSensor", sensor.Sensor
@@ -22,21 +22,7 @@ def validate_sensor_field(value):
     if field["type"] == "text_sensor":
         raise cv.Invalid(f"Field {value['field']} type {field['type']} is not compatible with sensor")
 
-    # Apply default values, but skip attributes that are not valid for sensors
-    # Number-specific attributes that should be ignored for sensors
-    number_only_attrs = {"mode", "min_value", "max_value", "step"}
-
-    for k, v in field.items():
-        if k in ("protocol", "name", "type"):
-            continue
-        if k in number_only_attrs:
-            continue
-        # Skip entity_category "config" for sensors (only "" and "diagnostic" are supported)
-        if k == "entity_category" and v == "config":
-            continue
-        if k not in value:
-            value[k] = v
-
+    apply_field_defaults(field, value, "sensor")
     return value
 
 CONFIG_SCHEMA = cv.All(

@@ -14,7 +14,7 @@ from .. import (
     CONF_FIELD,
     create_and_register_child,
 )
-from ..fields import lookup_field
+from ..fields import apply_field_defaults, lookup_field
 
 PanasonicAquareaNumber = panasonic_aquarea_ns.class_(
     "PanasonicAquareaNumber", number.Number
@@ -30,13 +30,7 @@ def validate_number_field(value):
             f"Field {value['field']} type {field['type']} is not compatible with number"
         )
 
-    # Apply defaults from field registry for attributes the user hasn't set.
-    for k, v in field.items():
-        if k in ("protocol", "name", "type"):
-            continue
-        if k not in value:
-            value[k] = v
-
+    apply_field_defaults(field, value, "number")
     return value
 
 
