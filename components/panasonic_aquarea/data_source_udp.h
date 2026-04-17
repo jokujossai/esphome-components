@@ -52,8 +52,14 @@ private:
   udp::UDPComponent *udp_{nullptr};
 
   void handle_udp_packet(std::span<const uint8_t> data) {
-    if (data.size() > 255) {
-      ESP_LOGW(TAG_UDP, "UDP packet too large: %zu bytes", data.size());
+    if (data.size() < 4) {
+      ESP_LOGW(TAG_UDP, "Packet too small: %zu bytes", data.size());
+      return;
+    }
+    size_t expected = data[1] + 3;
+    if (data.size() != expected) {
+      ESP_LOGW(TAG_UDP, "Packet length mismatch: got %zu bytes, expected %zu (datasize byte: %u)",
+               data.size(), expected, data[1]);
       return;
     }
 

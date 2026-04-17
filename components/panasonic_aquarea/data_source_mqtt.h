@@ -65,8 +65,14 @@ private:
   std::string publish_topic_;
 
   void handle_mqtt_message(const std::string &payload) {
-    if (payload.length() > 255) {
-      ESP_LOGW(TAG_MQTT, "Packet too large: %zu bytes", payload.length());
+    if (payload.length() < 4) {
+      ESP_LOGW(TAG_MQTT, "Packet too small: %zu bytes", payload.length());
+      return;
+    }
+    size_t expected = static_cast<uint8_t>(payload[1]) + 3;
+    if (payload.length() != expected) {
+      ESP_LOGW(TAG_MQTT, "Packet length mismatch: got %zu bytes, expected %zu (datasize byte: %u)",
+               payload.length(), expected, static_cast<uint8_t>(payload[1]));
       return;
     }
 
