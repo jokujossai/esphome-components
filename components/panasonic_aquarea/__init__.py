@@ -3,18 +3,13 @@ import esphome.config_validation as cv
 from esphome.components import uart, mqtt, udp
 from esphome.const import (
   CONF_ID,
-  CONF_NAME,
-  CONF_UNIT_OF_MEASUREMENT,
-  CONF_ACCURACY_DECIMALS,
-  CONF_STATE_CLASS,
   CONF_MQTT_ID,
   CONF_TYPE,
-  CONF_PORT,
   CONF_TRIGGER_ID,
 )
 from dataclasses import dataclass, field
 from esphome import automation
-from esphome.core import CORE, coroutine
+from esphome.core import CORE
 from esphome.util import Registry
 
 from .fields import get_field
@@ -37,7 +32,6 @@ def _get_data() -> PanasonicAquareaData:
 CONF_LISTEN_ONLY = "listen_only"
 CONF_PROTOCOLS = "protocols"
 CONF_PANASONIC_AQUAREA_ID = "panasonic_aquarea_id"
-CONF_TOPIC = "topic"
 CONF_DATA_SOURCE = "data_source"
 CONF_SUBSCRIBE_TOPIC = "subscribe_topic"
 CONF_PUBLISH_TOPIC = "publish_topic"
