@@ -20,7 +20,7 @@ public:
   static_assert(
     std::is_same_v<field_type, fields::Uint8Field> ||
     std::is_same_v<field_type, fields::Uint16Field>,
-    "PanasonicAquareaSelect only supports Uint8Field and Uint16Field"
+    "PanasonicAquareaTextSensor only supports Uint8Field and Uint16Field"
   );
 
   void set_options(const std::vector<std::string> &options) {
