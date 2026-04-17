@@ -31,14 +31,18 @@ class PanasonicAquareaZoneClimate : public climate::Climate, public Component, p
  protected:
   uint8_t zone_{1};  // Zone number (1 or 2)
 
-  // Heating mode values from getField<heatingMode> (raw-1: raw 0b01 -> 0, raw 0b10 -> 1)
-  enum class HeatingMode : uint8_t {
+  // Mode values from getField<heatingMode/coolingMode> (raw-1: raw 0b01 -> 0, raw 0b10 -> 1)
+  enum class TempMode : uint8_t {
     Curve = 0,
     Direct = 1,
     Unknown = 0xFF,
   };
 
-  HeatingMode heating_mode_{HeatingMode::Unknown};
+  TempMode heating_mode_{TempMode::Unknown};
+  TempMode cooling_mode_{TempMode::Unknown};
+
+  // Whether the unit is currently in cooling sub-mode (Cool, or Auto(Cool))
+  bool is_cooling_{false};
 
   float direct_min_{20.0f};
   float direct_max_{65.0f};

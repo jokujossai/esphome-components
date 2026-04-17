@@ -15,8 +15,11 @@ void PanasonicAquareaZoneClimate::setup() {
 void PanasonicAquareaZoneClimate::dump_config() {
   ESP_LOGCONFIG(TAG, "Panasonic Aquarea Zone %d Climate:", this->zone_);
   ESP_LOGCONFIG(TAG, "  Heating Mode: %s",
-    heating_mode_ == HeatingMode::Curve ? "Compensation Curve" :
-    heating_mode_ == HeatingMode::Direct ? "Direct" : "Unknown");
+    heating_mode_ == TempMode::Curve ? "Compensation Curve" :
+    heating_mode_ == TempMode::Direct ? "Direct" : "Unknown");
+  ESP_LOGCONFIG(TAG, "  Cooling Mode: %s",
+    cooling_mode_ == TempMode::Curve ? "Compensation Curve" :
+    cooling_mode_ == TempMode::Direct ? "Direct" : "Unknown");
   ESP_LOGCONFIG(TAG, "  Climate Mode: %s",
     this->mode == climate::CLIMATE_MODE_HEAT ? "Heat" :
     this->mode == climate::CLIMATE_MODE_COOL ? "Cool" :
@@ -29,15 +32,16 @@ climate::ClimateTraits PanasonicAquareaZoneClimate::traits() {
   // Always support these modes
   traits.add_feature_flags(climate::CLIMATE_SUPPORTS_CURRENT_TEMPERATURE);
 
-  // Set temperature ranges based on heating mode.
+  // Set temperature ranges based on the active mode (heating or cooling).
   // Direct mode limits are configurable (default 20-65, outer bounds of all
   // models; actual ranges: WH-UD 20-55, WH-UH 25/35-65, WH-UX/UQ 20-60).
   // Compensation curve mode is always -5 to +5.
   traits.set_visual_temperature_step(1.0f);
-  if (heating_mode_ == HeatingMode::Direct) {
+  TempMode active_mode = is_cooling_ ? cooling_mode_ : heating_mode_;
+  if (active_mode == TempMode::Direct) {
     traits.set_visual_min_temperature(direct_min_);
     traits.set_visual_max_temperature(direct_max_);
-  } else if (heating_mode_ == HeatingMode::Curve) {
+  } else if (active_mode == TempMode::Curve) {
     traits.set_visual_min_temperature(-5.0f);
     traits.set_visual_max_temperature(5.0f);
   } else {
@@ -52,7 +56,7 @@ climate::ClimateTraits PanasonicAquareaZoneClimate::traits() {
   // advertised so the UI can't issue writes before we know the valid range.
   traits.add_supported_mode(climate::CLIMATE_MODE_OFF);
 
-  if (heating_mode_ != HeatingMode::Unknown) {
+  if (heating_mode_ != TempMode::Unknown) {
     switch (this->mode) {
       case climate::CLIMATE_MODE_AUTO:
         traits.add_supported_mode(climate::CLIMATE_MODE_AUTO);
@@ -74,33 +78,42 @@ climate::ClimateTraits PanasonicAquareaZoneClimate::traits() {
 void PanasonicAquareaZoneClimate::control(const climate::ClimateCall &call) {
   // Reject writes until we've seen a valid heating mode packet — we can't
   // clamp correctly without knowing which mode is active.
-  if (heating_mode_ == HeatingMode::Unknown) {
-    ESP_LOGW(TAG, "Ignoring control call: heating mode not yet known");
+  TempMode active_mode = is_cooling_ ? cooling_mode_ : heating_mode_;
+  if (active_mode == TempMode::Unknown) {
+    ESP_LOGW(TAG, "Ignoring control call: heating/cooling mode not yet known");
     return;
   }
 
   if (call.get_target_temperature().has_value()) {
     float target = *call.get_target_temperature();
 
-    // Clamp target temperature to valid range based on heating mode.
-    if (heating_mode_ == HeatingMode::Direct) {
+    // Clamp target temperature to valid range based on active mode.
+    if (active_mode == TempMode::Direct) {
       target = clamp(target, direct_min_, direct_max_);
-    } else if (heating_mode_ == HeatingMode::Curve) {
+    } else if (active_mode == TempMode::Curve) {
       target = clamp(target, -5.0f, 5.0f);
     }
 
-    // Request encoder to send the updated value. z1/z2HeatRequestTemp are
-    // Int8Field — round float target to int8_t. No optimistic update — wait
-    // for the heat pump to confirm.
+    // Write to the correct request temp field: cool fields when cooling,
+    // heat fields otherwise. Int8Field — round float to int8_t.
+    // No optimistic update — wait for the heat pump to confirm.
     if (this->protocol_ != nullptr) {
       uint8_t zone = this->zone_;
+      bool cooling = is_cooling_;
       int8_t target_int = static_cast<int8_t>(lroundf(target));
-      this->protocol_->modify([target_int, zone](std::vector<uint8_t>& data) {
-        return (zone == 1)
-            ? fields::setField<fields::main::z1HeatRequestTemp>(data, target_int)
-            : fields::setField<fields::main::z2HeatRequestTemp>(data, target_int);
+      this->protocol_->modify([target_int, zone, cooling](std::vector<uint8_t>& data) {
+        if (zone == 1) {
+          return cooling
+              ? fields::setField<fields::main::z1CoolRequestTemp>(data, target_int)
+              : fields::setField<fields::main::z1HeatRequestTemp>(data, target_int);
+        } else {
+          return cooling
+              ? fields::setField<fields::main::z2CoolRequestTemp>(data, target_int)
+              : fields::setField<fields::main::z2HeatRequestTemp>(data, target_int);
+        }
       });
-      ESP_LOGD(TAG, "Zone %d queued target temperature %d°C", zone, target_int);
+      ESP_LOGD(TAG, "Zone %d queued %s target temperature %d°C", zone,
+               cooling ? "cool" : "heat", target_int);
     }
   }
 
@@ -121,36 +134,58 @@ void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>&
   bool changed = false;
 
   // Read heating mode (0=Compensation Curve, 1=Direct — raw-1 via Uint8Field default offset)
-  auto new_heating_mode = static_cast<HeatingMode>(fields::getField<fields::main::heatingMode>(data, valid));
+  auto new_heating_mode = static_cast<TempMode>(fields::getField<fields::main::heatingMode>(data, valid));
   if (valid && this->heating_mode_ != new_heating_mode) {
     this->heating_mode_ = new_heating_mode;
     changed = true;
     ESP_LOGD(TAG, "Zone %d heating mode changed to: %s", zone_,
-      heating_mode_ == HeatingMode::Curve ? "Compensation Curve" :
-      heating_mode_ == HeatingMode::Direct ? "Direct" : "Unknown");
+      heating_mode_ == TempMode::Curve ? "Compensation Curve" :
+      heating_mode_ == TempMode::Direct ? "Direct" : "Unknown");
+  }
+
+  // Read cooling mode (0=Compensation Curve, 1=Direct)
+  auto new_cooling_mode = static_cast<TempMode>(fields::getField<fields::main::coolingMode>(data, valid));
+  if (valid && this->cooling_mode_ != new_cooling_mode) {
+    this->cooling_mode_ = new_cooling_mode;
+    changed = true;
+    ESP_LOGD(TAG, "Zone %d cooling mode changed to: %s", zone_,
+      cooling_mode_ == TempMode::Curve ? "Compensation Curve" :
+      cooling_mode_ == TempMode::Direct ? "Direct" : "Unknown");
   }
 
   // Read operating mode state (1=Heat, 2=Cool, 8=Auto(Heat), 9=Auto(Cool))
   uint8_t operating_mode = fields::getField<fields::main::operatingModeState>(data, valid);
   if (valid) {
     climate::ClimateMode new_mode;
+    bool new_is_cooling;
     switch (operating_mode) {
       case 1:
         new_mode = climate::CLIMATE_MODE_HEAT;
+        new_is_cooling = false;
         break;
       case 2:
         new_mode = climate::CLIMATE_MODE_COOL;
+        new_is_cooling = true;
         break;
       case 8:  // Auto(Heat)
+        new_mode = climate::CLIMATE_MODE_AUTO;
+        new_is_cooling = false;
+        break;
       case 9:  // Auto(Cool)
         new_mode = climate::CLIMATE_MODE_AUTO;
+        new_is_cooling = true;
         break;
       default:
         new_mode = climate::CLIMATE_MODE_OFF;
+        new_is_cooling = false;
         break;
     }
     if (this->mode != new_mode) {
       this->mode = new_mode;
+      changed = true;
+    }
+    if (this->is_cooling_ != new_is_cooling) {
+      this->is_cooling_ = new_is_cooling;
       changed = true;
     }
   }
@@ -170,13 +205,18 @@ void PanasonicAquareaZoneClimate::update_from_packet(const std::vector<uint8_t>&
     changed = true;
   }
 
-  // Read target temperature (heat request temp for this zone).
+  // Read target temperature — use cool request temp fields when cooling,
+  // heat request temp fields otherwise.
   // Same reasoning as above: deterministic int8_t → float conversion.
   float target_temp;
-  if (zone_ == 1) {
-    target_temp = fields::getField<fields::main::z1HeatRequestTemp>(data, valid);
+  if (is_cooling_) {
+    target_temp = (zone_ == 1)
+        ? fields::getField<fields::main::z1CoolRequestTemp>(data, valid)
+        : fields::getField<fields::main::z2CoolRequestTemp>(data, valid);
   } else {
-    target_temp = fields::getField<fields::main::z2HeatRequestTemp>(data, valid);
+    target_temp = (zone_ == 1)
+        ? fields::getField<fields::main::z1HeatRequestTemp>(data, valid)
+        : fields::getField<fields::main::z2HeatRequestTemp>(data, valid);
   }
   if (valid && !std::isnan(target_temp) && this->target_temperature != target_temp) {
     this->target_temperature = target_temp;
