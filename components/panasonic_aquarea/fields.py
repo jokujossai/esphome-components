@@ -1292,7 +1292,7 @@ FIELD_REGISTRY = {
     },
     "mainTargetTemp": {
         "protocol": "main",
-        "name": "Outlet Water Temperature",
+        "name": "Target Outlet Water Temperature",
         "type": "sensor",
         "unit_of_measurement": "°C",
         "state_class": "measurement",
@@ -1477,7 +1477,7 @@ FIELD_REGISTRY = {
     },
     "z2ValvePid": {
         "protocol": "main",
-        "name": "Z1 Mixing Valve PID",
+        "name": "Z2 Mixing Valve PID",
         "type": "sensor",
         "unit_of_measurement": "%",
         "state_class": "measurement",

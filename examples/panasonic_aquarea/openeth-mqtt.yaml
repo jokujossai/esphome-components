@@ -1,5 +1,5 @@
 esphome:
-  name: panasonic-aquarea-openth-mqtt
+  name: panasonic-aquarea-openeth-mqtt
 
 external_components:
   - source:

@@ -46,8 +46,8 @@ climate::ClimateTraits PanasonicAquareaZoneClimate::traits() {
     traits.set_visual_max_temperature(direct_max_);
   }
 
-  // Set supported modes based on current climate mode.
-  // If the system reports Cool, it also supports Heat; if Auto, it supports all.
+  // Advertise supported modes via fallthrough: AUTO adds all three,
+  // COOL adds COOL+HEAT, HEAT adds only HEAT.
   // While heating mode is unknown (no packet received yet), only OFF is
   // advertised so the UI can't issue writes before we know the valid range.
   traits.add_supported_mode(climate::CLIMATE_MODE_OFF);

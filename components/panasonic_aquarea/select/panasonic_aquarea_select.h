@@ -41,7 +41,7 @@ public:
           }
         }
         else {
-          ESP_LOGE("panasonic_aquarea.select", "Invalid index: %d", index);
+          ESP_LOGE("panasonic_aquarea.select", "Invalid index: %zu", index);
         }
       }
     }
