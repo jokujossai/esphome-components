@@ -1,6 +1,8 @@
 substitutions:
   device_name: "panasonic-aquarea-openeth-mqtt"
   panasonic_aquarea_id: "aquarea"
+  heat_direct_temp_min: "20"
+  heat_direct_temp_max: "55"
   # Zone 1 request temp ranges
   z1_heat_request_temp_min: "-5"
   z1_heat_request_temp_max: "5"
@@ -14,16 +16,22 @@ substitutions:
 
 packages:
   # Uses its own base (ESP32 + OpenETH + MQTT data source) instead of
-  # heishamon/base.yaml (ESP8266 + WiFi + UART), but reuses all the
-  # entity packages unchanged.
-  common: !include heishamon/common.yaml
-  zone1_cool: !include heishamon/zone1_cool.yaml
-  zone2: !include heishamon/zone2.yaml
-  zone2_cool: !include heishamon/zone2_cool.yaml
-  bivalent: !include heishamon/bivalent.yaml
-  optional_solar: !include heishamon/optional_solar.yaml
-  optional_buffer: !include heishamon/optional_buffer.yaml
-  optional_external: !include heishamon/optional_external.yaml
+  # packages/heishamon/base.yaml (ESP8266 + WiFi + UART), but reuses
+  # all the entity packages unchanged.
+  common: !include packages/heishamon/common.yaml
+  zone1_cool: !include packages/heishamon/zone1_cool.yaml
+  zone2: !include packages/heishamon/zone2.yaml
+  zone2_cool: !include packages/heishamon/zone2_cool.yaml
+  bivalent: !include packages/heishamon/bivalent.yaml
+  optional_solar: !include packages/heishamon/optional_solar.yaml
+  optional_buffer: !include packages/heishamon/optional_buffer.yaml
+  optional_external: !include packages/heishamon/optional_external.yaml
+  climate_zone1: !include
+    file: packages/climate.yaml
+    vars:
+      zone: "1"
+      direct_min_value: ${heat_direct_temp_min}
+      direct_max_value: ${heat_direct_temp_max}
 
 esphome:
   name: ${device_name}
