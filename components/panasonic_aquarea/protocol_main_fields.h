@@ -11,8 +11,9 @@ namespace main {
 // Ordered by packet byte position, only fields that have topics assigned in topicBytes array
 
 // Byte 4 - Control states (TOP0, TOP2) - Read-write for commands
-constexpr BooleanField heatpumpState(RW, 4, 0);  // TOP0: bits 1-0, Heat pump state (OffOn) - RW: heatpump/pump commands
-constexpr BooleanField forceDhwState(RW, 4, 6);  // TOP2: bits 7-6, Force DHW state (DisabledEnabled) - RW: force DHW command
+constexpr BooleanField heatpumpState(RW, 4, 0);     // TOP0: bits 1-0, Heat pump state (OffOn) - RW: SetHeatpump
+constexpr BooleanField pumpState(RW, 4, 4);          // bits 5-4, Pump service mode override (OffOn) - RW: SetPump
+constexpr BooleanField forceDhwState(RW, 4, 6);      // TOP2: bits 7-6, Force DHW state (DisabledEnabled) - RW: SetForceDHW
 
 // Byte 5 - System states (TOP13, TOP19, TOP68) - Holiday mode writable
 constexpr BooleanField mainScheduleState(RW, 5, 6);  // TOP13: bits 7-6, Main schedule state (DisabledEnabled) - RW: SetMainSchedule (0x40/0x80)

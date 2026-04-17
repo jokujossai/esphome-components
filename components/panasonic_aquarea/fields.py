@@ -85,6 +85,11 @@ FIELD_REGISTRY = {
         "name": "Heat Pump State",
         "type": "binary_sensor",  # or "switch" for writable
     },
+    "pumpState": {
+        "protocol": "main",
+        "name": "Pump Service Mode",
+        "type": "switch",
+    },
     "forceDhwState": {
         "protocol": "main",
         "name": "Force DHW",
