@@ -180,8 +180,8 @@ constexpr Int8Field z1Temp(139);                     // TOP56: Zone 1 temp
 constexpr Int8Field z2Temp(140);                     // TOP57: Zone 2 temp
 constexpr Int8Field dhwTemp(141);                    // TOP10: DHW temp
 constexpr Int8Field outsideTemp(142);                // TOP14: Outside temp
-constexpr TempWithFracField mainInletTemp(143, 0);   // TOP5: Main inlet temp with fractional (byte 118 bits 0-2)
-constexpr TempWithFracField mainOutletTemp(144, 3);  // TOP6: Main outlet temp with fractional (byte 118 bits 3-5)
+constexpr TempWithFracField mainInletTemp(143, 118, 0);   // TOP5: Main inlet temp with fractional (byte 118 bits 0-2)
+constexpr TempWithFracField mainOutletTemp(144, 118, 3);  // TOP6: Main outlet temp with fractional (byte 118 bits 3-5)
 constexpr Int8Field z1WaterTemp(145);                // TOP36: Zone 1 water temp
 constexpr Int8Field z2WaterTemp(146);                // TOP37: Zone 2 water temp
 constexpr Int8Field z1WaterTargetTemp(147);          // TOP42: Zone 1 water target temp

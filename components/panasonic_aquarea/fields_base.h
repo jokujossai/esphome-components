@@ -130,14 +130,15 @@ struct FloatField {
 // Temperature with fractional part from byte 118 (HeishaMon Topic 5 & 6)
 struct TempWithFracField {
   uint8_t byte_offset;      // Temperature byte offset
-  uint8_t frac_bit_offset;  // Bit offset in byte 118 (0 for bits 0-2, 3 for bits 3-5)
+  uint8_t frac_byte;        // Byte containing fractional bits
+  uint8_t frac_bit_offset;  // Bit offset within frac_byte (0 for bits 0-2, 3 for bits 3-5)
   FieldAccess access;
 
-  constexpr TempWithFracField(uint8_t byte_off, uint8_t frac_bit_off)
-    : byte_offset(byte_off), frac_bit_offset(frac_bit_off), access(R) {}
+  constexpr TempWithFracField(uint8_t byte_off, uint8_t frac_byte_off, uint8_t frac_bit_off)
+    : byte_offset(byte_off), frac_byte(frac_byte_off), frac_bit_offset(frac_bit_off), access(R) {}
 
-  constexpr TempWithFracField(FieldAccess acc, uint8_t byte_off, uint8_t frac_bit_off)
-    : byte_offset(byte_off), frac_bit_offset(frac_bit_off), access(acc) {}
+  constexpr TempWithFracField(FieldAccess acc, uint8_t byte_off, uint8_t frac_byte_off, uint8_t frac_bit_off)
+    : byte_offset(byte_off), frac_byte(frac_byte_off), frac_bit_offset(frac_bit_off), access(acc) {}
 };
 
 template<const Uint8Field& def>
@@ -408,12 +409,10 @@ __attribute__((always_inline)) inline constexpr float getField(const std::vector
   return getFieldForce<def>(data, valid);
 }
 
-// TempWithFracField: Temperature with fractional part from byte 118
+// TempWithFracField: Temperature with fractional part from a shared byte
 template<const TempWithFracField& def>
 __attribute__((always_inline)) inline constexpr float getFieldForce(const std::vector<uint8_t>& data, bool& valid) {
-  constexpr uint8_t frac_byte = 118;  // Packet byte 118
-
-  if (def.byte_offset >= data.size() || frac_byte >= data.size()) {
+  if (def.byte_offset >= data.size() || def.frac_byte >= data.size()) {
     valid = false;
     return 0.0f;
   }
@@ -421,8 +420,8 @@ __attribute__((always_inline)) inline constexpr float getFieldForce(const std::v
   // Get integer temperature (value - 128)
   int8_t temp_int = (int8_t)data[def.byte_offset] - 128;
 
-  // Get fractional part from byte 118
-  uint8_t frac_bits = (data[frac_byte] >> def.frac_bit_offset) & 0x7;
+  // Get fractional part from frac_byte
+  uint8_t frac_bits = (data[def.frac_byte] >> def.frac_bit_offset) & 0x7;
 
   // Map fractional bits to decimal values: 1->0.00, 2->0.25, 3->0.50, 4->0.75
   float frac_value = 0.0f;
