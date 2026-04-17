@@ -21,13 +21,20 @@ substitutions:
 packages:
   base: !include heishamon/base.yaml
   common: !include heishamon/common.yaml
-  zone1_cool: !include heishamon/zone1_cool.yaml
-  zone2: !include heishamon/zone2.yaml
-  zone2_cool: !include heishamon/zone2_cool.yaml
-  bivalent: !include heishamon/bivalent.yaml
-  optional_solar: !include heishamon/optional_solar.yaml
-  optional_buffer: !include heishamon/optional_buffer.yaml
-  optional_external: !include heishamon/optional_external.yaml
+  # (Optional) Enable zone 1 cooling entities
+  #zone1_cool: !include heishamon/zone1_cool.yaml
+  # (Optional) Enable zone 2 entities
+  #zone2: !include heishamon/zone2.yaml
+  # (Optional) Enable zone 2 cooling entities
+  #zone2_cool: !include heishamon/zone2_cool.yaml
+  # (Optional) Enable bivalent heater entities
+  #bivalent: !include heishamon/bivalent.yaml
+  # (Optional) Enable solar entities
+  #optional_solar: !include heishamon/optional_solar.yaml
+  # (Optional) Enable buffer tank entities
+  #optional_buffer: !include heishamon/optional_buffer.yaml
+  # (Optional) Enable external thermostat entities
+  #optional_external: !include heishamon/optional_external.yaml
   # (Optional) Enable extra protocol fields (K/L series and newer models)
   #extra: !include heishamon/extra.yaml
   # (Optional) Enable 1-Wire bus
