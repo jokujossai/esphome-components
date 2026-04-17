@@ -1001,7 +1001,6 @@ FIELD_REGISTRY = {
         "protocol": "main",
         "name": "Error Code",
         "type": "text_sensor",
-        "accuracy_decimals": 0,
         # Uint16Field reads bytes 113-114 little-endian:
         # byte 113 (error type: 0xA1=H, 0xB1=F) -> low byte
         # byte 114 (error number + 17)          -> high byte
