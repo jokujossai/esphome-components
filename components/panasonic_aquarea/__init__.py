@@ -255,8 +255,7 @@ async def to_code(config):
 
   await cg.register_component(var, config)
 
-  if CONF_LISTEN_ONLY in config:
-    cg.add(var.set_listen_only(config[CONF_LISTEN_ONLY]))
+  cg.add(var.set_listen_only(config[CONF_LISTEN_ONLY]))
 
   # Setup on_packet_send trigger
   for conf in config.get(CONF_ON_PACKET_SEND, []):
