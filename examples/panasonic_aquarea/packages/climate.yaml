@@ -1,0 +1,19 @@
+# Climate entity — provides a Home Assistant climate card with
+# current/target temperature and heat/cool/auto mode display.
+# Temperature range adapts automatically based on heating/cooling mode
+# (compensation curve: -5..+5, direct: uses direct_min/max_value).
+#
+# Usage:
+#   climate_zone1: !include
+#     file: packages/climate.yaml
+#     vars:
+#       zone: "1"
+#       direct_min_value: "20"
+#       direct_max_value: "55"
+climate:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    name: "Zone ${zone} Climate"
+    zone: ${zone}
+    direct_min_value: ${direct_min_value}
+    direct_max_value: ${direct_max_value}

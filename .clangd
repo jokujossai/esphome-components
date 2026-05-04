@@ -1,0 +1,10 @@
+CompileFlags:
+  Compiler: clang++
+  Add:
+    - -Wall
+    - -std=c++20
+    - -Iincludes/esphome
+    - -Iincludes/ArduinoJson
+    - -Iincludes/ArduinoJson/src
+  Remove:
+    - -W*

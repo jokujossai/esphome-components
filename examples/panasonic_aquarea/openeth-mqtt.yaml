@@ -1,0 +1,77 @@
+substitutions:
+  device_name: "panasonic-aquarea-openeth-mqtt"
+  panasonic_aquarea_id: "aquarea"
+  heat_direct_temp_min: "20"
+  heat_direct_temp_max: "55"
+  # Zone 1 request temp ranges
+  z1_heat_request_temp_min: "-5"
+  z1_heat_request_temp_max: "5"
+  z1_cool_request_temp_min: "-5"
+  z1_cool_request_temp_max: "5"
+  # Zone 2 request temp ranges
+  z2_heat_request_temp_min: "-5"
+  z2_heat_request_temp_max: "5"
+  z2_cool_request_temp_min: "-5"
+  z2_cool_request_temp_max: "5"
+
+packages:
+  # Uses its own base (ESP32 + OpenETH + MQTT data source) instead of
+  # packages/heishamon/base.yaml (ESP8266 + WiFi + UART), but reuses
+  # all the entity packages unchanged.
+  common: !include packages/heishamon/common.yaml
+  zone1_cool: !include packages/heishamon/zone1_cool.yaml
+  zone2: !include packages/heishamon/zone2.yaml
+  zone2_cool: !include packages/heishamon/zone2_cool.yaml
+  bivalent: !include packages/heishamon/bivalent.yaml
+  optional_solar: !include packages/heishamon/optional_solar.yaml
+  optional_buffer: !include packages/heishamon/optional_buffer.yaml
+  optional_external: !include packages/heishamon/optional_external.yaml
+  climate_zone1: !include
+    file: packages/climate.yaml
+    vars:
+      zone: "1"
+      direct_min_value: ${heat_direct_temp_min}
+      direct_max_value: ${heat_direct_temp_max}
+
+esphome:
+  name: ${device_name}
+
+external_components:
+  - source:
+      type: local
+      path: ../../components
+    components:
+      - panasonic_aquarea
+
+esp32:
+  board: esp32dev
+  framework:
+    type: esp-idf
+
+logger:
+  level: DEBUG
+
+ethernet:
+  type: OPENETH
+
+web_server:
+
+mqtt:
+  id: mqtt1
+  broker: !secret panasonic_aquarea_mqtt_host
+  port: !secret panasonic_aquarea_mqtt_port
+  username: !secret panasonic_aquarea_mqtt_username
+  password: !secret panasonic_aquarea_mqtt_password
+  discovery: false
+  discover_ip: false
+  log_topic: null
+  clean_session: true
+
+panasonic_aquarea:
+  - id: ${panasonic_aquarea_id}
+    #listen_only: true
+    data_source:
+      type: mqtt
+      mqtt_id: mqtt1
+      subscribe_topic: panasonic_heat_pump/raw/data
+      publish_topic: panasonic_heat_pump/raw/esphome_output

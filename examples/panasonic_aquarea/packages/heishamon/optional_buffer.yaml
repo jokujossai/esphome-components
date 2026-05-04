@@ -1,0 +1,17 @@
+switch:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: bufferInstalled
+    name: "099 Buffer_Installed"
+
+number:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: bufferTankDelta
+    name: "113 Buffer_Tank_Delta"
+
+sensor:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: bufferTemp
+    name: "046 Buffer_Temp"

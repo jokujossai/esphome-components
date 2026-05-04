@@ -1,0 +1,76 @@
+esphome:
+  name: panasonic-aquarea
+
+external_components:
+  - source:
+      type: local
+      path: ../../components
+    components:
+      - panasonic_aquarea
+
+esp8266:
+  board: d1_mini
+
+# Enable logging
+logger:
+  # Disable logging to serial
+  baud_rate: 0
+
+# Enable HA API
+#api:
+#  encryption:
+#    key: !secret api_key
+
+# Enable OTAs
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+# Wi-Fi setup
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case Wi-Fi connection fails
+  ap:
+    ssid: panasonic_aquarea AP
+    password: !secret ap_password
+
+captive_portal:
+
+web_server:
+
+uart:
+  tx_pin: GPIO1
+  rx_pin: GPIO3
+  baud_rate: 9600
+  data_bits: 8
+  parity: EVEN
+  stop_bits: 1
+
+# Enable Panasonic Aquarea
+panasonic_aquarea:
+  # listen_only: false
+  # protocols: [main]
+
+switch:
+  - platform: panasonic_aquarea
+    field: heatpumpState
+  - platform: panasonic_aquarea
+    field: forceDhwState
+  - platform: panasonic_aquarea
+    field: dhwModeState
+
+sensor:
+  - platform: panasonic_aquarea
+    field: pumpFlow
+
+binary_sensor:
+  - platform: status
+    name: AA Node Status
+  - platform: panasonic_aquarea
+    field: heatpumpState
+
+select:
+  - platform: panasonic_aquarea
+    field: operatingModeState

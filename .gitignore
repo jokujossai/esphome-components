@@ -3,5 +3,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Visual Studio Code
-.vscode/
+# Visual Studio Code (track settings.json and extensions.json)
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Ruff cache
+.ruff_cache/
+
+# Virtual environment
+venv/

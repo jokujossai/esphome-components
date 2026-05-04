@@ -1,0 +1,422 @@
+switch:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: heatpumpState
+    name: "000 Heatpump_State"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: forceDhwState
+    name: "002 Force_DHW_State"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: dhwModeState
+    name: "004 Operating_Mode_State (DHW)"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: mainScheduleState
+    name: "013 Main_Schedule_State"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: dhwHeaterState
+    name: "058 DHW_Heater_State"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: roomHeaterState
+    name: "059 Room_Heater_State"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: altExternalSensor
+    name: "108 Alt_External_Sensor"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: externalControl
+    name: "119 External_Control"
+
+select:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: operatingModeState
+    name: "004 Operating_Mode_State (Heat/Cool)"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: powerfulModeTime
+    name: "017 Powerful_Mode_Time"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: quietModeLevel
+    name: "018 Quiet_Mode_Level"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: holidayModeState
+    name: "019 Holiday_Mode_State"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: heatingMode
+    name: "076 Heating_Mode"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: coolingMode
+    name: "081 Cooling_Mode"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: pumpFlowrateMode
+    name: "106 Pump_Flowrate_Mode"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: externalPadHeater
+    name: "114 External_Pad_Heater"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: heatingControl
+    name: "139 Heating_Control"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: smartDhw
+    name: "140 Smart_DHW"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: quietModePriority
+    name: "141 Quiet_Mode_Priority"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: dhwSensorSelection
+    name: "143 DHW_Sensor_Selection"
+
+number:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: dhwTargetTemp
+    name: "009 DHW_Target_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: dhwHeatDelta
+    name: "022 DHW_Heat_Delta"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: heatDelta
+    name: "023 Heat_Delta"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: coolDelta
+    name: "024 Cool_Delta"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: heatingOffOutdoorTemp
+    name: "077 Heating_Off_Outdoor_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: heaterOnOutdoorTemp
+    name: "078 Heater_On_Outdoor_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: heatToCoolTemp
+    name: "079 Heat_To_Cool_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: coolToHeatTemp
+    name: "080 Cool_To_Heat_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z1HeatRequestTemp
+    name: "027 Z1_Heat_Request_Temp"
+    min_value: ${z1_heat_request_temp_min} # 20, 25, or 35 for direct mode
+    max_value: ${z1_heat_request_temp_max} # 55, 60, or 65 for direct mode
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z1HeatCurveTargetHighTemp
+    name: "029 Z1_Heat_Curve_Target_High_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z1HeatCurveTargetLowTemp
+    name: "030 Z1_Heat_Curve_Target_Low_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z1HeatCurveOutsideHighTemp
+    name: "031 Z1_Heat_Curve_Outside_High_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z1HeatCurveOutsideLowTemp
+    name: "032 Z1_Heat_Curve_Outside_Low_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: maxPumpDuty
+    name: "095 Max_Pump_Duty"
+
+sensor:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: pumpFlow
+    name: "001 Pump_Flow"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: mainInletTemp
+    name: "005 Main_Inlet_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: mainOutletTemp
+    name: "006 Main_Outlet_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: mainTargetTemp
+    name: "007 Main_Target_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: compressorFreq
+    name: "008 Compressor_Freq"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: dhwTemp
+    name: "010 DHW_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: operationsHours
+    name: "011 Operations_Hours"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: operationsCounter
+    name: "012 Operations_Counter"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: outsideTemp
+    name: "014 Outside_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: heatPowerProduction
+    name: "015 Heat_Power_Production"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: heatPowerConsumption
+    name: "016 Heat_Power_Consumption"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: outsidePipeTemp
+    name: "021 Outside_Pipe_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: dhwHolidayShiftTemp
+    name: "025 DHW_Holiday_Shift_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: roomThermostatTemp
+    name: "033 Room_Thermostat_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: coolPowerProduction
+    name: "038 Cool_Power_Production"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: coolPowerConsumption
+    name: "039 Cool_Power_Consumption"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: dhwPowerProduction
+    name: "040 DHW_Power_Production"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: dhwPowerConsumption
+    name: "041 DHW_Power_Consumption"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: roomHolidayShiftTemp
+    name: "045 Room_Holiday_Shift_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: poolTemp
+    name: "048 Pool_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: mainHexOutletTemp
+    name: "049 Main_Hex_Outlet_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: dischargeTemp
+    name: "050 Discharge_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: insidePipeTemp
+    name: "051 Inside_Pipe_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: defrostTemp
+    name: "052 Defrost_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: evaOutletTemp
+    name: "053 Eva_Outlet_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: bypassOutletTemp
+    name: "054 Bypass_Outlet_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: ipmTemp
+    name: "055 Ipm_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: fan1MotorSpeed
+    name: "062 Fan1_Motor_Speed"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: fan2MotorSpeed
+    name: "063 Fan2_Motor_Speed"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: highPressure
+    name: "064 High_Pressure"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: pumpSpeed
+    name: "065 Pump_Speed"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: lowPressure
+    name: "066 Low_Pressure"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: compressorCurrent
+    name: "067 Compressor_Current"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: sterilizationTemp
+    name: "070 Sterilization_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: sterilizationMaxTime
+    name: "071 Sterilization_Max_Time"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: roomHeaterOperationsHours
+    name: "090 Room_Heater_Operations_Hours"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: dhwHeaterOperationsHours
+    name: "091 DHW_Heater_Operations_Hours"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: pumpDuty
+    name: "093 Pump_Duty"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: heaterDelayTime
+    name: "096 Heater_Delay_Time"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: heaterStartDelta
+    name: "097 Heater_Start_Delta"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: heaterStopDelta
+    name: "098 Heater_Stop_Delta"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: waterPressure
+    name: "115 Water_Pressure"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: secondInletTemp
+    name: "116 Second_Inlet_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: economizerOutletTemp
+    name: "117 Economizer_Outlet_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: secondRoomThermostatTemp
+    name: "118 Second_Room_Thermostat_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z1WaterTemp
+    name: "036 Z1_Water_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z1WaterTargetTemp
+    name: "042 Z1_Water_Target_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z1Temp
+    name: "056 Z1_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z1ValvePid
+    name: "127 Z1_Valve_PID"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: expansionValve
+    name: "142 Expansion_Valve"
+
+
+binary_sensor:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: quietModeSchedule
+    name: "003 Quiet_Mode_Schedule"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: defrostingState
+    name: "026 Defrosting_State"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: internalHeaterState
+    name: "060 Internal_Heater_State"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: externalHeaterState
+    name: "061 External_Heater_State"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: forceHeaterState
+    name: "068 Force_Heater_State"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: sterilizationState
+    name: "069 Sterilization_State"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: dhwInstalled
+    name: "100 DHW_Installed"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: liquidType
+    name: "107 Liquid_Type"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: antiFreeze
+    name: "109 Anti_Freeze_Mode"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: optionalPcb
+    name: "110 Optional_PCB"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z1PumpState
+    name: "124 Z1_Pump_State"
+
+text_sensor:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: threeWayValveState
+    name: "020 ThreeWay_Valve_State"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: errorCode
+    name: "044 Error"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: heatPumpModel
+    name: "092 Heat_Pump_Model"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: zonesState
+    name: "094 Zones_State"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: twoWayValveState
+    name: "125 TwoWay_Valve_State"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z1SensorSettings
+    name: "111 Z1_Sensor_Settings"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: threeWayValveState2
+    name: "126 ThreeWay_Valve_State2"

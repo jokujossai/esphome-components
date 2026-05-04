@@ -1,0 +1,53 @@
+number:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z2HeatRequestTemp
+    name: "034 Z2_Heat_Request_Temp"
+    min_value: ${z2_heat_request_temp_min}
+    max_value: ${z2_heat_request_temp_max}
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z2HeatCurveTargetHighTemp
+    name: "082 Z2_Heat_Curve_Target_High_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z2HeatCurveTargetLowTemp
+    name: "083 Z2_Heat_Curve_Target_Low_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z2HeatCurveOutsideHighTemp
+    name: "084 Z2_Heat_Curve_Outside_High_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z2HeatCurveOutsideLowTemp
+    name: "085 Z2_Heat_Curve_Outside_Low_Temp"
+
+sensor:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z2WaterTemp
+    name: "037 Z2_Water_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z2WaterTargetTemp
+    name: "043 Z2_Water_Target_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z2Temp
+    name: "057 Z2_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z2ValvePid
+    name: "128 Z2_Valve_PID"
+
+binary_sensor:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z2PumpState
+    name: "123 Z2_Pump_State"
+
+text_sensor:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: z2SensorSettings
+    name: "112 Z2_Sensor_Settings"

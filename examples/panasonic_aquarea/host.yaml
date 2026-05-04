@@ -1,0 +1,285 @@
+esphome:
+  name: panasonic-aquarea-host
+  on_boot:
+    - then:
+        - script.execute: timeout_script
+    - priority: -200
+      then:
+        - script.execute: test_script
+
+globals:
+  - id: aquarea_send_count
+    type: int
+    restore_value: no
+    initial_value: '0'
+  - id: aquarea2_send_count
+    type: int
+    restore_value: no
+    initial_value: '0'
+
+external_components:
+  - source:
+      type: local
+      path: ../../components
+    components:
+      - panasonic_aquarea
+
+host:
+
+# Enable logging
+logger:
+  level: DEBUG
+
+# Panasonic Aquarea component with custom packet handling
+# No data_source - using only on_packet_send and handle_packet for testing
+panasonic_aquarea:
+  - id: aquarea
+    protocols:
+      - main
+      - main_request
+      - optional
+    data_source: null  # No data source - using custom control only
+    on_packet_send:
+      then:
+        - lambda: |-
+            ESP_LOGD("aquarea", "on_packet_send triggered - sending %zu bytes", packet.size());
+            if (packet.size() > 4) {
+              ESP_LOGD("aquarea", "Packet header: %02X %02X %02X %02X",
+                      packet[0], packet[1], packet[2], packet[3]);
+            }
+        - lambda: |-
+            id(aquarea_send_count) += 1;
+  - id: aquarea2
+    protocols:
+      - main
+      - optional
+    data_source: null
+    listen_only: true
+    on_packet_send:
+      then:
+        - lambda: |-
+            id(aquarea2_send_count) += 1;
+
+# Example sensors to display decoded values
+sensor:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
+    id: pump_flow_sensor
+    field: pumpFlow
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
+    id: dhw_target_temp_sensor
+    field: dhwTargetTemp
+
+switch:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
+    id: force_dhw_switch
+    field: forceDhwState
+
+binary_sensor:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
+    id: heat_pump_state
+    field: heatpumpState
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
+    id: dhw_heater_state
+    field: dhwHeaterState
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
+    id: z1_water_pump
+    field: z1WaterPumpState
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
+    id: pool_water_pump
+    field: poolWaterPumpState
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
+    id: solar_water_pump
+    field: solarWaterPumpState
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
+    id: alarm_state
+    field: alarmState
+
+select:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
+    id: operating_mode_select
+    field: operatingModeState
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
+    id: quiet_mode_select
+    field: quietModeLevel
+
+text_sensor:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
+    id: error_code_text
+    field: errorCode
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: aquarea
+    id: z1_mixing_valve
+    field: z1MixingValveState
+
+# Test script with multiple packets and verification
+script:
+  - id: timeout_script
+    then:
+      - delay: 30s
+      - lambda: |-
+          ESP_LOGE("test", "TIMEOUT: Test script did not complete in 30 seconds");
+          exit(99);
+
+  - id: test_script
+    then:
+      - logger.log: "=== Starting Panasonic Aquarea Test Suite ==="
+
+      # Test 1: Heat pump ON, DHW heater OFF, Pump Flow 11.22 L/min, Error H12
+      - logger.log: "Test 1: Heat pump ON state with error code H12"
+      - panasonic_aquarea.handle_packet:
+          id: aquarea
+          packet: [
+            0x71, 0xc8, 0x01, 0x10, 0x56, 0x55, 0x62, 0x49, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x19, 0x15, 0x11, 0x55, 0x16, 0x5e, 0x55, 0x05, 0x09, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x8f, 0x80, 0x8a, 0xb2, 0x71, 0x71, 0x97, 0x99, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x85, 0x15, 0x8a, 0x85, 0x85,
+            0xd0, 0x7b, 0x78, 0x1f, 0x7e, 0x1f, 0x1f, 0x79, 0x79, 0x8d, 0x8d, 0x9e, 0x96, 0x71, 0x8f, 0xb7,
+            0xa3, 0x7b, 0x8f, 0x8e, 0x85, 0x80, 0x8f, 0x8a, 0x94, 0x9e, 0x8a, 0x8a, 0x94, 0x9e, 0x82, 0x90,
+            0x8b, 0x05, 0x65, 0x78, 0xc1, 0x0b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0x56,
+            0x55, 0x1d, 0xa1, 0x15, 0x5a, 0x05, 0x12, 0x12, 0x19, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0xe2, 0xce, 0x0d, 0x71, 0x81, 0x72, 0xce, 0x0c, 0x92, 0x81, 0xb0, 0x00, 0xaa, 0x7c, 0xab,
+            0xb0, 0x32, 0x32, 0x9c, 0xb6, 0x32, 0x32, 0x32, 0x80, 0xb7, 0xaf, 0xcd, 0x9a, 0xac, 0x79, 0x80,
+            0x77, 0x80, 0xff, 0x91, 0x01, 0x29, 0x59, 0x00, 0x00, 0x3b, 0x0b, 0x1c, 0x51, 0x59, 0x01, 0x36,
+            0x79, 0x01, 0x01, 0xc3, 0x02, 0x00, 0xdd, 0x02, 0x00, 0x05, 0x00, 0x00, 0x01, 0x00, 0x00, 0x06,
+            0x01, 0x01, 0x01, 0x01, 0x01, 0x0a, 0x14, 0x00, 0x00, 0x00, 0x2d
+          ]
+      - delay: 100ms
+      - lambda: |-
+          // Verify Test 1
+          if (!id(heat_pump_state).state) {
+            ESP_LOGE("test", "FAIL: Heat pump state should be ON");
+            exit(1);
+          }
+          if (id(dhw_heater_state).state) {
+            ESP_LOGE("test", "FAIL: DHW heater should be OFF");
+            exit(2);
+          }
+          float pump_flow = id(pump_flow_sensor).state;
+          if (pump_flow < 11.0 || pump_flow > 11.5) {
+            ESP_LOGE("test", "FAIL: Pump flow should be ~11.22, got %.2f", pump_flow);
+            exit(3);
+          }
+          float dhw_temp = id(dhw_target_temp_sensor).state;
+          if (dhw_temp < 49.0 || dhw_temp > 51.0) {
+            ESP_LOGE("test", "FAIL: DHW target temp should be ~50, got %.2f", dhw_temp);
+            exit(4);
+          }
+          // Test uint16 field with text_sensor (errorCode)
+          std::string error_text = id(error_code_text).state;
+          if (error_text != "H12 Capacity mismatch") {
+            ESP_LOGE("test", "FAIL: Error code text_sensor should be 'H12 Capacity mismatch', got '%s'", error_text.c_str());
+            exit(5);
+          }
+          ESP_LOGI("test", "PASS: Test 1 - Heat pump ON, values correct, uint16 text_sensor works");
+
+      # Test 2: Different error code H15
+      - logger.log: "Test 2: Different error code H15"
+      - panasonic_aquarea.handle_packet:
+          id: aquarea
+          packet: [
+            0x71, 0xc8, 0x01, 0x10, 0x56, 0x55, 0x62, 0x49, 0x00, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x19, 0x15, 0x11, 0x55, 0x16, 0x5e, 0x55, 0x05, 0x09, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x8f, 0x80, 0x8a, 0xb2, 0x71, 0x71, 0x97, 0x99, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x85, 0x15, 0x8a, 0x85, 0x85,
+            0xd0, 0x7b, 0x78, 0x1f, 0x7e, 0x1f, 0x1f, 0x79, 0x79, 0x8d, 0x8d, 0x9e, 0x96, 0x71, 0x8f, 0xb7,
+            0xa3, 0x7b, 0x8f, 0x8e, 0x85, 0x80, 0x8f, 0x8a, 0x94, 0x9e, 0x8a, 0x8a, 0x94, 0x9e, 0x82, 0x90,
+            0x8b, 0x05, 0x65, 0x78, 0xc1, 0x0b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55, 0x56,
+            0x55, 0x1f, 0xa1, 0x15, 0x5a, 0x05, 0x12, 0x12, 0x19, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0xe2, 0xce, 0x0d, 0x71, 0x81, 0x72, 0xce, 0x0c, 0x92, 0x81, 0xb0, 0x00, 0xaa, 0x7c, 0xab,
+            0xb0, 0x32, 0x32, 0x9c, 0xb6, 0x32, 0x32, 0x32, 0x80, 0xb7, 0xaf, 0xcd, 0x9a, 0xac, 0x79, 0x80,
+            0x77, 0x80, 0xff, 0x91, 0x01, 0x29, 0x59, 0x00, 0x00, 0x3b, 0x0b, 0x1c, 0x51, 0x59, 0x01, 0x36,
+            0x79, 0x01, 0x01, 0xc3, 0x02, 0x00, 0xdd, 0x02, 0x00, 0x05, 0x00, 0x00, 0x01, 0x00, 0x00, 0x06,
+            0x01, 0x01, 0x01, 0x01, 0x01, 0x0a, 0x14, 0x00, 0x00, 0x00, 0x2b
+          ]
+      - delay: 100ms
+      - lambda: |-
+          // Verify Test 2 - check error code changed to H15
+          if (!id(heat_pump_state).state) {
+            ESP_LOGE("test", "FAIL: Heat pump state consistency check");
+            exit(7);
+          }
+          float pump_flow = id(pump_flow_sensor).state;
+          if (pump_flow < 11.0 || pump_flow > 11.5) {
+            ESP_LOGE("test", "FAIL: Pump flow consistency, got %.2f", pump_flow);
+            exit(8);
+          }
+          std::string error_text = id(error_code_text).state;
+          if (error_text != "H15 Compressor sensor error") {
+            ESP_LOGE("test", "FAIL: Error code text_sensor should be 'H15 Compressor sensor error', got '%s'", error_text.c_str());
+            exit(9);
+          }
+          ESP_LOGI("test", "PASS: Test 2 - Error code changed to H15 correctly");
+
+      # Test 3: Optional PCB protocol packet
+      # Byte 4 = 0xB2: Z1 pump ON (bit7), Z1 mix=01/Close (bits6-5), Z2 pump ON (bit4),
+      #                 Z2 mix=00/Stop (bits3-2), Pool pump ON (bit1), Solar pump OFF (bit0)
+      # Byte 5 = 0x01: Alarm ON (bit0)
+      - logger.log: "Test 3: Optional PCB protocol"
+      - panasonic_aquarea.handle_packet:
+          id: aquarea
+          packet: [
+            0x71, 0x11, 0x01, 0x50, 0xB2, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x7A
+          ]
+      - delay: 100ms
+      - lambda: |-
+          // Verify optional PCB fields
+          if (!id(z1_water_pump).state) {
+            ESP_LOGE("test", "FAIL: Z1 water pump should be ON");
+            exit(10);
+          }
+          if (!id(pool_water_pump).state) {
+            ESP_LOGE("test", "FAIL: Pool water pump should be ON");
+            exit(11);
+          }
+          if (id(solar_water_pump).state) {
+            ESP_LOGE("test", "FAIL: Solar water pump should be OFF");
+            exit(12);
+          }
+          if (!id(alarm_state).state) {
+            ESP_LOGE("test", "FAIL: Alarm should be ON");
+            exit(13);
+          }
+          std::string z1_mix = id(z1_mixing_valve).state;
+          if (z1_mix != "Close") {
+            ESP_LOGE("test", "FAIL: Z1 mixing valve should be 'Close', got '%s'", z1_mix.c_str());
+            exit(14);
+          }
+          // Verify main protocol sensors are unaffected
+          if (!id(heat_pump_state).state) {
+            ESP_LOGE("test", "FAIL: Main protocol heat pump state should still be ON");
+            exit(15);
+          }
+          ESP_LOGI("test", "PASS: Test 3 - Optional PCB protocol works, main protocol unaffected");
+
+      # Verify query packet sent
+      - logger.log: "Verify query packet is sent"
+      - lambda: |-
+          if(id(aquarea_send_count) == 0) {
+            ESP_LOGE("test", "FAIL: Query packet not sent");
+            exit(-2);
+          }
+          if(id(aquarea2_send_count) > 0) {
+            ESP_LOGE("test", "FAIL: Query packet sent on listen only component");
+            exit(-1);
+          }
+          ESP_LOGI("test", "PASS: Verified query packet sent");
+
+      # All tests passed
+      - logger.log: "=== ALL TESTS PASSED ==="
+      - lambda: |-
+          ESP_LOGI("test", "Test suite completed successfully");
+          exit(0);
+

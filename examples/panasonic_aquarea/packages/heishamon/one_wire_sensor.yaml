@@ -1,0 +1,14 @@
+# Include once per DS18B20 sensor with different address and name:
+#   one_wire_sensor_1: !include
+#     file: heishamon/one_wire_sensor.yaml
+#     vars:
+#       one_wire_sensor_address: "0x1234567890abcdef"
+#       one_wire_sensor_name: "Tank Top"
+#
+# Find addresses by first flashing without 'address:' set,
+# then reading from ESPHome logs: "Found sensors: 0x....".
+sensor:
+  - platform: dallas_temp
+    one_wire_id: one_wire_bus
+    address: ${one_wire_sensor_address}
+    name: ${one_wire_sensor_name}

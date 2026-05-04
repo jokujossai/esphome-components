@@ -1,0 +1,47 @@
+switch:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: bivalentControl
+    name: "129 Bivalent_Control"
+
+select:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: bivalentMode
+    name: "130 Bivalent_Mode"
+
+number:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: bivalentStartTemp
+    name: "131 Bivalent_Start_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: bivalentAdvancedStartTemp
+    name: "134 Bivalent_Advanced_Start_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: bivalentAdvancedStopTemp
+    name: "135 Bivalent_Advanced_Stop_Temp"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: bivalentStartDelay
+    name: "136 Bivalent_Advanced_Start_Delay"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: bivalentStopDelay
+    name: "137 Bivalent_Advanced_Stop_Delay"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: bivalentAdvancedDhwDelay
+    name: "138 Bivalent_Advanced_DHW_Delay"
+
+binary_sensor:
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: bivalentAdvancedHeat
+    name: "132 Bivalent_Advanced_Heat"
+  - platform: panasonic_aquarea
+    panasonic_aquarea_id: ${panasonic_aquarea_id}
+    field: bivalentAdvancedDhw
+    name: "133 Bivalent_Advanced_DHW"

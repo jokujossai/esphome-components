@@ -1,0 +1,639 @@
+#pragma once
+
+#include <cstdint>
+#include <vector>
+
+namespace esphome {
+namespace panasonic_aquarea {
+namespace fields {
+
+// Helper functions for bit operations
+template<uint8_t bit_width>
+constexpr uint8_t apply_mask(uint8_t value) {
+  if constexpr (bit_width == 8) {
+    return value;
+  } else {
+    return value & ((1 << bit_width) - 1);
+  }
+}
+
+template<uint8_t bit_offset>
+constexpr uint8_t apply_shift(uint8_t value) {
+  if constexpr (bit_offset == 0) {
+    return value;
+  } else {
+    return value >> bit_offset;
+  }
+}
+
+template<uint8_t bit_width>
+constexpr uint16_t apply_mask16(uint16_t value) {
+  if constexpr (bit_width == 16) {
+    return value;
+  } else {
+    return value & ((1 << bit_width) - 1);
+  }
+}
+
+// Field access flags
+enum FieldAccess : uint8_t {
+  R = 1,    // Read-only
+  W = 2,    // Write-only
+  RW = 3    // Read-write
+};
+
+// Base field definition types
+
+struct Uint8Field {
+  uint8_t byte_offset;
+  uint8_t bit_offset;
+  uint8_t bit_width;
+  int8_t offset;
+  FieldAccess access;
+
+  // Default constructor (read-only)
+  constexpr Uint8Field(uint8_t byte_off, uint8_t bit_off = 0, uint8_t bit_w = 8, int8_t offs = -1)
+    : byte_offset(byte_off), bit_offset(bit_off), bit_width(bit_w), offset(offs), access(R) {}
+
+  // Constructor with access type as first parameter
+  constexpr Uint8Field(FieldAccess acc, uint8_t byte_off, uint8_t bit_off = 0, uint8_t bit_w = 8, int8_t offs = -1)
+    : byte_offset(byte_off), bit_offset(bit_off), bit_width(bit_w), offset(offs), access(acc) {}
+};
+
+struct Uint16Field {
+  uint8_t byte_offset;
+  int8_t offset;
+  FieldAccess access;
+
+  // Default constructor (read-only)
+  constexpr Uint16Field(uint8_t byte_off, int8_t offs = -1)
+    : byte_offset(byte_off), offset(offs), access(R) {}
+
+  // Constructor with access type as first parameter
+  constexpr Uint16Field(FieldAccess acc, uint8_t byte_off, int8_t offs = -1)
+    : byte_offset(byte_off), offset(offs), access(acc) {}
+};
+
+struct BooleanField {
+  uint8_t byte_offset;
+  uint8_t bit_offset;
+  int8_t offset;    // 0 = 1-bit wide (simple 0/1), non-zero = 2-bit encoded (0b01=false, 0b10=true)
+  FieldAccess access;
+
+  // Default constructor (read-only, 2-bit encoded)
+  constexpr BooleanField(uint8_t byte_off, uint8_t bit_off, int8_t offs = -1)
+    : byte_offset(byte_off), bit_offset(bit_off), offset(offs), access(R) {}
+
+  // Constructor with access type as first parameter
+  constexpr BooleanField(FieldAccess acc, uint8_t byte_off, uint8_t bit_off, int8_t offs = -1)
+    : byte_offset(byte_off), bit_offset(bit_off), offset(offs), access(acc) {}
+};
+
+struct Int8Field {
+  uint8_t byte_offset;
+  uint8_t bit_offset;
+  uint8_t bit_width;
+  int8_t offset;
+  FieldAccess access;
+
+  // Default constructor (read-only)
+  constexpr Int8Field(uint8_t byte_off, uint8_t bit_off = 0, uint8_t bit_w = 8, int8_t offs = -128)
+    : byte_offset(byte_off), bit_offset(bit_off), bit_width(bit_w), offset(offs), access(R) {}
+
+  // Constructor with access type as first parameter
+  constexpr Int8Field(FieldAccess acc, uint8_t byte_off, uint8_t bit_off = 0, uint8_t bit_w = 8, int8_t offs = -128)
+    : byte_offset(byte_off), bit_offset(bit_off), bit_width(bit_w), offset(offs), access(acc) {}
+};
+
+struct FloatField {
+  uint8_t byte_offset;
+  uint8_t bit_offset;
+  uint8_t bit_width;
+  int8_t offset;
+  uint16_t multiplier;
+  uint16_t divider;
+  FieldAccess access;
+
+  // Default constructor (read-only)
+  constexpr FloatField(uint8_t byte_off, uint8_t bit_off = 0, uint8_t bit_w = 8,
+                      int8_t offs = -1, uint16_t mult = 1, uint16_t div = 1)
+    : byte_offset(byte_off), bit_offset(bit_off), bit_width(bit_w),
+      offset(offs), multiplier(mult), divider(div), access(R) {}
+
+  // Constructor with access type as first parameter
+  constexpr FloatField(FieldAccess acc, uint8_t byte_off, uint8_t bit_off = 0, uint8_t bit_w = 8,
+                      int8_t offs = -1, uint16_t mult = 1, uint16_t div = 1)
+    : byte_offset(byte_off), bit_offset(bit_off), bit_width(bit_w),
+      offset(offs), multiplier(mult), divider(div), access(acc) {}
+};
+
+// Temperature with fractional part from byte 118 (HeishaMon Topic 5 & 6)
+struct TempWithFracField {
+  uint8_t byte_offset;      // Temperature byte offset
+  uint8_t frac_byte;        // Byte containing fractional bits
+  uint8_t frac_bit_offset;  // Bit offset within frac_byte (0 for bits 0-2, 3 for bits 3-5)
+  FieldAccess access;
+
+  constexpr TempWithFracField(uint8_t byte_off, uint8_t frac_byte_off, uint8_t frac_bit_off)
+    : byte_offset(byte_off), frac_byte(frac_byte_off), frac_bit_offset(frac_bit_off), access(R) {}
+
+  constexpr TempWithFracField(FieldAccess acc, uint8_t byte_off, uint8_t frac_byte_off, uint8_t frac_bit_off)
+    : byte_offset(byte_off), frac_byte(frac_byte_off), frac_bit_offset(frac_bit_off), access(acc) {}
+};
+
+template<const Uint8Field& def>
+__attribute__((always_inline)) inline auto getFieldForce(const std::vector<uint8_t>& data, bool& valid) {
+  if constexpr (def.bit_width > 8) {
+    // Multi-byte raw field: returns std::vector<uint8_t>
+    static_assert(def.bit_width % 8 == 0, "Multi-byte Uint8Field bit_width must be a multiple of 8");
+    static_assert(def.bit_offset == 0, "Multi-byte Uint8Field must be byte-aligned");
+    static_assert(def.offset == 0 || def.offset == -1, "Multi-byte Uint8Field does not support offset");
+    constexpr uint8_t num_bytes = def.bit_width / 8;
+
+    if (def.byte_offset + num_bytes > data.size()) {
+      valid = false;
+      return std::vector<uint8_t>{};
+    }
+
+    valid = true;
+    return std::vector<uint8_t>(data.begin() + def.byte_offset, data.begin() + def.byte_offset + num_bytes);
+  } else {
+    // Single-byte field: returns uint8_t
+    // Compile-time validation: offset must be in range -255 to 0
+    static_assert(def.offset >= -255 && def.offset <= 0, "uint8_t getField offset must be in range -255 to 0");
+
+    if (def.byte_offset >= data.size()) {
+      valid = false;
+      return (uint8_t)0;
+    }
+
+    uint8_t byte_value = data[def.byte_offset];
+
+    // Extract raw bit field value using helper functions
+    uint8_t raw_value = apply_mask<def.bit_width>(apply_shift<def.bit_offset>(byte_value));
+
+    // Apply offset for non-zero values
+    if constexpr (def.offset == 0) {
+      valid = true;
+      return raw_value;
+    } else {
+      // Negative offset: check if raw_value is smaller than absolute offset
+      constexpr uint8_t abs_offset = -def.offset;
+      if (raw_value < abs_offset) {
+        valid = false;
+        return (uint8_t)0;
+      }
+      valid = true;
+      return (uint8_t)(raw_value + def.offset);  // offset is negative, so this subtracts
+    }
+  }
+}
+
+template<const Uint8Field& def>
+__attribute__((always_inline)) inline auto getField(const std::vector<uint8_t>& data, bool& valid) {
+  // Compile-time access validation
+  static_assert(def.access == R || def.access == RW, "getField requires read access (R or RW)");
+
+  return getFieldForce<def>(data, valid);
+}
+
+template<const Uint16Field& def>
+__attribute__((always_inline)) inline constexpr uint16_t getFieldForce(const std::vector<uint8_t>& data, bool& valid) {
+  // Compile-time validation
+  static_assert(def.offset == 0 || def.offset == -1, "uint16_t getField only supports offset 0 or -1");
+
+  if (def.byte_offset + 1 >= data.size()) {
+    valid = false;
+    return 0;
+  }
+
+  // Little-endian 16-bit read: low byte at byte_offset, high byte at byte_offset+1
+  // Panasonic Aquarea protocol stores uint16 values in little-endian byte order
+  uint16_t low_byte = data[def.byte_offset];
+  uint16_t high_byte = data[def.byte_offset + 1];
+  uint16_t raw_value = low_byte | (high_byte << 8);
+
+  // Apply offset for non-zero values
+  valid = true;
+  if constexpr (def.offset == -1) {
+    if (raw_value == 0) {
+      valid = false;
+      return 0;
+    }
+    return raw_value - 1;
+  } else {
+    return raw_value;
+  }
+}
+
+template<const Uint16Field& def>
+__attribute__((always_inline)) inline constexpr uint16_t getField(const std::vector<uint8_t>& data, bool& valid) {
+  // Compile-time access validation
+  static_assert(def.access == R || def.access == RW, "getField requires read access (R or RW)");
+
+  return getFieldForce<def>(data, valid);
+}
+
+template<const BooleanField& def>
+__attribute__((always_inline)) inline constexpr bool getFieldForce(const std::vector<uint8_t>& data, bool& valid) {
+  if (def.byte_offset >= data.size()) {
+    valid = false;
+    return false;
+  }
+
+  uint8_t byte_value = data[def.byte_offset];
+
+  if constexpr (def.offset == 0) {
+    // 1-bit wide boolean: simple bit extraction (0=false, 1=true)
+    valid = true;
+    return (byte_value >> def.bit_offset) & 0b1;
+  } else {
+    // 2-bit encoded boolean pattern
+    constexpr uint8_t mask = 0b11;
+
+    uint8_t raw_value = (def.bit_offset == 0) ?
+      (byte_value & mask) :
+      ((byte_value >> def.bit_offset) & mask);
+
+    // Decode 2-bit boolean pattern:
+    // 0b00 = not set (return invalid)
+    // 0b01 = false
+    // 0b10 = true
+    // 0b11 = invalid (return invalid)
+    if (raw_value == 0b00 || raw_value == 0b11) {
+      valid = false;
+      return false;
+    }
+
+    valid = true;
+    return (raw_value == 0b10);
+  }
+}
+
+template<const BooleanField& def>
+__attribute__((always_inline)) inline constexpr bool getField(const std::vector<uint8_t>& data, bool& valid) {
+  // Compile-time access validation
+  static_assert(def.access == R || def.access == RW, "getField requires read access (R or RW)");
+
+  return getFieldForce<def>(data, valid);
+}
+
+template<const Int8Field& def>
+__attribute__((always_inline)) inline constexpr int8_t getFieldForce(const std::vector<uint8_t>& data, bool& valid) {
+  // Compile-time validation
+  static_assert(def.offset < 0, "int8_t getField requires negative offset");
+
+  if (def.byte_offset >= data.size()) {
+    valid = false;
+    return 0;
+  }
+
+  uint8_t byte_value = data[def.byte_offset];
+
+  // Extract raw bit field value using helper functions
+  uint8_t raw_value = apply_mask<def.bit_width>(apply_shift<def.bit_offset>(byte_value));
+
+  // Return invalid for 0 (reserved for "no change")
+  if (raw_value == 0) {
+    valid = false;
+    return 0;
+  }
+
+  // Apply negative offset
+  int8_t result = (int8_t)raw_value + def.offset;
+
+  // Check for overflow only when offset is not -128
+  if constexpr (def.offset != -128) {
+    constexpr uint8_t max_raw_value = 127 - def.offset;  // e.g., offset=-3 -> max=130
+    if (raw_value > max_raw_value) {
+      valid = true;
+      return 127;  // Clamp to maximum int8_t value
+    }
+  }
+
+  valid = true;
+  return result;
+}
+
+template<const Int8Field& def>
+__attribute__((always_inline)) inline constexpr int8_t getField(const std::vector<uint8_t>& data, bool& valid) {
+  // Compile-time access validation
+  static_assert(def.access == R || def.access == RW, "getField requires read access (R or RW)");
+
+  return getFieldForce<def>(data, valid);
+}
+
+template<const FloatField& def>
+__attribute__((always_inline)) inline constexpr float getFieldForce(const std::vector<uint8_t>& data, bool& valid) {
+  // Compile-time validation
+  static_assert(def.offset == 0 || def.offset == -1, "float getField only supports offset 0 or -1");
+  static_assert(def.multiplier > 0 && def.divider > 0, "float getField requires positive multiplier and divider");
+  static_assert(def.bit_width <= 16, "float getField supports up to 16-bit width");
+
+  if constexpr (def.bit_width <= 8) {
+    if (def.byte_offset >= data.size()) {
+      valid = false;
+      return 0.0f;
+    }
+
+    uint8_t byte_value = data[def.byte_offset];
+
+    // Extract raw bit field value using helper functions
+    uint8_t raw_value = apply_mask<def.bit_width>(apply_shift<def.bit_offset>(byte_value));
+
+    // Return invalid for 0 (reserved for "no change")
+    if (raw_value == 0) {
+      valid = false;
+      return 0.0f;
+    }
+
+    // Apply offset, multiplier, and divider
+    float result = (float)raw_value + def.offset;
+
+    if constexpr (def.multiplier != 1) {
+      result *= def.multiplier;
+    }
+
+    if constexpr (def.divider != 1) {
+      result /= def.divider;
+    }
+
+    valid = true;
+    return result;
+  } else {
+    // 16-bit field support
+    static_assert(def.bit_width == 16, "Only 8-bit and 16-bit widths supported for float fields");
+    static_assert(def.bit_offset == 0, "16-bit fields must be byte-aligned");
+
+    if (def.byte_offset + 1 >= data.size()) {
+      valid = false;
+      return 0.0f;
+    }
+
+    // 16-bit float field (currently only used by pumpFlow).
+    // Reads integer (high byte) and fractional (low byte) parts separately
+    // with signed interpretation to match HeishaMon's char* behavior.
+    // Formula: integer_byte + ((frac_byte + offset) / divider)
+    int integer_byte = (int)data[def.byte_offset + 1];
+    int frac_byte = (int)data[def.byte_offset];
+
+    // Return invalid for 0 (reserved for "no change")
+    if (integer_byte == 0 && frac_byte == 0) {
+      valid = false;
+      return 0.0f;
+    }
+
+    // HeishaMon formula: integer_byte + (frac_byte + offset) / divider
+    float frac = ((float)frac_byte + def.offset);
+
+    if constexpr (def.divider != 1) {
+      frac /= def.divider;
+    }
+
+    float result = (float)integer_byte + frac;
+
+    if constexpr (def.multiplier != 1) {
+      result *= def.multiplier;
+    }
+
+    valid = true;
+    return result;
+  }
+}
+
+template<const FloatField& def>
+__attribute__((always_inline)) inline constexpr float getField(const std::vector<uint8_t>& data, bool& valid) {
+  // Compile-time access validation
+  static_assert(def.access == R || def.access == RW, "getField requires read access (R or RW)");
+
+  return getFieldForce<def>(data, valid);
+}
+
+// TempWithFracField: Temperature with fractional part from a shared byte
+template<const TempWithFracField& def>
+__attribute__((always_inline)) inline constexpr float getFieldForce(const std::vector<uint8_t>& data, bool& valid) {
+  if (def.byte_offset >= data.size() || def.frac_byte >= data.size()) {
+    valid = false;
+    return 0.0f;
+  }
+
+  // Get integer temperature (value - 128)
+  int8_t temp_int = (int8_t)data[def.byte_offset] - 128;
+
+  // Get fractional part from frac_byte
+  uint8_t frac_bits = (data[def.frac_byte] >> def.frac_bit_offset) & 0x7;
+
+  // Map fractional bits to decimal values: 1->0.00, 2->0.25, 3->0.50, 4->0.75
+  float frac_value = 0.0f;
+  if (frac_bits == 2) frac_value = 0.25f;
+  else if (frac_bits == 3) frac_value = 0.50f;
+  else if (frac_bits == 4) frac_value = 0.75f;
+
+  // Match HeishaMon logic
+  if (temp_int < 0) {
+    frac_value *= -1.0f;
+  }
+
+  valid = true;
+  return (float)temp_int + frac_value;
+}
+
+template<const TempWithFracField& def>
+__attribute__((always_inline)) inline constexpr float getField(const std::vector<uint8_t>& data, bool& valid) {
+  // Compile-time access validation
+  static_assert(def.access == R || def.access == RW, "getField requires read access (R or RW)");
+
+  return getFieldForce<def>(data, valid);
+}
+
+// Write a raw byte value into a bit field within a data buffer.
+// Shared by Uint8Field, Int8Field, and FloatField (8-bit path) setters.
+template<const auto& def>
+__attribute__((always_inline)) inline constexpr bool write_byte_bit_field(std::vector<uint8_t>& data, uint8_t raw_value) {
+  if (def.byte_offset >= data.size()) return false;
+
+  if constexpr (def.bit_width == 8) {
+    // Full byte width - direct write without masking
+    data[def.byte_offset] = raw_value;
+  } else {
+    // Validate raw value fits in bit field
+    constexpr uint8_t max_value = (1 << def.bit_width) - 1;
+    if (raw_value > max_value) return false;
+
+    // Read current byte value and apply bit field mask
+    uint8_t byte_value = data[def.byte_offset];
+    constexpr uint8_t field_mask = ((1 << def.bit_width) - 1) << def.bit_offset;
+    byte_value &= ~field_mask;
+
+    // Apply shift optimization
+    if constexpr (def.bit_offset == 0) {
+      byte_value |= raw_value;
+    } else {
+      byte_value |= (raw_value << def.bit_offset);
+    }
+
+    data[def.byte_offset] = byte_value;
+  }
+
+  return true;
+}
+
+// setField template functions for writing field values to packets
+
+template<const Uint8Field& def>
+__attribute__((always_inline)) inline constexpr bool setFieldForce(std::vector<uint8_t>& data, uint8_t value) {
+  static_assert(def.bit_width <= 8, "setField does not support multi-byte Uint8Field (bit_width > 8)");
+
+  // Apply offset to convert logical value to raw value
+  return write_byte_bit_field<def>(data, value - def.offset);
+}
+
+template<const Uint8Field& def>
+__attribute__((always_inline)) inline constexpr bool setField(std::vector<uint8_t>& data, uint8_t value) {
+  // Compile-time access validation
+  static_assert(def.access == W || def.access == RW, "setField requires write access (W or RW)");
+
+  return setFieldForce<def>(data, value);
+}
+
+template<const Uint16Field& def>
+__attribute__((always_inline)) inline constexpr bool setFieldForce(std::vector<uint8_t>& data, uint16_t value) {
+  if (def.byte_offset + 1 >= data.size()) return false;
+
+  // Apply offset to convert logical value to raw value
+  uint16_t raw_value = value - def.offset;
+
+  // Little-endian 16-bit write: low byte at byte_offset, high byte at byte_offset+1
+  data[def.byte_offset] = raw_value & 0xFF;
+  data[def.byte_offset + 1] = (raw_value >> 8) & 0xFF;
+
+  return true;
+}
+
+template<const Uint16Field& def>
+__attribute__((always_inline)) inline constexpr bool setField(std::vector<uint8_t>& data, uint16_t value) {
+  // Compile-time access validation
+  static_assert(def.access == W || def.access == RW, "setField requires write access (W or RW)");
+
+  return setFieldForce<def>(data, value);
+}
+
+template<const BooleanField& def>
+__attribute__((always_inline)) inline constexpr bool setFieldForce(std::vector<uint8_t>& data, bool value) {
+  if (def.byte_offset >= data.size()) return false;
+
+  uint8_t byte_value = data[def.byte_offset];
+
+  if constexpr (def.offset == 0) {
+    // 1-bit wide boolean: simple bit set/clear
+    constexpr uint8_t bit_mask = 1 << def.bit_offset;
+    if (value)
+      byte_value |= bit_mask;
+    else
+      byte_value &= ~bit_mask;
+  } else {
+    // 2-bit encoded boolean pattern
+    constexpr uint8_t field_mask = 0b11 << def.bit_offset;
+    byte_value &= ~field_mask;
+
+    // false -> 0b01, true -> 0b10
+    constexpr uint8_t false_pattern = 0b01 << def.bit_offset;
+    constexpr uint8_t true_pattern = 0b10 << def.bit_offset;
+    byte_value |= value ? true_pattern : false_pattern;
+  }
+
+  data[def.byte_offset] = byte_value;
+  return true;
+}
+
+template<const BooleanField& def>
+__attribute__((always_inline)) inline constexpr bool setField(std::vector<uint8_t>& data, bool value) {
+  // Compile-time access validation
+  static_assert(def.access == W || def.access == RW, "setField requires write access (W or RW)");
+
+  return setFieldForce<def>(data, value);
+}
+
+template<const Int8Field& def>
+__attribute__((always_inline)) inline constexpr bool setFieldForce(std::vector<uint8_t>& data, int8_t value) {
+  // Convert signed value to unsigned raw value with offset
+  return write_byte_bit_field<def>(data, (uint8_t)(value - def.offset));
+}
+
+template<const Int8Field& def>
+__attribute__((always_inline)) inline constexpr bool setField(std::vector<uint8_t>& data, int8_t value) {
+  // Compile-time access validation
+  static_assert(def.access == W || def.access == RW, "setField requires write access (W or RW)");
+
+  return setFieldForce<def>(data, value);
+}
+
+template<const FloatField& def>
+__attribute__((always_inline)) inline constexpr bool setFieldForce(std::vector<uint8_t>& data, float value) {
+  if constexpr (def.bit_width <= 8) {
+    // Apply divider, multiplier, and offset to convert float to raw value
+    float adjusted_value = value;
+
+    if constexpr (def.divider != 1) {
+      adjusted_value *= def.divider;
+    }
+
+    if constexpr (def.multiplier != 1) {
+      adjusted_value /= def.multiplier;
+    }
+
+    adjusted_value -= def.offset;
+
+    // Validate range and convert to integer
+    if (adjusted_value < 0.0f || adjusted_value > ((1 << def.bit_width) - 1)) {
+      return false;
+    }
+
+    uint8_t raw_value = (uint8_t)(adjusted_value + 0.5f); // Round to nearest
+
+    return write_byte_bit_field<def>(data, raw_value);
+  } else {
+    // 16-bit field support
+    static_assert(def.bit_width == 16, "Only 8-bit and 16-bit widths supported for float fields");
+    static_assert(def.bit_offset == 0, "16-bit fields must be byte-aligned");
+
+    if (def.byte_offset + 1 >= data.size()) return false;
+
+    // Apply divider, multiplier, and offset to convert float to raw value
+    float adjusted_value = value;
+
+    if constexpr (def.divider != 1) {
+      adjusted_value *= def.divider;
+    }
+
+    if constexpr (def.multiplier != 1) {
+      adjusted_value /= def.multiplier;
+    }
+
+    adjusted_value -= def.offset;
+
+    // Validate range and convert to integer
+    if (adjusted_value < 0.0f || adjusted_value > 65535.0f) {
+      return false;
+    }
+
+    uint16_t raw_value = (uint16_t)(adjusted_value + 0.5f); // Round to nearest
+
+    // Write little-endian 16-bit value
+    data[def.byte_offset] = raw_value & 0xFF;
+    data[def.byte_offset + 1] = (raw_value >> 8) & 0xFF;
+    return true;
+  }
+}
+
+template<const FloatField& def>
+__attribute__((always_inline)) inline constexpr bool setField(std::vector<uint8_t>& data, float value) {
+  // Compile-time access validation
+  static_assert(def.access == W || def.access == RW, "setField requires write access (W or RW)");
+
+  return setFieldForce<def>(data, value);
+}
+
+} // namespace fields
+} // namespace panasonic_aquarea
+} // namespace esphome

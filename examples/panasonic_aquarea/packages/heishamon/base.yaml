@@ -1,0 +1,63 @@
+esphome:
+  name: ${device_name}
+
+external_components:
+  - source:
+      type: local
+      path: ../../components
+    components:
+      - panasonic_aquarea
+
+esp8266:
+  board: d1_mini
+
+# Enable logging
+logger:
+  # Disable logging to serial
+  baud_rate: 0
+
+# Enable OTAs
+ota:
+  - platform: esphome
+    password: ${ota_password}
+
+# Wi-Fi setup
+wifi:
+  ssid: ${wifi_ssid}
+  password: ${wifi_password}
+
+  # Enable fallback hotspot (captive portal) in case Wi-Fi connection fails
+  ap:
+    ssid: ${device_name} AP
+    password: ${ap_password}
+
+captive_portal:
+
+web_server:
+
+# HeishaMon PCB uses swapped UART pins (Serial.swap() equivalent)
+uart:
+  - id: aquarea_uart
+    tx_pin: GPIO15
+    rx_pin: GPIO13
+    baud_rate: 9600
+    data_bits: 8
+    parity: EVEN
+    stop_bits: 1
+
+# Enable Panasonic Aquarea
+panasonic_aquarea:
+  - id: ${panasonic_aquarea_id}
+    listen_only: false
+    protocols: [main, main_request]
+    data_source:
+      uart:
+        uart_id: aquarea_uart
+
+switch:
+  # HeishaMon ENABLEPIN - controls TX level shifter MOSFET
+  - platform: gpio
+  # HIGH = TX enabled, LOW = listen-only (TX floats)
+    pin: GPIO5
+    id: uart_tx_enable
+    restore_mode: ALWAYS_ON

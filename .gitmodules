@@ -1,0 +1,11 @@
+# Dev-only: provide headers for clangd IDE support.
+# Skipped by default (update = none). To init for IDE use:
+#   git submodule update --init includes/esphome includes/ArduinoJson
+[submodule "includes/esphome"]
+	path = includes/esphome
+	url = https://github.com/esphome/esphome.git
+	update = none
+[submodule "includes/ArduinoJson"]
+	path = includes/ArduinoJson
+	url = https://github.com/bblanchon/ArduinoJson.git
+	update = none
