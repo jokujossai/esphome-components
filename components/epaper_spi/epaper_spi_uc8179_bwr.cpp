@@ -57,46 +57,86 @@ void HOT EPaperWaveshareUc8179Bwr::draw_pixel_at(int x, int y, Color color) {
   }
 }
 
-bool EPaperWaveshareUc8179Bwr::initialise(bool partial) {
-  // Multi-step because we must wait for idle after POWER ON before sending
-  // the rest of the panel configuration.
-  switch (this->init_step_) {
-    case 0:
-      this->partial_active_ = partial;
-      this->transfer_stage_ = TransferStage::READY;
+EPaperWaveshareUc8179Bwr::RefreshMode EPaperWaveshareUc8179Bwr::pick_mode_() {
+  if (this->update_count_ == 0) {
+    return RefreshMode::FULL;
+  }
+  if (this->fast_update_every_ > 0 && this->update_count_ % this->fast_update_every_ == 0) {
+    return RefreshMode::FAST;
+  }
+  return RefreshMode::PARTIAL;
+}
 
-      // POWER SETTING
-      this->cmd_data(0x01, {0x07, 0x17, 0x3F, 0x26, 0x11});
-      // VCOM DC SETTING
-      this->cmd_data(0x82, {0x24});
-      // POWER ON — needs a busy-wait before the rest of the init.
-      this->command(0x04);
+bool EPaperWaveshareUc8179Bwr::initialise(bool not_full) {
+  // Multi-step: must wait for idle after POWER ON before sending the rest of
+  // the panel configuration. The mode (FULL / FAST / PARTIAL) determines which
+  // command sequence we run. Sequences mirror Init() / Init_Fast() /
+  // Init_Part() in the Waveshare demo (epd7in5b_V2-demo / EPD_7in5b_V2.cpp).
+  switch (this->init_step_) {
+    case 0: {
+      this->active_mode_ = this->pick_mode_();
+      this->transfer_stage_ = TransferStage::READY;
+      ESP_LOGD(TAG, "Init step 0: mode=%s update_count=%u",
+               this->active_mode_ == RefreshMode::FULL ? "FULL"
+                                                       : this->active_mode_ == RefreshMode::FAST ? "FAST" : "PARTIAL",
+               (unsigned) this->update_count_);
+
+      switch (this->active_mode_) {
+        case RefreshMode::FULL:
+          // Init(): power setting first.
+          this->cmd_data(0x01, {0x07, 0x07, 0x3F, 0x3F});
+          this->command(0x04);  // POWER ON
+          break;
+        case RefreshMode::FAST:
+          // Init_Fast(): panel setting (BWR) first.
+          this->cmd_data(0x00, {0x0F});
+          this->command(0x04);  // POWER ON
+          break;
+        case RefreshMode::PARTIAL:
+          // Init_Part(): panel setting (mono fast-partial mode 0x1F).
+          this->cmd_data(0x00, {0x1F});
+          this->command(0x04);  // POWER ON
+          break;
+      }
+
       this->next_delay_ = 100;
       this->init_step_ = 1;
       this->wait_for_idle_(true);
       return false;
+    }
 
-    case 1:
-      // PANEL SETTING (KW-3f, KWR-2F, BWROTP 0f)
-      this->cmd_data(0x00, {0x0F});
-      // RESOLUTION 800x480
-      this->cmd_data(0x61, {0x03, 0x20, 0x01, 0xE0});
-      // VCOM AND DATA INTERVAL SETTING
-      this->cmd_data(0x50, {0x20, 0x00});
-      // TCON SETTING
-      this->cmd_data(0x60, {0x22});
-      // RESOLUTION (secondary)
-      this->cmd_data(0x65, {0x00, 0x00, 0x00, 0x00});
-
-      if (partial) {
-        // Switch UC8179 into partial mode (waveform select 0x6E).
-        this->cmd_data(0xE5, {0x6E});
-        this->command(0x91);  // partial in
-        this->set_partial_window_();
+    case 1: {
+      switch (this->active_mode_) {
+        case RefreshMode::FULL:
+          // Init() post-power-on.
+          this->cmd_data(0x00, {0x0F});                    // PANEL SETTING (BWR)
+          this->cmd_data(0x61, {0x03, 0x20, 0x01, 0xE0});  // RESOLUTION 800x480
+          this->cmd_data(0x15, {0x00});                    // DUAL SPI
+          this->cmd_data(0x50, {0x11, 0x07});              // VCOM/DATA INTERVAL
+          this->cmd_data(0x60, {0x22});                    // TCON
+          this->cmd_data(0x65, {0x00, 0x00, 0x00, 0x00});  // RESOLUTION (secondary)
+          break;
+        case RefreshMode::FAST:
+          // Init_Fast() post-power-on.
+          this->cmd_data(0x06, {0x27, 0x27, 0x18, 0x17});  // BOOSTER SOFT START
+          this->cmd_data(0xE0, {0x02});
+          this->cmd_data(0xE5, {0x5A});                    // fast-refresh waveform
+          this->cmd_data(0x50, {0x11, 0x07});              // VCOM/DATA INTERVAL
+          break;
+        case RefreshMode::PARTIAL:
+          // Init_Part() post-power-on.
+          this->cmd_data(0xE0, {0x02});
+          this->cmd_data(0xE5, {0x6E});                    // partial waveform
+          this->cmd_data(0x50, {0xA9, 0x07});              // VCOM/DATA INTERVAL
+          // Window setup — uses the dirty bounds the user's draws accumulated.
+          this->command(0x91);                             // partial in
+          this->set_partial_window_();
+          break;
       }
 
       this->init_step_ = 0;
       return true;
+    }
 
     default:
       this->init_step_ = 0;
@@ -123,13 +163,15 @@ void EPaperWaveshareUc8179Bwr::set_partial_window_() {
   const uint16_t xe_inc = xe - 1;
   const uint16_t ye_inc = ye - 1;
   const uint8_t window[9] = {
-      static_cast<uint8_t>(xs >> 8),     static_cast<uint8_t>(xs & 0xFF),     static_cast<uint8_t>(xe_inc >> 8),
-      static_cast<uint8_t>(xe_inc & 0xFF), static_cast<uint8_t>(ys >> 8),     static_cast<uint8_t>(ys & 0xFF),
-      static_cast<uint8_t>(ye_inc >> 8), static_cast<uint8_t>(ye_inc & 0xFF), 0x01,  // gates_scan_both_inside_outside
+      static_cast<uint8_t>(xs >> 8),       static_cast<uint8_t>(xs & 0xFF),
+      static_cast<uint8_t>(xe_inc >> 8),   static_cast<uint8_t>(xe_inc & 0xFF),
+      static_cast<uint8_t>(ys >> 8),       static_cast<uint8_t>(ys & 0xFF),
+      static_cast<uint8_t>(ye_inc >> 8),   static_cast<uint8_t>(ye_inc & 0xFF),
+      0x01,  // gates_scan_both_inside_outside
   };
   this->cmd_data(0x90, window, sizeof(window));
 
-  // Persist the rounded bounds so transfer_data sends matching bytes.
+  // Persist the byte-aligned bounds so transfer_data sends matching bytes.
   this->x_low_ = xs;
   this->x_high_ = xe;
   this->y_low_ = ys;
@@ -137,34 +179,47 @@ void EPaperWaveshareUc8179Bwr::set_partial_window_() {
 }
 
 bool EPaperWaveshareUc8179Bwr::transfer_data() {
-  if (this->partial_active_) {
+  if (this->active_mode_ == RefreshMode::PARTIAL) {
+    // Per demo Display_Partial: 0x10 with all 0xFF (window-sized), then 0x13
+    // with the new BW data (window-sized). We deliberately skip
+    // Display_Base_color — the panel keeps the previous frame from the last
+    // FULL/FAST refresh. First PARTIAL after boot may show minor ghosting.
     if (this->transfer_stage_ == TransferStage::READY) {
       this->command(0x10);
       this->current_data_index_ = this->y_low_;
-      this->transfer_stage_ = TransferStage::SEND_BW;
+      this->transfer_stage_ = TransferStage::SEND_BW_DUMMY;
     }
-    if (this->transfer_stage_ == TransferStage::SEND_BW) {
-      if (!this->send_partial_chunks_())
+    if (this->transfer_stage_ == TransferStage::SEND_BW_DUMMY) {
+      if (!this->send_partial_dummy_chunks_())
+        return false;
+      this->command(0x13);
+      this->current_data_index_ = this->y_low_;
+      this->transfer_stage_ = TransferStage::SEND_BW_WINDOW;
+    }
+    if (this->transfer_stage_ == TransferStage::SEND_BW_WINDOW) {
+      if (!this->send_partial_window_chunks_())
         return false;
       this->transfer_stage_ = TransferStage::READY;
     }
     return true;
   }
 
-  // Full refresh: send full B/W (cmd 0x10) then full red (cmd 0x13).
+  // FULL / FAST: send full BW (0x10), 0x92 stop, full Red (0x13).
+  // Matches demo Display(): black layer, then 0x92, then red layer.
   if (this->transfer_stage_ == TransferStage::READY) {
     this->command(0x10);
     this->current_data_index_ = 0;
-    this->transfer_stage_ = TransferStage::SEND_BW;
+    this->transfer_stage_ = TransferStage::SEND_BW_FULL;
   }
-  if (this->transfer_stage_ == TransferStage::SEND_BW) {
+  if (this->transfer_stage_ == TransferStage::SEND_BW_FULL) {
     if (!this->send_buffer_chunks_(this->red_buffer_offset_))
       return false;
+    this->command(0x92);  // DATA STOP between layers (per demo Display)
     this->command(0x13);
     this->current_data_index_ = this->red_buffer_offset_;
-    this->transfer_stage_ = TransferStage::SEND_RED;
+    this->transfer_stage_ = TransferStage::SEND_RED_FULL;
   }
-  if (this->transfer_stage_ == TransferStage::SEND_RED) {
+  if (this->transfer_stage_ == TransferStage::SEND_RED_FULL) {
     if (!this->send_buffer_chunks_(this->buffer_length_))
       return false;
     this->transfer_stage_ = TransferStage::READY;
@@ -191,7 +246,37 @@ bool EPaperWaveshareUc8179Bwr::send_buffer_chunks_(size_t end_index) {
   return true;
 }
 
-bool EPaperWaveshareUc8179Bwr::send_partial_chunks_() {
+bool EPaperWaveshareUc8179Bwr::send_partial_dummy_chunks_() {
+  // Send 0xFF for each byte in the window (rows y_low..y_high, cols x_low/8..x_high/8).
+  const size_t row_bytes = (this->x_high_ - this->x_low_) / 8;
+  if (row_bytes == 0)
+    return true;
+
+  uint8_t row_buf[MAX_TRANSFER_SIZE];
+  const size_t to_fill = row_bytes < MAX_TRANSFER_SIZE ? row_bytes : MAX_TRANSFER_SIZE;
+  for (size_t i = 0; i < to_fill; i++)
+    row_buf[i] = 0xFF;
+
+  const uint32_t loop_start = millis();
+  while (this->current_data_index_ < this->y_high_) {
+    size_t sent = 0;
+    while (sent < row_bytes) {
+      const size_t chunk = std::min(row_bytes - sent, static_cast<size_t>(MAX_TRANSFER_SIZE));
+      this->start_data_();
+      this->write_array(row_buf, chunk);
+      this->disable();
+      sent += chunk;
+    }
+    this->current_data_index_++;
+    if (millis() - loop_start > MAX_TRANSFER_TIME) {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool EPaperWaveshareUc8179Bwr::send_partial_window_chunks_() {
+  // Send window-sized BW data from buffer rows y_low..y_high, cols x_low/8..x_high/8.
   const size_t x_byte_start = this->x_low_ / 8;
   const size_t x_byte_end = this->x_high_ / 8;
   const size_t row_bytes = x_byte_end - x_byte_start;
@@ -223,25 +308,21 @@ bool EPaperWaveshareUc8179Bwr::send_partial_chunks_() {
 }
 
 void EPaperWaveshareUc8179Bwr::refresh_screen(bool partial) {
-  ESP_LOGV(TAG, "Refresh (%s)", partial ? "partial" : "full");
+  ESP_LOGV(TAG, "Refresh");
   this->command(0x12);
-  this->next_delay_ = partial ? 100 : 100;  // matches legacy delay; busy-wait handled by FSM
-  if (partial) {
-    // Leave partial mode after the refresh completes. We schedule it inline
-    // so that power_off / deep_sleep follow correctly; the next initialise
-    // will re-enter partial mode if needed.
-    this->command(0x92);
-  }
+  // 100 ms matches the demo's TurnOnDisplay; the FSM busy-waits afterwards.
+  this->next_delay_ = 100;
 }
 
 void EPaperWaveshareUc8179Bwr::power_off() {
-  ESP_LOGV(TAG, "Power off");
-  this->command(0x02);
+  if (this->active_mode_ == RefreshMode::PARTIAL) {
+    this->command(0x92);  // partial out (matches demo Display_Partial tail)
+  }
+  this->command(0x02);  // POWER OFF (matches demo Sleep step 1)
 }
 
 void EPaperWaveshareUc8179Bwr::deep_sleep() {
-  ESP_LOGV(TAG, "Deep sleep");
-  this->cmd_data(0x07, {0xA5});
+  this->cmd_data(0x07, {0xA5});  // DEEP SLEEP (matches demo Sleep step 2)
 }
 
 }  // namespace esphome::epaper_spi

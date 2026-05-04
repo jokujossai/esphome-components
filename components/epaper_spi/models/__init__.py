@@ -35,6 +35,22 @@ class EpaperModel:
     def get_constructor_args(self, config) -> tuple:
         return ()
 
+    def extra_schema(self) -> dict:
+        """Model-specific YAML options merged into the display schema.
+
+        Default: no extras. Override in subclasses to expose model-specific
+        knobs without polluting the schema for unrelated models.
+        """
+        return {}
+
+    def configure(self, var, config) -> None:
+        """Apply model-specific YAML options after the var is constructed.
+
+        Default: no-op. Override alongside ``extra_schema`` to call setters
+        on the generated C++ class.
+        """
+        return None
+
     def get_dimensions(self, config) -> tuple[int, int]:
         if CONF_DIMENSIONS in config:
             # Explicit dimensions, just use as is

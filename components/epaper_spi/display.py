@@ -107,6 +107,7 @@ def model_schema(config):
                 cv.positive_time_period_milliseconds,
                 cv.Range(max=core.TimePeriod(milliseconds=500)),
             ),
+            **model.extra_schema(),
         }
     )
 
@@ -208,3 +209,6 @@ async def to_code(config):
     )
     if transform_str:
         cg.add(var.set_transform(RawExpression(transform_str)))
+
+    # Apply any model-specific YAML options (extra_schema / configure hooks).
+    model.configure(var, config)
