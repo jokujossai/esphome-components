@@ -62,6 +62,15 @@ class EPaperBase : public Display,
   void set_full_update_every(uint8_t full_update_every) { this->full_update_every_ = full_update_every; }
   void dump_config() override;
 
+  // True only when the FSM is in IDLE — i.e. no transfer or refresh is in
+  // flight and the buffer is safe to mutate. Use from YAML to gate buffer
+  // writes that would otherwise race the SPI transfer:
+  //
+  //   - wait_until:
+  //       condition:
+  //         lambda: 'return id(epaper)->is_idle();'
+  bool is_idle() const { return this->state_ == EPaperState::IDLE; }
+
   void command(uint8_t value);
   void cmd_data(uint8_t command, const uint8_t *ptr, size_t length);
 
