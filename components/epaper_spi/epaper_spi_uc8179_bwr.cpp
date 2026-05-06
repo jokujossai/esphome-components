@@ -61,10 +61,24 @@ EPaperWaveshareUc8179Bwr::RefreshMode EPaperWaveshareUc8179Bwr::pick_mode_() {
   if (this->update_count_ == 0) {
     return RefreshMode::FULL;
   }
+  // PARTIAL only refreshes the B/W layer — if the buffer holds any red
+  // pixels, force FAST so they reach the panel.
+  if (this->scan_red_buffer_()) {
+    ESP_LOGD(TAG, "Red pixels in buffer — upgrading to FAST");
+    return RefreshMode::FAST;
+  }
   if (this->fast_update_every_ > 0 && this->update_count_ % this->fast_update_every_ == 0) {
     return RefreshMode::FAST;
   }
   return RefreshMode::PARTIAL;
+}
+
+bool EPaperWaveshareUc8179Bwr::scan_red_buffer_() const {
+  for (size_t i = this->red_buffer_offset_; i < this->buffer_length_; i++) {
+    if (this->buffer_[i] != 0)
+      return true;
+  }
+  return false;
 }
 
 bool EPaperWaveshareUc8179Bwr::initialise(bool not_full) {

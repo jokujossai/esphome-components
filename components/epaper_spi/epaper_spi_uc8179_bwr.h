@@ -77,6 +77,11 @@ class EPaperWaveshareUc8179Bwr : public EPaperBase {
   }
 
   RefreshMode pick_mode_();
+  // True if any byte of the red half of the buffer is non-zero. Used by
+  // pick_mode_ to auto-promote PARTIAL→FAST whenever the next render holds
+  // red pixels — PARTIAL only refreshes the B/W layer on UC8179, so a red
+  // line drawn during PARTIAL would never reach the panel.
+  bool scan_red_buffer_() const;
   void set_partial_window_();
   bool send_buffer_chunks_(size_t end_index);
   bool send_partial_dummy_chunks_();
